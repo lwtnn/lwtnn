@@ -32,12 +32,26 @@ namespace lwt {
     return in + _bias;
   }
 
+  MatrixLayer::MatrixLayer(const MatrixXd& matrix):
+    _matrix(matrix)
+  {
+  }
+  VectorXd MatrixLayer::compute(const VectorXd& in) const {
+    return _matrix * in;
+  }
 
   // dummy construction routine
   Stack::Stack() {
     _layers.push_back(new DummyLayer);
     _layers.push_back(new SigmoidLayer);
     _layers.push_back(new BiasLayer(std::vector<double>{1, 1, 1, 1}));
+    MatrixXd mat(4, 4);
+    mat <<
+      0, 0, 0, 1,
+      0, 0, 1, 0,
+      0, 1, 0, 0,
+      1, 0, 0, 0;
+    _layers.push_back(new MatrixLayer(mat));
   }
   Stack::~Stack() {
     for (auto& layer: _layers) {

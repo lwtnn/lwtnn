@@ -8,6 +8,8 @@
 namespace lwt {
 
   using Eigen::VectorXd;
+  using Eigen::MatrixXd;
+
   class ILayer
   {
   public:
@@ -40,7 +42,10 @@ namespace lwt {
   class MatrixLayer: public ILayer
   {
   public:
-    MatrixLayer();
+    MatrixLayer(const MatrixXd& matrix);
+    virtual VectorXd compute(const VectorXd&) const;
+  private:
+    MatrixXd _matrix;
   };
 
   class Stack
