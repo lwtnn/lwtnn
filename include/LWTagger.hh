@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <stdexcept>
+#include <map>
 
 namespace lwt {
 
@@ -77,13 +78,47 @@ namespace lwt {
     Stack& operator=(Stack&) = delete;
 
     VectorXd compute(VectorXd) const;
+    size_t n_outputs() const;
 
   private:
     // returns the size of the next layer
     size_t add_layers(size_t n_inputs, const LayerConfig&);
     std::vector<ILayer*> _layers;
+    size_t _n_outputs;
   };
 
+  // ______________________________________________________________________
+  // high-level wrapper
+
+  class LWTagger
+  {
+  public:
+    LWTagger(const std::vector<Input>& inputs,
+	     const std::vector<LayerConfig>& layers,
+	     const std::vector<std::string>& outputs);
+    // disable copying until we need it...
+    LWTagger(LWTagger&) = delete;
+    LWTagger& operator=(LWTagger&) = delete;
+
+    // use a normal map externally, since these are more common in
+    // user code.
+    // TODO: is it worth changing to unordered_map?
+    typedef std::map<std::string, double> ValueMap;
+    ValueMap compute(const ValueMap&) const;
+
+  private:
+    // use the Stack class above as the computational core
+    Stack _stack;
+
+    // input transformations
+    VectorXd _offsets;
+    VectorXd _scales;
+    std::vector<std::string> _names;
+
+    // output labels
+    std::vector<std::string> _outputs;
+
+  };
   // ______________________________________________________________________
   // utility functions
   // WARNING: you own this pointer! Only call when assigning to member data!
@@ -92,9 +127,14 @@ namespace lwt {
 
   // ______________________________________________________________________
   // exceptions
+  // TODO: common base class?
   class NNConfigurationException: public std::logic_error {
   public:
     NNConfigurationException(std::string problem);
+  };
+  class NNEvaluationException: public std::logic_error {
+  public:
+    NNEvaluationException(std::string problem);
   };
 }
 #endif

@@ -71,6 +71,8 @@ namespace lwt {
     for (const auto& layer: layers) {
       n_inputs = add_layers(n_inputs, layer);
     }
+    // the final assigned n_inputs is the number of output nodes
+    _n_outputs = n_inputs;
   }
 
   Stack::~Stack() {
@@ -84,6 +86,9 @@ namespace lwt {
       in = layer->compute(in);
     }
     return in;
+  }
+  size_t Stack::n_outputs() const {
+    return _n_outputs;
   }
 
   // _______________________________________________________________________
@@ -141,8 +146,60 @@ namespace lwt {
   }
 
   // ______________________________________________________________________
+  // LWTagger HL wrapper
+  LWTagger::LWTagger(const std::vector<Input>& inputs,
+		     const std::vector<LayerConfig>& layers,
+		     const std::vector<std::string>& outputs):
+    _stack(inputs.size(), layers),
+    _offsets(inputs.size()),
+    _scales(inputs.size()),
+    _outputs(outputs.begin(), outputs.end())
+  {
+    size_t in_num = 0;
+    for (const auto& input: inputs) {
+      _offsets(in_num) = input.offset;
+      _scales(in_num) = input.scale;
+      _names.push_back(input.name);
+      in_num++;
+    }
+    if (_outputs.size() != _stack.n_outputs()) {
+      std::string problem = "internal stack has " +
+	std::to_string(_stack.n_outputs()) + " outputs, but " +
+	std::to_string(_outputs.size()) + " were given";
+      throw NNConfigurationException(problem);
+    }
+  }
+
+  LWTagger::ValueMap LWTagger::compute(const LWTagger::ValueMap& in) const {
+    VectorXd invec(_names.size());
+    size_t input_number = 0;
+    for (const auto& in_name: _names) {
+      if (!in.count(in_name)) {
+	throw NNEvaluationException("can't find input: " + in_name);
+      }
+      invec(input_number) = in.at(in_name);
+      input_number++;
+    }
+
+    // compute outputs
+    auto outvec = _stack.compute((invec + _offsets).cwiseProduct(_scales));
+    assert(outvec.rows() == _outputs.size());
+
+    // build and return output map
+    LWTagger::ValueMap out_map;
+    for (size_t out_n = 0; out_n < outvec.rows(); out_n++) {
+      out_map.emplace(_outputs.at(out_n), outvec(out_n));
+    }
+    return out_map;
+  }
+
+
+  // ______________________________________________________________________
   // excpetions
   NNConfigurationException::NNConfigurationException(std::string problem):
+    std::logic_error(problem)
+  {}
+  NNEvaluationException::NNEvaluationException(std::string problem):
     std::logic_error(problem)
   {}
 }
