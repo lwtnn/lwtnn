@@ -1,4 +1,5 @@
 #include "LWTagger.hh"
+#include "parse_json.hh"
 
 #include <Eigen/Dense>
 
@@ -20,5 +21,8 @@ int main(int argc, char* argv[]) {
   Eigen::VectorXd input(4);
   input << 1, 2, 3, 4;
   std::cout << stack.compute(input) << std::endl;
+
+  // just to see if the json parser actually works...
+  parse_json();
   return 0;
 }
