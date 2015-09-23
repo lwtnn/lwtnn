@@ -1,5 +1,3 @@
-#include "tools.hh"
-
 #include "LWTagger.hh"
 
 #include <Eigen/Dense>

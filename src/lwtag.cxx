@@ -1,5 +1,4 @@
 #include <Python.h>
-#include "tools.hh"
 
 #include <stdexcept>
 
@@ -10,7 +9,7 @@ static PyObject* py_alg(PyObject *self, PyObject *args)
   bool ok = PyArg_ParseTuple(args,"s|i:alg", &echo_this, &some_int);
   if (!ok) return NULL;
   try {
-    int newret = testfunc(some_int);
+    int newret = some_int;
     printf("hi %s %i\n", echo_this, newret);
     return Py_BuildValue("i", newret);
   }
