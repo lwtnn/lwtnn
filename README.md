@@ -39,11 +39,11 @@ What's left to do?
 ------------------
 
  - The `Stack` class doesn't take care of arranging named inputs or
-   outputs. Should add a `LWTagger` top level class to do
-   this. This class can also handle transformation of inputs (can
-   use something like a vector of `InputTransform` structures as a
-   constructor argument).
- - We'll need a way to construct the NN from a text file. The plan
-   is to write a function that produces a vector of `LayerConfig`,
-   a vector of `InputTransform` and a vector of output names, which
-   can be fed to the `LWTagger` constructor.
+   outputs. Should add a `LWTagger` top level class to do this. This
+   class can also handle transformation of inputs (can use something
+   like a vector of `InputTransform` structures as a constructor
+   argument).
+ - We'll need a way to construct the NN from a text file. The plan is
+   to write a function that produces a vector of `LayerConfig`, a
+   vector of `InputTransform` and a vector of output names, which can
+   be fed to the `LWTagger` constructor.
