@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <ostream>
 
 namespace lwt {
   enum class Activation {LINEAR, SIGMOID, RECTIFIED};

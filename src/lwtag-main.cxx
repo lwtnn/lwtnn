@@ -23,6 +23,5 @@ int main(int argc, char* argv[]) {
   std::cout << stack.compute(input) << std::endl;
 
   // just to see if the json parser actually works...
-  parse_json();
   return 0;
 }
