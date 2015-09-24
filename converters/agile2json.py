@@ -14,7 +14,7 @@ def _get_args():
 
 def _line_to_array(agile_line):
     entries = agile_line.split(',')[1:]
-    return [str(x) for x in entries]
+    return [float(x) for x in entries]
 
 def _run():
     args = _get_args()
@@ -25,7 +25,9 @@ def _run():
         'inputs': _get_inputs(network),
         'outputs': _get_outputs(network)
         }
-def _get_layers(network)
+    print(json.dumps(out_dict, indent=2))
+
+def _get_layers(network):
     layers = []
     for layer_name in network['layer_access']:
         layer = network[layer_name]
