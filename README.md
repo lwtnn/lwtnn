@@ -33,7 +33,10 @@ out4 1
 ```
 
 There may be some problems if you don't have the right version of
-python or don't have `pyyaml` installed.
+python or don't have [`pyyaml`][pyy] installed, but these should be
+limited to the YAML -> JSON converter. At the very least calling
+`./bin/lwtag-test-hlwrapper` with no arguments (which doesn't depend
+on the converter) should work.
 
 #### Cool, what the hell did that do? ####
 
@@ -111,3 +114,4 @@ To Do List
 [kr]: http://keras.io/
 [eg]: http://eigen.tuxfamily.org
 [pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
+[pyy]: http://pyyaml.org/wiki/PyYAML
