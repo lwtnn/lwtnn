@@ -2,3 +2,6 @@
 /build
 /lib
 
+*.yml
+*.yaml
+*.json
