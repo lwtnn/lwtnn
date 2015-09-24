@@ -17,9 +17,9 @@ namespace {
   std::string activation_as_string(lwt::Activation act) {
     using namespace lwt;
     switch (act) {
-    case Activation::LINEAR: return std::string("linear");
-    case Activation::SIGMOID: return std::string("sigmoid");
-    case Activation::RECTIFIED: return std::string("rectified");
+    case Activation::LINEAR: return "linear";
+    case Activation::SIGMOID: return "sigmoid";
+    case Activation::RECTIFIED: return "rectified";
     }
   }
 }

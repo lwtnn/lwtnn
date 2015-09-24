@@ -21,7 +21,5 @@ int main(int argc, char* argv[]) {
   Eigen::VectorXd input(4);
   input << 1, 2, 3, 4;
   std::cout << stack.compute(input) << std::endl;
-
-  // just to see if the json parser actually works...
   return 0;
 }

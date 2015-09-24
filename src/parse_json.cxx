@@ -26,7 +26,6 @@ namespace lwt {
       auto offset = v.second.get<double>("offset");
       auto scale = v.second.get<double>("scale");
       Input input{name, offset, scale};
-      std::cout << input << std::endl;
       cfg.inputs.push_back(input);
     }
     for (const auto& v: pt.get_child("layers")) {
@@ -39,7 +38,6 @@ namespace lwt {
       }
       layer.activation = get_activation(
 	v.second.get<std::string>("activation"));
-      std::cout << layer << std::endl;
       cfg.layers.push_back(layer);
     }
     for (const auto& v: pt.get_child("outputs"))

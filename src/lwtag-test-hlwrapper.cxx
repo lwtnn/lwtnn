@@ -12,9 +12,6 @@ int main(int argc, char* argv[]) {
     0, 1, 0, 0,
     1, 0, 0, 0};
   lwt::LayerConfig layer1{weights};
-  // lwt::LayerConfig narrowing{
-  //   { 1, 1, 0, 0,
-  //     0, 0, 1, 1} };
   std::vector<lwt::Input> input_conf{
     {"1", 0, 1}, {"2", 0, 1}, {"3", 0, 1}, {"4", 0, 1}};
   std::vector<std::string> outputs{"1", "2", "3", "4"};
