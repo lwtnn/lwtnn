@@ -4,25 +4,26 @@ What is this?
 This is a few lightweight classes to apply a trained neural net. The
 main design principles are:
 
- - **Minimal dependencies:** It should only depend on C++11 and Eigen
-   (maybe I'll add boost to handle parsing of the configuration).
+ - **Minimal dependencies:** The core class should only depend on
+   C++11 and [Eigen][eg]. The JSON parser to read in NNs also requires
+   boost [PropertyTree][pt].
  - **Flat structure:** Each layer in the NN inherits from the `ILayer`
    abstract base class, the NN itself is just a stack of `ILayer`
    derived classes.
  - **Easy to extend:** Should cover 95% of deep network architectures we
    would realistically consider.
 
-At the moment we also include a converter from the [AGILEPack][ap]
-Yaml format to the format used here. In the future we hope to include
-converters from the [Keras][kr] format as well.
+At the moment we also include a Python converter from the
+[AGILEPack][ap] Yaml format to the format used here. In the future we
+hope to include converters from the [Keras][kr] format as well.
 
 How do I use it?
 ----------------
 
 #### Quick Start ####
 
-Just run `./test-nn.sh`. If nothing goes wrong you should see
-something like:
+After running `make`, just run `./test-nn.sh`. If nothing goes wrong
+you should see something like:
 
 ```
 out1 4
@@ -63,8 +64,11 @@ internally. If anything goes wrong it will throw a
 `NNConfigurationException`.
 
 After the class is constructed, it has one method, `compute`, which
-takes a `map` of named doubles as an input and returns a `map` of
-named outputs. It's fine to give `compute` a map with more arguments than the NN requires, but if some argument is _missing_ it will throw an `NNEvaluationException`. All the exceptions inherit from `LightweightTaggerException`.
+takes a `map<string, double>` as an input and returns a `map` of named
+outputs (of the same type). It's fine to give `compute` a map with
+more arguments than the NN requires, but if some argument is _missing_
+it will throw an `NNEvaluationException`. All the exceptions inherit
+from `LightweightTaggerException`.
 
 #### The Low Level Interface ####
 
@@ -105,3 +109,5 @@ To Do List
 
 [ap]: https://github.com/lukedeo/AGILEPack
 [kr]: http://keras.io/
+[eg]: http://eigen.tuxfamily.org
+[pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
