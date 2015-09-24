@@ -1,9 +1,17 @@
 #ifndef LAYER_CONFIG_HH
 #define LAYER_CONFIG_HH
 
+// Layer Configiruation for Lightweight Tagger
+//
+// The structures below are used to initalize `LWTagger` and the
+// simpler `Stack`.
+//
+// Author: Dan Guest <dguest@cern.ch>
+
 #include <vector>
 #include <string>
 #include <ostream>
+
 
 namespace lwt {
   enum class Activation {LINEAR, SIGMOID, RECTIFIED};

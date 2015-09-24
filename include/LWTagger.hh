@@ -1,6 +1,15 @@
 #ifndef LW_TAGGER_HH
 #define LW_TAGGER_HH
 
+// Lightweight Tagger
+//
+// This is a simple NN implementation, designed to be lightweight in
+// terms of both size and dependencies. For sanity we use Eigen, but
+// otherwise this aims to be a minimal NN class which is fully
+// configurable at runtime.
+//
+// Author: Dan Guest <dguest@cern.ch>
+
 #include "LayerConfig.hh"
 
 #include <Eigen/Dense>

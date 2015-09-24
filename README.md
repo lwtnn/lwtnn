@@ -1,5 +1,5 @@
-What the hell is this?
-----------------------
+What is this?
+-------------
 
 This is a few lightweight classes to apply a trained neural net. The
 main design principles are:
@@ -11,6 +11,10 @@ main design principles are:
    derived classes.
  - **Easy to extend:** Should cover 95% of deep network architectures we
    would realistically consider.
+
+At the moment we also include a converter from the [AGILEPack][ap]
+Yaml format to the format used here. In the future we hope to include
+converters from the [Keras][kr] format as well.
 
 How do I use it?
 ----------------
@@ -34,8 +38,8 @@ python or don't have `pyyaml` installed.
 
 Take a look inside `test-nn.sh`, it does two things:
 
- - Runs `./converters/agile2json.py`. This should write a JSON file to
-   standard out.
+ - Runs `./converters/agile2json.py`. This takes an [AGILEPack][ap]
+   output and write a JSON file to standard out.
  - Pipes the output to `./bin/lwtag-test-full`. This will construct a
    NN from the resulting JSON and run a single test pattern.
 
@@ -55,11 +59,12 @@ Open `include/LWTagger.hh` and find the class declaration for `LWTagger`. The co
  - A vector of output names.
 
 The constructor should check to make sure everything makes sense
-internally. If anything goes wrong it will throw an exception.
+internally. If anything goes wrong it will throw a
+`NNConfigurationException`.
 
 After the class is constructed, it has one method, `compute`, which
 takes a `map` of named doubles as an input and returns a `map` of
-named outputs.
+named outputs. It's fine to give `compute` a map with more arguments than the NN requires, but if some argument is _missing_ it will throw an `NNEvaluationException`. All the exceptions inherit from `LightweightTaggerException`.
 
 #### The Low Level Interface ####
 
@@ -83,6 +88,11 @@ doesn't make sense the constructor should throw an
 The `Stack::compute(VectorXd)` method will return a `VectorXd` of
 outputs.
 
+This code sucks!
+----------------
+
+If you find a bug in this code, or have any ideas, criticisms, etc, please email me at `dguest@cern.ch`.
+
 To Do List
 ----------
 
@@ -91,3 +101,7 @@ To Do List
    problems and I'm too lazy to write custom versions. It's not clear
    that we'll need them anyway, but if someone ends up wanting
    something like a `std::map<XXX, LWTagger>` I could add them.
+
+
+[ap]: https://github.com/lukedeo/AGILEPack
+[kr]: http://keras.io/
