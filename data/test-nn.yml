@@ -1,0 +1,35 @@
+network:
+  layer_access:
+    - flip_layer
+  flip_layer:
+    activation: rectified
+    weights: "#EM|4|4,
+               0,0,0,1,
+               0,0,1,0,
+               0,1,0,0,
+               1,0,0,0"
+    bias: "#EM|4|1,  0,0,0,0"
+
+  # NOTE: the inputs are hardcoded in the `lwtag-test` example
+  #       if you change them here something _should_ break
+  input_order:
+    - in1
+    - in2
+    - in3
+    - in4
+  target_order:
+    - out1
+    - out2
+    - out3
+    - out4
+  scaling:
+    mean:
+      in1: 0
+      in2: 0
+      in3: 0
+      in4: 0
+    sd:
+      in1: 1
+      in2: 1
+      in3: 1
+      in4: 1

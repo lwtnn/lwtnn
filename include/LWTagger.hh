@@ -127,12 +127,21 @@ namespace lwt {
 
   // ______________________________________________________________________
   // exceptions
-  // TODO: common base class?
-  class NNConfigurationException: public std::logic_error {
+
+  // base exception
+  class LightweightTaggerException: public std::logic_error {
+  public:
+    LightweightTaggerException(std::string problem);
+  };
+
+  // thrown by the constructor if something goes wrong
+  class NNConfigurationException: public LightweightTaggerException {
   public:
     NNConfigurationException(std::string problem);
   };
-  class NNEvaluationException: public std::logic_error {
+
+  // thrown by `compute`
+  class NNEvaluationException: public LightweightTaggerException {
   public:
     NNEvaluationException(std::string problem);
   };

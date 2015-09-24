@@ -196,10 +196,13 @@ namespace lwt {
 
   // ______________________________________________________________________
   // excpetions
-  NNConfigurationException::NNConfigurationException(std::string problem):
+  LightweightTaggerException::LightweightTaggerException(std::string problem):
     std::logic_error(problem)
   {}
+  NNConfigurationException::NNConfigurationException(std::string problem):
+    LightweightTaggerException(problem)
+  {}
   NNEvaluationException::NNEvaluationException(std::string problem):
-    std::logic_error(problem)
+    LightweightTaggerException(problem)
   {}
 }

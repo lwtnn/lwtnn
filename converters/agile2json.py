@@ -7,16 +7,8 @@ import yaml
 import argparse
 import json
 
-def _get_args():
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('yaml_file')
-    return parser.parse_args()
-
-def _line_to_array(agile_line):
-    entries = agile_line.split(',')[1:]
-    return [float(x) for x in entries]
-
 def _run():
+    """Top level routine"""
     args = _get_args()
     with open(args.yaml_file) as yml:
         network = yaml.load(yml)['network']
@@ -26,6 +18,11 @@ def _run():
         'outputs': _get_outputs(network)
         }
     print(json.dumps(out_dict, indent=2))
+
+def _get_args():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('yaml_file')
+    return parser.parse_args()
 
 def _get_layers(network):
     layers = []
@@ -39,7 +36,16 @@ def _get_layers(network):
         layers.append(out_layer)
     return layers
 
+def _line_to_array(agile_line):
+    """convert the weird AGILEPack weights output to an array of floats"""
+    entries = agile_line.split(',')[1:]
+    return [float(x) for x in entries]
+
 def _get_inputs(network):
+    """
+    Get the input scaling from AGILEPack.
+    Note the inversion of scale and offset.
+    """
     inputs = []
     for input_name in network['input_order']:
         offset = - network['scaling']['mean'][input_name]
