@@ -41,18 +41,6 @@ ALL_TOP_LEVEL := # blank, more will be added below
 # _______________________________________________________________
 # Add Top Level Objects
 
-# --- python top level objects
-PY_OBJ       := lwtag.o
-PY_OBJ_PATH  := $(PY_OBJ:%=$(BUILD)/%)
-PY_SRC_PATH  := $(PY_OBJ:%.o=$(SRC)/%.cxx)
-PY_SO        := $(LIB)/lwtag.so
-
-# filter out the general objects
-GEN_OBJ_PATHS := $(filter-out $(BUILD)/lwtag.o,$(GEN_OBJ_PATHS))
-
-# add to all top level
-ALL_TOP_LEVEL += $(PY_SO)
-
 # --- stuff used for the c++ executable
 # everything with this prefix will be built as an executable
 EXE_PREFIX   := lwtag-
@@ -70,35 +58,11 @@ ALL_TOP_LEVEL += $(ALL_EXE_PATHS)
 # _______________________________________________________________
 # Add Libraries
 
-# --- python config
-PY_CONFIG := python3-config
-
-PY_FLAGS  :=   $(shell $(PY_CONFIG) --includes)
-PY_LIBS   := -L$(shell $(PY_CONFIG) --prefix)/lib
-PY_LIBS   +=   $(shell $(PY_CONFIG) --libs)
-
-# define these last because they inherit other LDFLAGS
-PY_LDFLAGS := $(LDFLAGS)
-PY_LDFLAGS += $(PY_LIBS)
-PY_LDFLAGS += -shared
-
 # --- first call here
 all: $(ALL_TOP_LEVEL)
 
 # _______________________________________________________________
 # Add Build Rules
-
-# python object compile
-$(PY_OBJ_PATH): $(PY_SRC_PATH)
-	@echo compiling python object $@
-	@mkdir -p $(BUILD)
-	@$(CXX) -c $(CXXFLAGS) $(PY_FLAGS) $< -o $@
-
-# python linking
-$(PY_SO): $(GEN_OBJ_PATHS) $(PY_OBJ_PATH)
-	@mkdir -p $(LIB)
-	@echo "linking $^ --> $@"
-	@$(CXX) -o $@ $^ $(LIBS) $(PY_LDFLAGS)
 
 # build exe
 $(OUTPUT)/$(EXE_PREFIX)%: $(GEN_OBJ_PATHS) $(BUILD)/$(EXE_PREFIX)%.o
