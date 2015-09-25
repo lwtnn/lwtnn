@@ -1,7 +1,7 @@
 #ifndef PARSE_JSON_HH
 #define PARSE_JSON_HH
 
-#include "LayerConfig.hh"
+#include "NNLayerConfig.hh"
 
 #include <istream>
 

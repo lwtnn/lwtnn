@@ -1,5 +1,5 @@
-#ifndef LW_TAGGER_HH
-#define LW_TAGGER_HH
+#ifndef LIGHTWEIGHT_NEURAL_NETWORK_HH
+#define LIGHTWEIGHT_NEURAL_NETWORK_HH
 
 // Lightweight Tagger
 //
@@ -10,7 +10,7 @@
 //
 // Author: Dan Guest <dguest@cern.ch>
 
-#include "LayerConfig.hh"
+#include "NNLayerConfig.hh"
 
 #include <Eigen/Dense>
 
@@ -99,15 +99,15 @@ namespace lwt {
   // ______________________________________________________________________
   // high-level wrapper
 
-  class LWTagger
+  class LightweightNeuralNetwork
   {
   public:
-    LWTagger(const std::vector<Input>& inputs,
-	     const std::vector<LayerConfig>& layers,
-	     const std::vector<std::string>& outputs);
+    LightweightNeuralNetwork(const std::vector<Input>& inputs,
+			     const std::vector<LayerConfig>& layers,
+			     const std::vector<std::string>& outputs);
     // disable copying until we need it...
-    LWTagger(LWTagger&) = delete;
-    LWTagger& operator=(LWTagger&) = delete;
+    LightweightNeuralNetwork(LightweightNeuralNetwork&) = delete;
+    LightweightNeuralNetwork& operator=(LightweightNeuralNetwork&) = delete;
 
     // use a normal map externally, since these are more common in
     // user code.
@@ -138,19 +138,19 @@ namespace lwt {
   // exceptions
 
   // base exception
-  class LightweightTaggerException: public std::logic_error {
+  class LightweightNNException: public std::logic_error {
   public:
-    LightweightTaggerException(std::string problem);
+    LightweightNNException(std::string problem);
   };
 
   // thrown by the constructor if something goes wrong
-  class NNConfigurationException: public LightweightTaggerException {
+  class NNConfigurationException: public LightweightNNException {
   public:
     NNConfigurationException(std::string problem);
   };
 
   // thrown by `compute`
-  class NNEvaluationException: public LightweightTaggerException {
+  class NNEvaluationException: public LightweightNNException {
   public:
     NNEvaluationException(std::string problem);
   };

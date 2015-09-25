@@ -1,5 +1,5 @@
-#include "Streamers.hh"
-#include "LayerConfig.hh"
+#include "lightweight_nn_streamers.hh"
+#include "NNLayerConfig.hh"
 
 #include <vector>
 #include <string>

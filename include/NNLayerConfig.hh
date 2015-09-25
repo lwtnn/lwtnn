@@ -1,10 +1,10 @@
-#ifndef LAYER_CONFIG_HH
-#define LAYER_CONFIG_HH
+#ifndef NN_LAYER_CONFIG_HH
+#define NN_LAYER_CONFIG_HH
 
 // Layer Configiruation for Lightweight Tagger
 //
-// The structures below are used to initalize `LWTagger` and the
-// simpler `Stack`.
+// The structures below are used to initalize
+// `LightweightNeuralNetwork` and the simpler `Stack`.
 //
 // Author: Dan Guest <dguest@cern.ch>
 

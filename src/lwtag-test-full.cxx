@@ -1,4 +1,4 @@
-#include "LWTagger.hh"
+#include "LightweightNeuralNetwork.hh"
 #include "parse_json.hh"
 
 #include <Eigen/Dense>
@@ -12,10 +12,10 @@ int main(int argc, char* argv[]) {
   auto config = lwt::parse_json(std::cin);
 
   // initialize the tagger from the configuration
-  lwt::LWTagger tagger(config.inputs, config.layers, config.outputs);
+  lwt::LightweightNeuralNetwork tagger(config.inputs, config.layers, config.outputs);
 
   // build some dummy inputs and feed them to the tagger
-  lwt::LWTagger::ValueMap input{
+  lwt::LightweightNeuralNetwork::ValueMap input{
     {"in1", 1}, {"in2", 2}, {"in3", 3}, {"in4", 4} };
   auto out = tagger.compute(input);
 

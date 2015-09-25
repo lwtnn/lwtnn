@@ -1,4 +1,4 @@
-#include "LWTagger.hh"
+#include "LightweightNeuralNetwork.hh"
 #include "parse_json.hh"
 
 #include <Eigen/Dense>

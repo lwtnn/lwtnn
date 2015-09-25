@@ -1,4 +1,4 @@
-#include "LWTagger.hh"
+#include "LightweightNeuralNetwork.hh"
 
 namespace lwt {
 
@@ -146,10 +146,11 @@ namespace lwt {
   }
 
   // ______________________________________________________________________
-  // LWTagger HL wrapper
-  LWTagger::LWTagger(const std::vector<Input>& inputs,
-		     const std::vector<LayerConfig>& layers,
-		     const std::vector<std::string>& outputs):
+  // LightweightNeuralNetwork HL wrapper
+  LightweightNeuralNetwork::LightweightNeuralNetwork(
+    const std::vector<Input>& inputs,
+    const std::vector<LayerConfig>& layers,
+    const std::vector<std::string>& outputs):
     _stack(inputs.size(), layers),
     _offsets(inputs.size()),
     _scales(inputs.size()),
@@ -170,7 +171,8 @@ namespace lwt {
     }
   }
 
-  LWTagger::ValueMap LWTagger::compute(const LWTagger::ValueMap& in) const {
+  LightweightNeuralNetwork::ValueMap LightweightNeuralNetwork::compute(
+    const LightweightNeuralNetwork::ValueMap& in) const {
     VectorXd invec(_names.size());
     size_t input_number = 0;
     for (const auto& in_name: _names) {
@@ -186,7 +188,7 @@ namespace lwt {
     assert(outvec.rows() == _outputs.size());
 
     // build and return output map
-    LWTagger::ValueMap out_map;
+    LightweightNeuralNetwork::ValueMap out_map;
     for (size_t out_n = 0; out_n < outvec.rows(); out_n++) {
       out_map.emplace(_outputs.at(out_n), outvec(out_n));
     }
@@ -196,13 +198,13 @@ namespace lwt {
 
   // ______________________________________________________________________
   // excpetions
-  LightweightTaggerException::LightweightTaggerException(std::string problem):
+  LightweightNNException::LightweightNNException(std::string problem):
     std::logic_error(problem)
   {}
   NNConfigurationException::NNConfigurationException(std::string problem):
-    LightweightTaggerException(problem)
+    LightweightNNException(problem)
   {}
   NNEvaluationException::NNEvaluationException(std::string problem):
-    LightweightTaggerException(problem)
+    LightweightNNException(problem)
   {}
 }
