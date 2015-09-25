@@ -51,7 +51,9 @@ Of course this isn't very useful, to do more you have to understand...
 
 #### The High Level Interface ####
 
-Open `include/LWTagger.hh` and find the class declaration for `LWTagger`. The constructor takes three arguments:
+Open `include/LightweightNeuralNetwork.hh` and find the class
+declaration for `LightweightNeuralNetwork`. The constructor takes
+three arguments:
 
  - A vector of `Input`s: these structures give the variable `name`,
    `offset`, and `scale`. Note that these are applied as `v = (input +
@@ -71,7 +73,7 @@ takes a `map<string, double>` as an input and returns a `map` of named
 outputs (of the same type). It's fine to give `compute` a map with
 more arguments than the NN requires, but if some argument is _missing_
 it will throw an `NNEvaluationException`. All the exceptions inherit
-from `LightweightTaggerException`.
+from `LightweightNNException`.
 
 #### The Low Level Interface ####
 
@@ -103,11 +105,12 @@ If you find a bug in this code, or have any ideas, criticisms, etc, please email
 To Do List
 ----------
 
- - The copy and assignment constructors for `LWTagger` and `Stack` are
-   currently deleted, because the defaults would cause all kinds of
-   problems and I'm too lazy to write custom versions. It's not clear
-   that we'll need them anyway, but if someone ends up wanting
-   something like a `std::map<XXX, LWTagger>` I could add them.
+ - The copy and assignment constructors for `LightweightNeuralNetwork`
+   and `Stack` are currently deleted, because the defaults would cause
+   all kinds of problems and I'm too lazy to write custom
+   versions. It's not clear that we'll need them anyway, but if
+   someone ends up wanting something like a `std::map<XXX,
+   LightweightNeuralNetwork>` I could add them.
 
 
 [ap]: https://github.com/lukedeo/AGILEPack
