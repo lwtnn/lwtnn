@@ -97,8 +97,8 @@ doesn't make sense the constructor should throw an
 The `Stack::compute(VectorXd)` method will return a `VectorXd` of
 outputs.
 
-This code sucks!
-----------------
+Have problems?
+--------------
 
 If you find a bug in this code, or have any ideas, criticisms, etc, please email me at `dguest@cern.ch`.
 
