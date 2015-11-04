@@ -20,7 +20,9 @@ namespace lwt {
     size_t n_elements = in.rows();
     VectorXd out(n_elements);
     for (size_t iii = 0; iii < n_elements; iii++) {
-      out(iii) = in(iii) > 0 ? in(iii) : 0;
+      // pass through NaN values
+      if (std::isnan(in(iii))) out(iii) = in(iii);
+      else out(iii) = in(iii) > 0 ? in(iii) : 0;
     }
     return out;
   }
