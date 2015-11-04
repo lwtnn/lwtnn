@@ -4,6 +4,7 @@
 #include "NNLayerConfig.hh"
 
 #include <istream>
+#include <map>
 
 namespace lwt {
   struct JSONConfig
@@ -11,6 +12,7 @@ namespace lwt {
     std::vector<LayerConfig> layers;
     std::vector<Input> inputs;
     std::vector<std::string> outputs;
+    std::map<std::string, double> defaults;
   };
   JSONConfig parse_json(std::istream& json);
 }

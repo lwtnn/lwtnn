@@ -33,3 +33,5 @@ network:
       in2: 1
       in3: 1
       in4: 1
+  defaults:
+    in3: 3

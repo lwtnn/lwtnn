@@ -45,6 +45,12 @@ namespace lwt {
       assert(v.first.empty()); // array elements have no names
       cfg.outputs.push_back(v.second.data());
     }
+    const std::string dname = "defaults";
+    if (pt.count(dname)) {
+      for (const auto& def: pt.get_child(dname)) {
+	cfg.defaults.emplace(def.first, def.second.get_value<double>());
+      }
+    }
     return cfg;
   }
 
