@@ -15,7 +15,8 @@ def _run():
     out_dict = {
         'layers': _get_layers(network),
         'inputs': _get_inputs(network),
-        'outputs': _get_outputs(network)
+        'outputs': _get_outputs(network),
+        'defaults': _get_defaults(network)
         }
     defaults = network.get('defaults')
     if defaults:
@@ -58,6 +59,18 @@ def _get_inputs(network):
 
 def _get_outputs(network):
     return network['target_order']
+
+def _get_defaults(network):
+    """                                                                                                                                                        
+    Get the input defaults from AGILEPack.                                                                                                                     
+    """
+    defaults = []
+    for input_name in network['input_order']:
+        if input_name in network['default_values']:
+            default_val = network['default_values'][input_name]
+            #defaults.append({input_name: default_val})
+            defaults.append({'name': input_name, 'default_value': default_val})
+    return defaults
 
 if __name__ == '__main__':
     _run()

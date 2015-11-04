@@ -15,6 +15,8 @@ namespace lwt {
     std::map<std::string, double> defaults;
   };
   JSONConfig parse_json(std::istream& json);
+
+  std::map<std::string,double> get_defaults_from_json(std::istream& json);
 }
 
 

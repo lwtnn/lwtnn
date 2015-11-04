@@ -54,6 +54,26 @@ namespace lwt {
     return cfg;
   }
 
+
+
+  std::map<std::string,double> get_defaults_from_json(std::istream& json)
+  {
+    json.seekg(0, json.beg);
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_json(json, pt);
+    std::map<std::string,double> default_map;
+    for (const auto& d: pt.get_child("defaults"))
+      {
+	std::string name = d.second.get<std::string>("name");
+	auto def_val = d.second.get<double>("default_value");
+        default_map.emplace(name,def_val);
+      }
+    for(const auto& a: default_map)
+      {
+	std::cout << "default_map: " << a.first << "  " << a.second << std::endl; 
+      }
+    return default_map;
+  }
 }
 
 namespace {

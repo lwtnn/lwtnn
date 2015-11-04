@@ -1,0 +1,73 @@
+{
+  "inputs": [
+    {
+      "offset": 0,
+      "name": "in1",
+      "scale": 1.0
+    },
+    {
+      "offset": 0,
+      "name": "in2",
+      "scale": 1.0
+    },
+    {
+      "offset": 0,
+      "name": "in3",
+      "scale": 1.0
+    },
+    {
+      "offset": 0,
+      "name": "in4",
+      "scale": 1.0
+    }
+  ],
+  "defaults": [
+    {
+      "default_value": -1,
+      "name": "in1"
+    },
+    {
+      "default_value": -2,
+      "name": "in3"
+    },
+    {
+      "default_value": -2,
+      "name": "in4"
+    }
+  ],
+  "layers": [
+    {
+      "bias": [
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "activation": "rectified",
+      "weights": [
+        0.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        1.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ],
+  "outputs": [
+    "out1",
+    "out2",
+    "out3",
+    "out4"
+  ]
+}
