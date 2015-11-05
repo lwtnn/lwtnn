@@ -5,13 +5,15 @@
 
 #include <iostream>
 #include <string>
-#include <limits>
+#include <limits> // check for NAN
+#include <cmath>  // NAN
 
 namespace {
-  const double NaN = std::numeric_limits<double>::quiet_NaN();
+  static_assert(std::numeric_limits<double>::has_quiet_NaN,
+		"no NaN defined, but we require one");
 
-  // duplicated the inputs, but with NaN replaced with default values
-  // may throw a logic_error
+  // copy the inputs, but with NaN replaced with default values. Don't
+  // do anything with NaN values with no defined default.
   std::map<std::string, double> replace_nan_with_defaults(
     const std::map<std::string, double>& inputs,
     const std::map<std::string, double>& defaults);
@@ -28,7 +30,7 @@ int main(int argc, char* argv[]) {
 
   // build some dummy inputs and feed them to the tagger
   lwt::LightweightNeuralNetwork::ValueMap input{
-    {"in1", 1}, {"in2", 2}, {"in3", NaN}, {"in4", 4} };
+    {"in1", 1}, {"in2", 2}, {"in3", NAN}, {"in4", 4} };
   auto cleaned_inputs = replace_nan_with_defaults(input, config.defaults);
   auto out = tagger.compute(cleaned_inputs);
 
@@ -45,18 +47,13 @@ namespace {
     const std::map<std::string, double>& inputs,
     const std::map<std::string, double>& defaults) {
 
-    // replace input values, rather than overwriting them
+    // return a new map with the NaN values replaced where possible.
     std::map<std::string, double> outputs;
 
     // loop over all inputs
     for (const auto& in: inputs) {
-      if (std::isnan(in.second)) {
-	if (defaults.count(in.first)) {
-	  outputs[in.first] = defaults.at(in.first);
-	} else {
-	  throw std::logic_error(
-	    "found nan for " + in.first + " which has no defined default");
-	}
+      if (std::isnan(in.second) && defaults.count(in.first)) {
+	outputs[in.first] = defaults.at(in.first);
       } else {
 	outputs[in.first] = in.second;
       }
