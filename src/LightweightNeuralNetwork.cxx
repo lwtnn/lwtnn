@@ -102,18 +102,18 @@ namespace lwt {
     if (layer.weights.size() > 0) {
       size_t n_elements = layer.weights.size();
       if ((n_elements % n_inputs) != 0) {
-	std::string problem = "matrix elements not divisible by number"
-	  " of columns. Elements: " + std::to_string(n_elements) +
-	  ", Inputs: " + std::to_string(n_inputs);
-	throw NNConfigurationException(problem);
+        std::string problem = "matrix elements not divisible by number"
+          " of columns. Elements: " + std::to_string(n_elements) +
+          ", Inputs: " + std::to_string(n_inputs);
+        throw NNConfigurationException(problem);
       }
       n_outputs = n_elements / n_inputs;
       MatrixXd matrix(n_outputs, n_inputs);
       for (size_t row = 0; row < n_outputs; row++) {
-	for (size_t col = 0; col < n_inputs; col++) {
-	  double element = layer.weights.at(col + row * n_inputs);
-	  matrix(row, col) = element;
-	}
+        for (size_t col = 0; col < n_inputs; col++) {
+          double element = layer.weights.at(col + row * n_inputs);
+          matrix(row, col) = element;
+        }
       }
       _layers.push_back(new MatrixLayer(matrix));
     };
@@ -121,10 +121,10 @@ namespace lwt {
     // add bias layer
     if (layer.bias.size() > 0) {
       if (n_outputs != layer.bias.size() ) {
-	std::string problem = "tried to add a bias layer with " +
-	  std::to_string(layer.bias.size()) + " entries, previous layer"
-	  " had " + std::to_string(n_outputs) + " outputs";
-	throw NNConfigurationException(problem);
+        std::string problem = "tried to add a bias layer with " +
+          std::to_string(layer.bias.size()) + " entries, previous layer"
+          " had " + std::to_string(n_outputs) + " outputs";
+        throw NNConfigurationException(problem);
       }
       _layers.push_back(new BiasLayer(layer.bias));
     }
@@ -167,8 +167,8 @@ namespace lwt {
     }
     if (_outputs.size() != _stack.n_outputs()) {
       std::string problem = "internal stack has " +
-	std::to_string(_stack.n_outputs()) + " outputs, but " +
-	std::to_string(_outputs.size()) + " were given";
+        std::to_string(_stack.n_outputs()) + " outputs, but " +
+        std::to_string(_outputs.size()) + " were given";
       throw NNConfigurationException(problem);
     }
   }
@@ -179,7 +179,7 @@ namespace lwt {
     size_t input_number = 0;
     for (const auto& in_name: _names) {
       if (!in.count(in_name)) {
-	throw NNEvaluationException("can't find input: " + in_name);
+        throw NNEvaluationException("can't find input: " + in_name);
       }
       invec(input_number) = in.at(in_name);
       input_number++;

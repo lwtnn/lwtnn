@@ -31,13 +31,13 @@ namespace lwt {
     for (const auto& v: pt.get_child("layers")) {
       LayerConfig layer;
       for (const auto& wt: v.second.get_child("weights")) {
-	layer.weights.push_back(wt.second.get_value<double>());
+        layer.weights.push_back(wt.second.get_value<double>());
       }
       for (const auto& bs: v.second.get_child("bias")) {
-	layer.bias.push_back(bs.second.get_value<double>());
+        layer.bias.push_back(bs.second.get_value<double>());
       }
       layer.activation = get_activation(
-	v.second.get<std::string>("activation"));
+        v.second.get<std::string>("activation"));
       cfg.layers.push_back(layer);
     }
     for (const auto& v: pt.get_child("outputs"))
@@ -48,7 +48,7 @@ namespace lwt {
     const std::string dname = "defaults";
     if (pt.count(dname)) {
       for (const auto& def: pt.get_child(dname)) {
-	cfg.defaults.emplace(def.first, def.second.get_value<double>());
+        cfg.defaults.emplace(def.first, def.second.get_value<double>());
       }
     }
     return cfg;

@@ -20,7 +20,7 @@ def _run():
     defaults = network.get('defaults')
     if defaults:
         out_dict['defaults'] = defaults
-    print(json.dumps(out_dict, indent=2))
+    print(json.dumps(out_dict))
 
 def _get_args():
     parser = argparse.ArgumentParser(description=__doc__)

@@ -103,8 +103,8 @@ namespace lwt {
   {
   public:
     LightweightNeuralNetwork(const std::vector<Input>& inputs,
-			     const std::vector<LayerConfig>& layers,
-			     const std::vector<std::string>& outputs);
+                             const std::vector<LayerConfig>& layers,
+                             const std::vector<std::string>& outputs);
     // disable copying until we need it...
     LightweightNeuralNetwork(LightweightNeuralNetwork&) = delete;
     LightweightNeuralNetwork& operator=(LightweightNeuralNetwork&) = delete;
