@@ -1,5 +1,5 @@
-#ifndef STREAMERS_HH
-#define STREAMERS_HH
+#ifndef LWT_STREAMERS_HH
+#define LWT_STREAMERS_HH
 
 #include <ostream>
 
