@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eu
+
+THIS_SCRIPT=$(basename $0)
+if [[ $# == 0 ]] ; then
+    echo "${THIS_SCRIPT} [--libs | --cflags ]"
+    exit 1
+fi
+BASE_DIR=$(dirname $(dirname $0))
+case $1 in
+    --libs) echo "-L${BASE_DIR}/lib -Wl,-rpath,${BASE_DIR}/lib -llwtnn";;
+    --cflags) echo "-I${BASE_DIR}/include" ;;
+    *) echo "ERROR, $1 is undefined" >&2 ; exit 1;
+esac

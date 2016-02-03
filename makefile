@@ -11,7 +11,9 @@ SRC          := src
 INC          := include
 DICT         := dict
 OUTPUT       := bin
-LIB          := lib
+
+LIBDIR       := $(CURDIR)/lib
+LIBNAME      := liblwtnn.so
 
 #  set search path
 vpath %.cxx  $(SRC)
@@ -55,6 +57,9 @@ GEN_OBJ_PATHS := $(filter-out $(BUILD)/$(EXE_PREFIX)%.o,$(GEN_OBJ_PATHS))
 # add to all top level
 ALL_TOP_LEVEL += $(ALL_EXE_PATHS)
 
+# add the library
+ALL_TOP_LEVEL += $(LIBDIR)/$(LIBNAME)
+
 # _______________________________________________________________
 # Add Libraries
 
@@ -69,6 +74,12 @@ $(OUTPUT)/$(EXE_PREFIX)%: $(GEN_OBJ_PATHS) $(BUILD)/$(EXE_PREFIX)%.o
 	@mkdir -p $(OUTPUT)
 	@echo "linking $^ --> $@"
 	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
+
+# build lib
+$(LIBDIR)/$(LIBNAME): $(GEN_OBJ_PATHS)
+	@mkdir -p $(LIBDIR)
+	@echo "linking $^ --> $@"
+	@$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS) -shared
 
 # compile rule
 $(BUILD)/%.o: %.cxx
@@ -97,7 +108,7 @@ $(DEP)/%.d: %.cxx
 CLEANLIST     = *~ *.o *.o~ *.d core
 clean:
 	rm -fr $(CLEANLIST) $(CLEANLIST:%=$(BUILD)/%) $(CLEANLIST:%=$(DEP)/%)
-	rm -fr $(BUILD) $(DICT) $(OUTPUT)
+	rm -fr $(BUILD) $(DICT) $(OUTPUT) $(LIBDIR)
 
 rmdep:
 	rm -f $(DEP)/*.d
