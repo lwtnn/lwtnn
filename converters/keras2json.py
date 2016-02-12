@@ -7,6 +7,7 @@ Converter from Keras saved NN to JSON
 import argparse
 import json
 import h5py
+import numpy as np
 
 def _run():
     """Top level routine"""
@@ -19,10 +20,8 @@ def _run():
         out_dict = {
             'layers': _get_layers(arch, h5),
         }
-        outputs.update(_parse_inputs(inputs))
-    if defaults:
-        out_dict['defaults'] = defaults
-    print(json.dumps(out_dict))
+        out_dict.update(_parse_inputs(inputs))
+    print(json.dumps(out_dict, indent=2))
 
 def _get_args():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -40,7 +39,7 @@ def _get_layers(network, h5):
     layers = []
     in_layers = network['layers']
     n_out = h5['layer_0']['param_0'].shape[0]
-    for layer_n in len(in_layers):
+    for layer_n in range(len(in_layers)):
         activation = _activation_map[in_layers[layer_n]['activation']]
         layer_group = h5['layer_{}'.format(layer_n)]
         weights = layer_group['param_0']
@@ -56,27 +55,35 @@ def _get_layers(network, h5):
         layers.append(out_layer)
     return layers
 
-def _parse_inputs(inputs):
+def _parse_inputs(keras_dict):
+    # fill output names
+    keras_outputs = keras_dict['individual_class_info']
+    outputs = [None]*len(keras_outputs)
+    for key, val in keras_outputs.items():
+        outputs[val] = key
+    assert all(x is not None for x in outputs)
+
+    keras_inputs = keras_dict['inputs']
+    inputs = [None]*len(keras_inputs)
+    defaults = {}
+    # fill the other things
+    for input_name, val in keras_inputs.items():
+        number = val["input_number"]
+        inputs[number] = {
+            'name': input_name,
+            'offset': val["offset"],
+            'scale': val["scale"],
+        }
+
+        # maybe fill default
+        default = val.get("default")
+        if default is not None:
+            defaults[input_name] = default
     return {
-        'inputs': _get_inputs(inputs),
-        'outputs': _get_outputs(inputs),
-        'defaults': _get_defaults(inputs)
+        'inputs': inputs,
+        'outputs': outputs,
+        'defaults': defaults,
     }
-
-def _get_inputs(network):
-    """
-    Get the input scaling from AGILEPack.
-    Note the inversion of scale and offset.
-    """
-    inputs = []
-    for input_name in network['input_order']:
-        offset = - network['scaling']['mean'][input_name]
-        scale = 1 / network['scaling']['sd'][input_name]
-        inputs.append({'name': input_name, 'offset': offset, 'scale': scale})
-    return inputs
-
-def _get_outputs(network):
-    return network['target_order']
 
 if __name__ == '__main__':
     _run()
