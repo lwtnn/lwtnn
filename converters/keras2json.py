@@ -56,32 +56,18 @@ def _get_layers(network, h5):
     return layers
 
 def _parse_inputs(keras_dict):
-    # fill output names
-    keras_outputs = keras_dict['individual_class_info']
-    outputs = [None]*len(keras_outputs)
-    for key, val in keras_outputs.items():
-        outputs[val] = key
-    assert all(x is not None for x in outputs)
-
-    keras_inputs = keras_dict['inputs']
-    inputs = [None]*len(keras_inputs)
+    inputs = []
     defaults = {}
-    # fill the other things
-    for input_name, val in keras_inputs.items():
-        number = val["input_number"]
-        inputs[number] = {
-            'name': input_name,
-            'offset': val["offset"],
-            'scale': val["scale"],
-        }
+    for val in keras_dict['inputs']:
+        inputs.append({x: val[x] for x in ['offset', 'scale', 'name']})
 
         # maybe fill default
         default = val.get("default")
         if default is not None:
-            defaults[input_name] = default
+            defaults[val['name']] = default
     return {
         'inputs': inputs,
-        'outputs': outputs,
+        'outputs': keras_dict['class_labels'],
         'defaults': defaults,
     }
 
