@@ -41,8 +41,8 @@ def _get_layers(in_layers):
         n_out = wt.shape[1]
         out_layer = {
             'activation': 'linear' if number == last_layer else 'sigmoid',
-            'weights': wt.flatten('F').tolist(),
-            'bias': bias.flatten('F').tolist(),
+            'weights': wt.flatten('C').tolist(),
+            'bias': bias.flatten('C').tolist(),
         }
         layers.append(out_layer)
     return layers
