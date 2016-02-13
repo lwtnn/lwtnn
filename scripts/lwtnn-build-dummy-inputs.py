@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-"""Generate fake NN files to test the lightweight classes"""
+"""Generate fake serialized NNs to test the lightweight classes"""
 
 import argparse
 import json
@@ -10,7 +10,7 @@ import numpy as np
 def _run():
     args = _get_args()
     _build_keras_arch("arch.json")
-    _build_keras_inputs_file("inputs.json")
+    _build_keras_inputs_file("variable_spec.json")
     _build_keras_weights("weights.h5", verbose=args.verbose)
 
 def _get_args():

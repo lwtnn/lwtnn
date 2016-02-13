@@ -14,11 +14,15 @@ main design principles are:
    would realistically consider.
  - **Hard to break:** The NN constructor checks the serialized NN for
    consistency. To prevent bugs with incorrectly ordered variables,
-   all inputs and outputs are stored in ``std::map`s.
+   all inputs and outputs are stored in `std::map`s.
 
 We also include converters from several popular formats to the `lwtnn` JSON format. Currently the following formats are supported:
  - [AGILEPack][ap]
- - [Keras][kr]
+ - [Keras][kr] (currently only dense layers, more will be added as
+   needed)
+
+The converter scripts can be found in `converters/`. Run them with
+`-h` for more information.
 
 How do I use it?
 ----------------

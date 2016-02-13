@@ -1,6 +1,24 @@
 #!/usr/bin/env python3
-"""
-Converter from Keras saved NN to JSON
+"""Converter from Keras saved NN to JSON
+
+In additon to the standard Keras archetecture and weights files, you
+must provide a "variable specification" json file with the following
+format:
+
+  {
+    {"inputs": [
+      {"name": variable_name,
+       "scale": scale,
+       "offset": offset,
+       "default": default_value},
+      ...
+      ] }
+    {"class_labels": [output_class_1_name, output_class_2_name, ...] }
+  }
+
+where `scale` and `offset` account for any scaling and shifting to the
+input variables in preprocessing. The "default" value is optional.
+
 """
 
 # import yaml
@@ -14,7 +32,7 @@ def _run():
     args = _get_args()
     with open(args.arch_file, 'r') as arch_file:
         arch = json.load(arch_file)
-    with open(args.inputs_file, 'r') as inputs_file:
+    with open(args.variables_file, 'r') as inputs_file:
         inputs = json.load(inputs_file)
     with h5py.File(args.hdf5_file, 'r') as h5:
         out_dict = {
@@ -24,10 +42,12 @@ def _run():
     print(json.dumps(out_dict, indent=2))
 
 def _get_args():
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('arch_file', help='architecture json file')
-    parser.add_argument('inputs_file', help='input specifications json')
-    parser.add_argument('hdf5_file')
+    parser.add_argument('variables_file', help='variable spec as json')
+    parser.add_argument('hdf5_file', help='Keras weights file')
     return parser.parse_args()
 
 _activation_map = {
