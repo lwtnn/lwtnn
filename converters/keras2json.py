@@ -40,7 +40,12 @@ def _get_layers(network, h5):
     in_layers = network['layers']
     n_out = h5['layer_0']['param_0'].shape[0]
     for layer_n in range(len(in_layers)):
-        activation = _activation_map[in_layers[layer_n]['activation']]
+        layer_arch = in_layers[layer_n]
+        layer_type = layer_arch['name']
+        assert layer_type == 'Dense', '{} layers not supported'.format(
+            layer_type)
+        activation = _activation_map[layer_arch['activation']]
+
         layer_group = h5['layer_{}'.format(layer_n)]
         weights = layer_group['param_0']
         bias = layer_group['param_1']
