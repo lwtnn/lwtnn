@@ -12,10 +12,13 @@ main design principles are:
    derived classes.
  - **Easy to extend:** Should cover 95% of deep network architectures we
    would realistically consider.
+ - **Hard to break:** The NN constructor checks the serialized NN for
+   consistency. To prevent bugs with incorrectly ordered variables,
+   all inputs and outputs are stored in ``std::map`s.
 
-At the moment we also include a Python converter from the
-[AGILEPack][ap] Yaml format to the format used here. In the future we
-hope to include converters from the [Keras][kr] format as well.
+We also include converters from several popular formats to the `lwtnn` JSON format. Currently the following formats are supported:
+ - [AGILEPack][ap]
+ - [Keras][kr]
 
 How do I use it?
 ----------------

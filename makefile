@@ -45,7 +45,7 @@ ALL_TOP_LEVEL := # blank, more will be added below
 
 # --- stuff used for the c++ executable
 # everything with this prefix will be built as an executable
-EXE_PREFIX   := lwtag-
+EXE_PREFIX   := lwtnn-
 
 ALL_EXE_SRC   := $(wildcard $(SRC)/$(EXE_PREFIX)*.cxx)
 ALL_EXE       := $(notdir $(ALL_EXE_SRC:%.cxx=%))
