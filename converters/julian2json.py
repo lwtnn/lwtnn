@@ -16,13 +16,14 @@ def _run():
     layers = _get_layers(args.parameters_dir)
     json_layers = _layers_to_json(layers)
 
-    inputs = _get_inputs(args.preproc_dir)
+    inputs, defaults = _get_inputs(args.preproc_dir)
     outputs = _get_outputs(layers)
 
     out_dict = {
         'layers': json_layers,
         'inputs': inputs,
         'outputs': outputs,
+        'defaults': defaults
         }
     print(json.dumps(out_dict, indent=2))
 
@@ -87,14 +88,16 @@ def _get_inputs(inputs_dir):
     stdev = stdev1 * stdev2
     assert len(inputs) == len(stdev) == len(means)
     layers = []
+    defaults = {}
     for number, name in enumerate(inputs):
         var_dic = {
             'name': name,
             'offset': -means[number],
-            'scale': 1 / stdev[number]
+            'scale': 1 / stdev[number],
             }
+        defaults[name] = means[number]
         layers.append( var_dic )
-    return layers
+    return layers, defaults
 
 def _get_outputs(layers):
     n_outputs = layers[-1][0].shape[1]
