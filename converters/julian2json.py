@@ -60,7 +60,7 @@ def _layers_to_json(in_layers, summarize=False):
 
         # gusss which layer format we're using based on the last layer
         if number != last_layer:
-            activation = 'linear'
+            activation = 'rectified'
         elif n_out == 3:
             activation = 'softmax'
         elif n_out == 1:
@@ -103,19 +103,17 @@ def _get_inputs(inputs_dir):
 
     # read in julian's inputs
     means = np.load("{}/high_mean.npy".format(inputs_dir))
-    stdev1 = np.load("{}/high_std1.npy".format(inputs_dir))
-    stdev2 = np.load("{}/high_std2.npy".format(inputs_dir))
-    stdev = stdev1 * stdev2
+    stdev = np.load("{}/high_std.npy".format(inputs_dir))
     assert len(inputs) == len(stdev) == len(means)
     layers = []
     defaults = {}
     for number, name in enumerate(inputs):
         var_dic = {
             'name': name,
-            'offset': -means[number],
-            'scale': 1 / stdev[number],
+            'offset': -float(means[number]),
+            'scale': 1 / float(stdev[number]),
             }
-        defaults[name] = means[number]
+        defaults[name] = float(means[number])
         layers.append( var_dic )
     return layers, defaults
 
