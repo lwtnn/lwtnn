@@ -15,6 +15,7 @@ namespace lwt {
   {
   public:
     typedef std::map<std::string, double> ValueMap;
+    NanReplacer() = default;
     NanReplacer(const ValueMap& defaults, int flags = rep::nan);
     ValueMap replace(const ValueMap& in) const;
   private:
