@@ -26,6 +26,15 @@ namespace lwt {
     }
     return out;
   }
+  VectorXd SoftmaxLayer::compute(const VectorXd& in) const {
+    size_t n_elements = in.rows();
+    VectorXd exp(n_elements);
+    for (size_t iii = 0; iii < n_elements; iii++) {
+      exp(iii) = std::exp(in(iii));
+    }
+    double sum_exp = exp.sum();
+    return exp / sum_exp;
+  }
 
   BiasLayer::BiasLayer(const VectorXd& bias): _bias(bias)
   {
@@ -140,6 +149,7 @@ namespace lwt {
     switch (activation) {
     case Activation::SIGMOID: return new SigmoidLayer;
     case Activation::RECTIFIED: return new RectifiedLayer;
+    case Activation::SOFTMAX: return new SoftmaxLayer;
     default: {
       std::string problem = "asked for a non-implemented activation function";
       throw NNConfigurationException(problem);

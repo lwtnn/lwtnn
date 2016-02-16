@@ -20,6 +20,7 @@ namespace {
     case Activation::LINEAR: return "linear";
     case Activation::SIGMOID: return "sigmoid";
     case Activation::RECTIFIED: return "rectified";
+    case Activation::SOFTMAX: return "softmax";
     }
   }
 }

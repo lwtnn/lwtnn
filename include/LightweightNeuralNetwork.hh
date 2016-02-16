@@ -50,6 +50,11 @@ namespace lwt {
   public:
     virtual VectorXd compute(const VectorXd&) const;
   };
+  class SoftmaxLayer: public ILayer
+  {
+  public:
+    virtual VectorXd compute(const VectorXd&) const;
+  };
 
   class BiasLayer: public ILayer
   {

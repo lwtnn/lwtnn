@@ -14,7 +14,7 @@
 
 
 namespace lwt {
-  enum class Activation {LINEAR, SIGMOID, RECTIFIED};
+  enum class Activation {LINEAR, SIGMOID, RECTIFIED, SOFTMAX};
   struct LayerConfig
   {
     std::vector<double> weights;
