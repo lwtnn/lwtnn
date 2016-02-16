@@ -14,7 +14,7 @@ def _run():
     args = _get_args()
 
     layers = _get_layers(args.parameters_dir)
-    json_layers = _layers_to_json(layers)
+    json_layers = _layers_to_json(layers, args.summarize)
 
     inputs, defaults = _get_inputs(args.preproc_dir)
     outputs = _get_outputs(layers)
@@ -31,6 +31,7 @@ def _get_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('parameters_dir')
     parser.add_argument('preproc_dir')
+    parser.add_argument('-s', '--summarize', action='store_true')
     return parser.parse_args()
 
 # __________________________________________________________________________
@@ -46,19 +47,39 @@ def _get_layers(parameters_dir):
         layers.append( (weight, bias) )
     return layers
 
-def _layers_to_json(in_layers):
+def _layers_to_json(in_layers, summarize=False):
+    """TODO: lots of guesswork here, fix this Julian needs to give me
+    the the activation functions he's using"""
     layers = []
     last_layer = len(in_layers) - 1
     n_out = in_layers[0][0].shape[0]
     for number, (wt, bias) in enumerate(in_layers):
+        # sanity checks
         assert wt.shape[1] == bias.shape[0]
         assert wt.shape[0] == n_out
         n_out = wt.shape[1]
-        out_layer = {
-            'activation': 'linear' if number != last_layer else 'sigmoid',
-            'weights': wt.flatten('C').tolist(),
-            'bias': bias.flatten('C').tolist(),
-        }
+
+        # gusss which layer format we're using based on the last layer
+        if number != last_layer:
+            activation = 'linear'
+        elif n_out == 3:
+            activation = 'softmax'
+        elif n_out == 1:
+            activation = 'sigmoid'
+        else:
+            raise ValueError("can't guess activation function")
+        if summarize:
+            out_layer = {
+                'activation': activation,
+                'weights': list(wt.shape),
+                'bias': list(bias.shape),
+            }
+        else:
+            out_layer = {
+                'activation': activation,
+                'weights': wt.flatten('C').tolist(),
+                'bias': bias.flatten('C').tolist(),
+            }
         layers.append(out_layer)
     return layers
 
@@ -100,8 +121,18 @@ def _get_inputs(inputs_dir):
     return layers, defaults
 
 def _get_outputs(layers):
+    """Return the output labels for Julian's nns
+
+    TODO: make this actually use stored labels (read, bug Julian about
+    this)
+    """
     n_outputs = layers[-1][0].shape[1]
-    return ['out_{}'.format(i) for i in range(n_outputs)]
+    if n_outputs == 1:
+        return ['discriminant']
+    elif n_outputs == 3:
+        return ['light', 'charm', 'bottom']
+    # just make up labels if we're here
+    raise ValueError("what do I do with {} labels?".format(n_outputs))
 
 if __name__ == '__main__':
     _run()
