@@ -48,8 +48,7 @@ def _get_layers(parameters_dir):
     return layers
 
 def _layers_to_json(in_layers, summarize=False):
-    """TODO: lots of guesswork here, fix this Julian needs to give me
-    the the activation functions he's using"""
+    """TODO: lots of guesswork here, fix this"""
     layers = []
     last_layer = len(in_layers) - 1
     n_out = in_layers[0][0].shape[0]
