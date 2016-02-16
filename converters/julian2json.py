@@ -4,10 +4,9 @@
 At the moment we assume that numpy files are named `{b,w}_l_X.npy`.
 """
 
-import argparse, glob
+import argparse, glob, os, re
 import json
 import numpy as np
-import os
 
 def _run():
     """Top level routine"""
@@ -38,13 +37,15 @@ def _get_args():
 # build layers
 def _get_layers(parameters_dir):
     globstr = "{}/w_l_*.npy".format(parameters_dir)
-    layers = []
-    for weight_name in glob.glob(globstr):
+    num_match = re.compile('[wb]_l_([0-9]+)\.npy')
+    matches = glob.glob(globstr)
+    layers = [None]*len(matches)
+    for weight_name in matches:
         dirname, basename = os.path.split(weight_name)
-        number = int(basename[-5])
+        number = int(num_match.search(basename).group(1))
         weight = np.load(weight_name)
         bias = np.load(os.path.join(dirname, 'b' + basename[1:]))
-        layers.append( (weight, bias) )
+        layers[number] = (weight, bias)
     return layers
 
 def _layers_to_json(in_layers, summarize=False):
