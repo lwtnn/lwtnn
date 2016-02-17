@@ -20,6 +20,7 @@ We also include converters from several popular formats to the `lwtnn` JSON form
  - [AGILEPack][ap]
  - [Keras][kr] (currently only dense layers, more will be added as
    needed)
+ - [Julian's][julian] format, based on Numpy and JSON
 
 The converter scripts can be found in `converters/`. Run them with
 `-h` for more information.
@@ -104,6 +105,13 @@ doesn't make sense the constructor should throw an
 The `Stack::compute(VectorXd)` method will return a `VectorXd` of
 outputs.
 
+Testing an Arbitrary NN
+-----------------------
+
+The `lwtnn-test-arbitrary-net` executable takes in a JSON file along
+with two text files, one to specify the variable names and another to
+give the input values. Run with no arguments to get help.
+
 Have problems?
 --------------
 
@@ -125,3 +133,4 @@ To Do List
 [eg]: http://eigen.tuxfamily.org
 [pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
 [pyy]: http://pyyaml.org/wiki/PyYAML
+[julian]: https://github.com/dguest/lw-client/wiki/Julian-file-format
