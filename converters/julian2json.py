@@ -117,9 +117,8 @@ def _get_inputs_no_preproc(arch_dir):
     return py_inputs, {}
 
 def _get_inputs(arch_dir):
-    """
-    The inputs from julian are (currently) hardcoded
-    """
+    """Get the input names, offsets, and default values"""
+
     # read in the input names from the arch file
     with open(_arch_template.format(arch_dir)) as jfile:
         inputs = json.load(jfile)['inputs']
