@@ -3,6 +3,7 @@
 
 At the moment we assume that numpy files are named `{b,w}_l_X.npy`.
 """
+_nopre_help="don't do any preprocessing (preproc_dir can be anything)"
 
 import argparse, glob, os, re
 import json
@@ -15,7 +16,10 @@ def _run():
     layers = _get_layers(args.parameters_dir)
     json_layers = _layers_to_json(layers, args.summarize)
 
-    inputs, defaults = _get_inputs(args.preproc_dir)
+    if args.no_pre:
+        inputs, defaults = _get_inputs_no_preproc()
+    else:
+        inputs, defaults = _get_inputs(args.preproc_dir)
     outputs = _get_outputs(layers)
 
     out_dict = {
@@ -31,6 +35,7 @@ def _get_args():
     parser.add_argument('parameters_dir')
     parser.add_argument('preproc_dir')
     parser.add_argument('-s', '--summarize', action='store_true')
+    parser.add_argument('--no-pre', action='store_true', help=_nopre_help)
     return parser.parse_args()
 
 # __________________________________________________________________________
@@ -85,22 +90,31 @@ def _layers_to_json(in_layers, summarize=False):
 
 # __________________________________________________________________________
 # build inputs
+_inputs = ['pt', 'eta'] + [
+    'track_2_d0_significance',
+    'track_3_d0_significance',
+    'track_2_z0_significance',
+    'track_3_z0_significance',
+    'n_tracks_over_d0_threshold',
+    'jet_prob',
+    'jet_width_eta',
+    'jet_width_phi'] + [
+        'vertex_significance', 'n_secondary_vertices',
+        'n_secondary_vertex_tracks', 'delta_r_vertex',
+        'vertex_mass', 'vertex_energy_fraction']
+
+def _get_inputs_no_preproc():
+    py_inputs = []
+    for name in _inputs:
+        var_dic = {'name': name, 'offset': 0, 'scale': 1}
+        py_inputs.append(var_dic)
+    return py_inputs, {}
+
 def _get_inputs(inputs_dir):
     """
     The inputs from julian are (currently) hardcoded
     """
-    inputs = ['pt', 'eta'] + [
-        'track_2_d0_significance',
-        'track_3_d0_significance',
-        'track_2_z0_significance',
-        'track_3_z0_significance',
-        'n_tracks_over_d0_threshold',
-        'jet_prob',
-        'jet_width_eta',
-        'jet_width_phi'] + [
-            'vertex_significance', 'n_secondary_vertices',
-            'n_secondary_vertex_tracks', 'delta_r_vertex',
-            'vertex_mass', 'vertex_energy_fraction']
+    inputs = _inputs
 
     # read in julian's inputs
     means = np.load("{}/high_mean.npy".format(inputs_dir))
