@@ -82,7 +82,7 @@ def _layers_to_json(in_layers, summarize=False):
         else:
             out_layer = {
                 'activation': activation,
-                'weights': wt.flatten('C').tolist(),
+                'weights': wt.T.flatten('C').tolist(),
                 'bias': bias.flatten('C').tolist(),
             }
         layers.append(out_layer)
