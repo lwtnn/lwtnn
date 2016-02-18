@@ -74,7 +74,9 @@ def _get_layers(network, h5):
         n_out = weights.shape[1]
         out_layer = {
             'activation': activation,
-            'weights': np.asarray(weights).flatten('C').tolist(),
+            # TODO: confirm that we should be transposing the weight
+            # matrix the Keras case
+            'weights': np.asarray(weights).T.flatten('C').tolist(),
             'bias': np.asarray(bias).flatten('C').tolist()
         }
         layers.append(out_layer)
