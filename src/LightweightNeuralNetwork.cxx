@@ -197,11 +197,13 @@ namespace lwt {
 
     // compute outputs
     auto outvec = _stack.compute((invec + _offsets).cwiseProduct(_scales));
-    assert(outvec.rows() == _outputs.size());
+    assert(outvec.rows() > 0);
+    auto out_size = static_cast<size_t>(outvec.rows());
+    assert(out_size == _outputs.size());
 
     // build and return output map
     LightweightNeuralNetwork::ValueMap out_map;
-    for (size_t out_n = 0; out_n < outvec.rows(); out_n++) {
+    for (size_t out_n = 0; out_n < out_size; out_n++) {
       out_map.emplace(_outputs.at(out_n), outvec(out_n));
     }
     return out_map;
