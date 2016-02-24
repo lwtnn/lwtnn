@@ -64,5 +64,6 @@ namespace {
     if (str == "rectified") return Activation::RECTIFIED;
     if (str == "softmax") return Activation::SOFTMAX;
     throw std::logic_error("activation function " + str + " not recognized");
+    return Activation::LINEAR;
   }
 }
