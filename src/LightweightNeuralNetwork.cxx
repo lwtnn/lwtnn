@@ -105,6 +105,15 @@ namespace lwt {
   // _______________________________________________________________________
   // private stuff
   size_t Stack::add_layers(size_t n_inputs, const LayerConfig& layer) {
+    if (layer.architecture == Architecture::DENSE) {
+      return add_dense_layers(n_inputs, layer);
+    } else if (layer.architecture == Architecture::MAXOUT) {
+      return add_maxout_layers(n_inputs, layer);
+    }
+    throw NNConfigurationException("unknown architecture");
+  }
+  size_t Stack::add_dense_layers(size_t n_inputs, const LayerConfig& layer) {
+    assert(layer.architecture == Architecture::DENSE);
     size_t n_outputs = n_inputs;
 
     // add matrix layer
@@ -142,6 +151,10 @@ namespace lwt {
       _layers.push_back(get_raw_activation_layer(layer.activation));
     }
     return n_outputs;
+  }
+  size_t Stack::add_maxout_layers(size_t n_inputs, const LayerConfig&) {
+    // todo: make this work
+    return 0;
   }
 
   // function for internal use

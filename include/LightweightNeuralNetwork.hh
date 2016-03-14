@@ -97,6 +97,8 @@ namespace lwt {
   private:
     // returns the size of the next layer
     size_t add_layers(size_t n_inputs, const LayerConfig&);
+    size_t add_dense_layers(size_t n_inputs, const LayerConfig&);
+    size_t add_maxout_layers(size_t n_inputs, const LayerConfig&);
     std::vector<ILayer*> _layers;
     size_t _n_outputs;
   };

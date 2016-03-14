@@ -10,16 +10,20 @@
 
 #include <vector>
 #include <string>
-#include <ostream>
-
 
 namespace lwt {
   enum class Activation {LINEAR, SIGMOID, RECTIFIED, SOFTMAX};
+  enum class Architecture {DENSE, MAXOUT};
   struct LayerConfig
   {
+    // dense layer info
     std::vector<double> weights;
     std::vector<double> bias;
     Activation activation;
+    // additional info for MAXOUT
+    std::vector<std::vector<double> > maxout_tensor;
+
+    Architecture architecture;
   };
 
   struct Input

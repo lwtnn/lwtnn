@@ -10,6 +10,7 @@
 
 namespace {
   lwt::Activation get_activation(const std::string&);
+  lwt::Architecture get_architecture(const std::string&);
 }
 
 
@@ -30,14 +31,18 @@ namespace lwt {
     }
     for (const auto& v: pt.get_child("layers")) {
       LayerConfig layer;
+      layer.activation = get_activation(
+        v.second.get<std::string>("activation"));
+      layer.architecture = get_architecture(
+        v.second.get<std::string>("architecture"));
+      // todo: make this weights stuff happen in another function
+      // todo: add maxout_tensor filler
       for (const auto& wt: v.second.get_child("weights")) {
         layer.weights.push_back(wt.second.get_value<double>());
       }
       for (const auto& bs: v.second.get_child("bias")) {
         layer.bias.push_back(bs.second.get_value<double>());
       }
-      layer.activation = get_activation(
-        v.second.get<std::string>("activation"));
       cfg.layers.push_back(layer);
     }
     for (const auto& v: pt.get_child("outputs"))
@@ -64,5 +69,11 @@ namespace {
     if (str == "rectified") return Activation::RECTIFIED;
     if (str == "softmax") return Activation::SOFTMAX;
     throw std::logic_error("activation function " + str + " not recognized");
+  }
+  lwt::Architecture get_architecture(const std::string& str) {
+    using namespace lwt;
+    if (str == "dense") return Architecture::DENSE;
+    if (str == "maxout") return Architecture::MAXOUT;
+    throw std::logic_error("architecture " + str + " not recognized");
   }
 }

@@ -34,7 +34,8 @@ def _get_layers(network):
         out_layer = {
             'activation': layer['activation'],
             'weights': _line_to_array(layer['weights']),
-            'bias': _line_to_array(layer['bias'])
+            'bias': _line_to_array(layer['bias']),
+            'architecture': 'dense'
         }
         layers.append(out_layer)
     return layers
