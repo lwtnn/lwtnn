@@ -1,5 +1,18 @@
 #include "LightweightNeuralNetwork.hh"
 
+#include <set>
+
+// internal utility functions
+namespace {
+  using namespace Eigen;
+  using namespace lwt;
+  MatrixXd build_matrix(const std::vector<double>& weights, size_t n_inputs);
+
+  // consistency checks
+  void throw_if_not_maxout(const LayerConfig& layer);
+  void throw_if_not_dense(const LayerConfig& layer);
+}
+
 namespace lwt {
 
   VectorXd DummyLayer::compute(const VectorXd& in) const {
@@ -60,6 +73,22 @@ namespace lwt {
     return _matrix * in;
   }
 
+  MaxoutLayer::MaxoutLayer(const std::vector<MatrixXd>& matrices):
+    _matrices(matrices)
+  {
+  }
+  VectorXd MaxoutLayer::compute(const VectorXd& in) const {
+    // eigen supports tensors, but only in the experimental component
+    // for now just stick to matrix and vector classes
+    const size_t n_mat = _matrices.size();
+    const size_t out_dim = _matrices.front().rows();
+    MatrixXd outputs(n_mat, out_dim);
+    for (size_t mat_n = 0; mat_n < n_mat; mat_n++) {
+      outputs.row(mat_n) = _matrices.at(mat_n) * in;
+    }
+    return outputs.colwise().maxCoeff();
+  }
+
   // ______________________________________________________________________
   // Stack class
 
@@ -114,25 +143,14 @@ namespace lwt {
   }
   size_t Stack::add_dense_layers(size_t n_inputs, const LayerConfig& layer) {
     assert(layer.architecture == Architecture::DENSE);
+    throw_if_not_dense(layer);
+
     size_t n_outputs = n_inputs;
 
     // add matrix layer
     if (layer.weights.size() > 0) {
-      size_t n_elements = layer.weights.size();
-      if ((n_elements % n_inputs) != 0) {
-        std::string problem = "matrix elements not divisible by number"
-          " of columns. Elements: " + std::to_string(n_elements) +
-          ", Inputs: " + std::to_string(n_inputs);
-        throw NNConfigurationException(problem);
-      }
-      n_outputs = n_elements / n_inputs;
-      MatrixXd matrix(n_outputs, n_inputs);
-      for (size_t row = 0; row < n_outputs; row++) {
-        for (size_t col = 0; col < n_inputs; col++) {
-          double element = layer.weights.at(col + row * n_inputs);
-          matrix(row, col) = element;
-        }
-      }
+      MatrixXd matrix = build_matrix(layer.weights, n_inputs);
+      n_outputs = matrix.rows();
       _layers.push_back(new MatrixLayer(matrix));
     };
 
@@ -152,9 +170,24 @@ namespace lwt {
     }
     return n_outputs;
   }
-  size_t Stack::add_maxout_layers(size_t n_inputs, const LayerConfig&) {
-    // todo: make this work
-    return 0;
+  size_t Stack::add_maxout_layers(size_t n_inputs, const LayerConfig& layer) {
+    assert(layer.architecture == Architecture::MAXOUT);
+    throw_if_not_maxout(layer);
+    std::vector<MatrixXd> matrices;
+    std::set<size_t> n_outputs;
+    for (const auto& vec: layer.maxout_tensor) {
+      MatrixXd matrix = build_matrix(vec, n_inputs);
+      n_outputs.insert(matrix.rows());
+      matrices.push_back(matrix);
+    }
+    if (n_outputs.size() == 0) {
+      throw NNConfigurationException("tried to build maxout withoutweights!");
+    }
+    else if (n_outputs.size() != 1) {
+      throw NNConfigurationException("uneven matrices for maxout");
+    }
+    _layers.push_back(new MaxoutLayer(matrices));
+    return *n_outputs.begin();
   }
 
   // function for internal use
@@ -234,4 +267,45 @@ namespace lwt {
   NNEvaluationException::NNEvaluationException(std::string problem):
     LightweightNNException(problem)
   {}
+}
+
+
+// ________________________________________________________________________
+// utility functions
+namespace {
+  MatrixXd build_matrix(const std::vector<double>& weights, size_t n_inputs)
+  {
+    size_t n_elements = weights.size();
+    if ((n_elements % n_inputs) != 0) {
+      std::string problem = "matrix elements not divisible by number"
+        " of columns. Elements: " + std::to_string(n_elements) +
+        ", Inputs: " + std::to_string(n_inputs);
+      throw lwt::NNConfigurationException(problem);
+    }
+    size_t n_outputs = n_elements / n_inputs;
+    MatrixXd matrix(n_outputs, n_inputs);
+    for (size_t row = 0; row < n_outputs; row++) {
+      for (size_t col = 0; col < n_inputs; col++) {
+        double element = weights.at(col + row * n_inputs);
+        matrix(row, col) = element;
+      }
+    }
+    return matrix;
+  }
+
+  // consistency checks
+  void throw_if_not_maxout(const LayerConfig& layer) {
+    bool wt_ok = layer.weights.size() == 0;
+    bool bias_ok = layer.bias.size() == 0;
+    bool maxout_ok = layer.maxout_tensor.size() > 0;
+    bool act_ok = layer.activation == Activation::LINEAR;
+    if (wt_ok && bias_ok && maxout_ok && act_ok) return;
+    throw NNConfigurationException("layer has wrong info for maxout");
+  }
+  void throw_if_not_dense(const LayerConfig& layer) {
+    if (layer.maxout_tensor.size() > 0) {
+      throw NNConfigurationException("maxout tensor on dense layer");
+    }
+  }
+
 }

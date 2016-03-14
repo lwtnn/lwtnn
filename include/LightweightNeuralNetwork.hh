@@ -75,6 +75,15 @@ namespace lwt {
     MatrixXd _matrix;
   };
 
+  class MaxoutLayer: public ILayer
+  {
+  public:
+    MaxoutLayer(const std::vector<MatrixXd>& maxout_tensor);
+    virtual VectorXd compute(const VectorXd&) const;
+  private:
+    std::vector<MatrixXd> _matrices;
+  };
+
   // ______________________________________________________________________
   // the NN class
 
