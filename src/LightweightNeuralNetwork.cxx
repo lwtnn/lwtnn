@@ -35,6 +35,14 @@ namespace lwt {
     double sum_exp = exp.sum();
     return exp / sum_exp;
   }
+  VectorXd TanhLayer::compute(const VectorXd& in) const {
+    size_t n_elements = in.rows();
+    VectorXd out(n_elements);
+    for (size_t iii = 0; iii < n_elements; iii++) {
+      out(iii) = std::tanh(in(iii));
+    }
+    return out;
+  }
 
   BiasLayer::BiasLayer(const VectorXd& bias): _bias(bias)
   {
@@ -150,6 +158,7 @@ namespace lwt {
     case Activation::SIGMOID: return new SigmoidLayer;
     case Activation::RECTIFIED: return new RectifiedLayer;
     case Activation::SOFTMAX: return new SoftmaxLayer;
+    case Activation::TANH: return new TanhLayer;
     default: {
       std::string problem = "asked for a non-implemented activation function";
       throw NNConfigurationException(problem);

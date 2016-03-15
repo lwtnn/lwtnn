@@ -21,6 +21,7 @@ namespace {
     case Activation::SIGMOID: return "sigmoid";
     case Activation::RECTIFIED: return "rectified";
     case Activation::SOFTMAX: return "softmax";
+    case Activation::TANH: return "tanh";
     }
   }
 }
