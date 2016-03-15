@@ -78,10 +78,12 @@ namespace lwt {
   class MaxoutLayer: public ILayer
   {
   public:
-    MaxoutLayer(const std::vector<MatrixXd>& maxout_tensor);
+    typedef std::pair<MatrixXd, VectorXd> InitUnit;
+    MaxoutLayer(const std::vector<InitUnit>& maxout_tensor);
     virtual VectorXd compute(const VectorXd&) const;
   private:
     std::vector<MatrixXd> _matrices;
+    MatrixXd _bias;
   };
 
   // ______________________________________________________________________

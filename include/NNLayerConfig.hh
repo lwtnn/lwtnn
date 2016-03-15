@@ -20,9 +20,12 @@ namespace lwt {
     std::vector<double> weights;
     std::vector<double> bias;
     Activation activation;
+
     // additional info for MAXOUT
+    // TODO: add maxout bias info
     std::vector<std::vector<double> > maxout_tensor;
 
+    // arch flag
     Architecture architecture;
   };
 

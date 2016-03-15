@@ -6,7 +6,9 @@
 namespace {
   using namespace Eigen;
   using namespace lwt;
+  // functions to build up basic units from vectors
   MatrixXd build_matrix(const std::vector<double>& weights, size_t n_inputs);
+  VectorXd build_vector(const std::vector<double>& bias);
 
   // consistency checks
   void throw_if_not_maxout(const LayerConfig& layer);
@@ -15,10 +17,14 @@ namespace {
 
 namespace lwt {
 
+  // _______________________________________________________________________
+  // layer implementation
+
   VectorXd DummyLayer::compute(const VectorXd& in) const {
     return in;
   }
 
+  // activation functions
   VectorXd SigmoidLayer::compute(const VectorXd& in) const {
     // TODO: is there a more efficient way to do this?
     size_t n_elements = in.rows();
@@ -49,22 +55,19 @@ namespace lwt {
     return exp / sum_exp;
   }
 
+  // bias layer
   BiasLayer::BiasLayer(const VectorXd& bias): _bias(bias)
   {
   }
   BiasLayer::BiasLayer(const std::vector<double>& bias):
-    _bias(bias.size())
+    _bias(build_vector(bias))
   {
-    size_t idx = 0;
-    for (const auto& val: bias) {
-      _bias(idx) = val;
-      idx++;
-    }
   }
   VectorXd BiasLayer::compute(const VectorXd& in) const {
     return in + _bias;
   }
 
+  // basic dense matrix layer
   MatrixLayer::MatrixLayer(const MatrixXd& matrix):
     _matrix(matrix)
   {
@@ -73,9 +76,16 @@ namespace lwt {
     return _matrix * in;
   }
 
-  MaxoutLayer::MaxoutLayer(const std::vector<MatrixXd>& matrices):
-    _matrices(matrices)
+  // maxout layer
+  MaxoutLayer::MaxoutLayer(const std::vector<MaxoutLayer::InitUnit>& units):
+    _bias(units.size(), units.front().first.rows())
   {
+    int out_pos = 0;
+    for (const auto& unit: units) {
+      _matrices.push_back(unit.first);
+      _bias.row(out_pos) = unit.second;
+      out_pos++;
+    }
   }
   VectorXd MaxoutLayer::compute(const VectorXd& in) const {
     // eigen supports tensors, but only in the experimental component
@@ -86,6 +96,7 @@ namespace lwt {
     for (size_t mat_n = 0; mat_n < n_mat; mat_n++) {
       outputs.row(mat_n) = _matrices.at(mat_n) * in;
     }
+    outputs += _bias;
     return outputs.colwise().maxCoeff();
   }
 
@@ -173,12 +184,14 @@ namespace lwt {
   size_t Stack::add_maxout_layers(size_t n_inputs, const LayerConfig& layer) {
     assert(layer.architecture == Architecture::MAXOUT);
     throw_if_not_maxout(layer);
-    std::vector<MatrixXd> matrices;
+    std::vector<MaxoutLayer::InitUnit> matrices;
     std::set<size_t> n_outputs;
     for (const auto& vec: layer.maxout_tensor) {
       MatrixXd matrix = build_matrix(vec, n_inputs);
+      // TODO: connect upstream plumbing rather than dummy bias here
+      VectorXd bias = build_vector(std::vector<double>(matrix.rows(),0));
       n_outputs.insert(matrix.rows());
-      matrices.push_back(matrix);
+      matrices.push_back(std::make_pair(matrix, bias));
     }
     if (n_outputs.size() == 0) {
       throw NNConfigurationException("tried to build maxout withoutweights!");
@@ -291,6 +304,15 @@ namespace {
       }
     }
     return matrix;
+  }
+  VectorXd build_vector(const std::vector<double>& bias) {
+    VectorXd out(bias.size());
+    size_t idx = 0;
+    for (const auto& val: bias) {
+      out(idx) = val;
+      idx++;
+    }
+    return out;
   }
 
   // consistency checks
