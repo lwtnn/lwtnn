@@ -63,6 +63,7 @@ namespace {
     if (str == "sigmoid") return Activation::SIGMOID;
     if (str == "rectified") return Activation::RECTIFIED;
     if (str == "softmax") return Activation::SOFTMAX;
+    if (str == "tanh") return Activation::TANH;
     throw std::logic_error("activation function " + str + " not recognized");
     return Activation::LINEAR;
   }
