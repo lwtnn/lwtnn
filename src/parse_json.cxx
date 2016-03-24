@@ -91,11 +91,13 @@ namespace {
   }
 
   void add_maxout_info(LayerConfig& layer, const ptree::value_type& v) {
-    for (const auto& mat: v.second.get_child("weights")) {
-      layer.maxout_tensor.push_back(std::vector<double>());
-      for (const auto& wt: mat.second) {
-        layer.maxout_tensor.back().push_back(wt.second.get_value<double>());
-      }
+    using namespace lwt;
+    for (const auto& sub: v.second.get_child("sublayers")) {
+      LayerConfig sublayer;
+      add_dense_info(sublayer, sub);
+      sublayer.architecture = Architecture::DENSE;
+      sublayer.activation = Activation::LINEAR;
+      layer.sublayers.push_back(sublayer);
     }
   }
 

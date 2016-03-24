@@ -21,9 +21,8 @@ namespace lwt {
     std::vector<double> bias;
     Activation activation;
 
-    // additional info for MAXOUT
-    // TODO: add maxout bias info
-    std::vector<std::vector<double> > maxout_tensor;
+    // additional info for sublayers
+    std::vector<LayerConfig> sublayers;
 
     // arch flag
     Architecture architecture;

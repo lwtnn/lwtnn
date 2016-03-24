@@ -186,10 +186,9 @@ namespace lwt {
     throw_if_not_maxout(layer);
     std::vector<MaxoutLayer::InitUnit> matrices;
     std::set<size_t> n_outputs;
-    for (const auto& vec: layer.maxout_tensor) {
-      MatrixXd matrix = build_matrix(vec, n_inputs);
-      // TODO: connect upstream plumbing rather than dummy bias here
-      VectorXd bias = build_vector(std::vector<double>(matrix.rows(),0));
+    for (const auto& sublayer: layer.sublayers) {
+      MatrixXd matrix = build_matrix(sublayer.weights, n_inputs);
+      VectorXd bias = build_vector(sublayer.bias);
       n_outputs.insert(matrix.rows());
       matrices.push_back(std::make_pair(matrix, bias));
     }
@@ -319,14 +318,14 @@ namespace {
   void throw_if_not_maxout(const LayerConfig& layer) {
     bool wt_ok = layer.weights.size() == 0;
     bool bias_ok = layer.bias.size() == 0;
-    bool maxout_ok = layer.maxout_tensor.size() > 0;
+    bool maxout_ok = layer.sublayers.size() > 0;
     bool act_ok = layer.activation == Activation::LINEAR;
     if (wt_ok && bias_ok && maxout_ok && act_ok) return;
     throw NNConfigurationException("layer has wrong info for maxout");
   }
   void throw_if_not_dense(const LayerConfig& layer) {
-    if (layer.maxout_tensor.size() > 0) {
-      throw NNConfigurationException("maxout tensor on dense layer");
+    if (layer.sublayers.size() > 0) {
+      throw NNConfigurationException("sublayers in dense layer");
     }
   }
 
