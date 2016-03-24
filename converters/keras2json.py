@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
-"""Converter from Keras saved NN to JSON
+#
+# Converter from Keras saved NN to JSON
+"""
+____________________________________________________________________
+Variable specification file
 
 In additon to the standard Keras archetecture and weights files, you
 must provide a "variable specification" json file with the following
@@ -21,7 +25,6 @@ input variables in preprocessing. The "default" value is optional.
 
 """
 
-# import yaml
 import argparse
 import json
 import h5py
@@ -43,7 +46,8 @@ def _run():
 
 def _get_args():
     parser = argparse.ArgumentParser(
-        description=__doc__,
+        description="Converter from Keras saved NN to JSON",
+        epilog=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('arch_file', help='architecture json file')
     parser.add_argument('variables_file', help='variable spec as json')
@@ -55,30 +59,61 @@ _activation_map = {
     'sigmoid': 'sigmoid',
 }
 
+# __________________________________________________________________________
+# Layer converters
+#
+# Each of these converters takes two arguments:
+#  - An H5 Group with the layer parameters
+#  - The number of inputs (for error checking)
+#
+# Each returns two outputs:
+#  - A dictionary of layer information which can be serialized to JSON
+#  - The number of outputs (also for error checking)
+
+def _get_dense_layer_parameters(layer_group, n_in):
+    """Get weights, bias, and n-outputs for a dense layer"""
+    weights = layer_group['param_0']
+    bias = layer_group['param_1']
+    assert weights.shape[1] == bias.shape[0]
+    assert weights.shape[0] == n_in
+    # TODO: confirm that we should be transposing the weight
+    # matrix the Keras case
+    return_dict = {
+        'weights': np.asarray(weights).T.flatten('C').tolist(),
+        'bias': np.asarray(bias).flatten('C').tolist(),
+        'architecture': 'dense'
+    }
+    return return_dict, weights.shape[1]
+
+
+def _get_maxout_layer_parameters(layer_group, n_in):
+    """Get weights, bias, and n-outputs for a maxout layer"""
+    raise NotImplementedError
+
+_layer_converters = {
+    'dense': _get_dense_layer_parameters,
+    'maxout': _get_maxout_layer_parameters,
+    }
+
+# __________________________________________________________________________
+# master layer converter / inputs function
+
 def _get_layers(network, h5):
     layers = []
     in_layers = network['layers']
     n_out = h5['layer_0']['param_0'].shape[0]
     for layer_n in range(len(in_layers)):
+        # get converter for this layer
         layer_arch = in_layers[layer_n]
-        layer_type = layer_arch['name']
-        assert layer_type == 'Dense', '{} layers not supported'.format(
-            layer_type)
-        activation = _activation_map[layer_arch['activation']]
+        layer_type = layer_arch['name'].lower()
+        convert = _layer_converters[layer_type]
 
+        # get the hdf5 info
         layer_group = h5['layer_{}'.format(layer_n)]
-        weights = layer_group['param_0']
-        bias = layer_group['param_1']
-        assert weights.shape[1] == bias.shape[0]
-        assert weights.shape[0] == n_out
-        n_out = weights.shape[1]
-        out_layer = {
-            'activation': activation,
-            # TODO: confirm that we should be transposing the weight
-            # matrix the Keras case
-            'weights': np.asarray(weights).T.flatten('C').tolist(),
-            'bias': np.asarray(bias).flatten('C').tolist()
-        }
+
+        # build the out layer
+        out_layer, n_out = convert(layer_group, n_out)
+        out_layer['activation'] = _activation_map[layer_arch['activation']]
         layers.append(out_layer)
     return layers
 

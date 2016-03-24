@@ -1,8 +1,11 @@
+# ignore some subdirectories
 /bin
 /build
 /lib
 
+# ignore common data file types
 *.yml
 *.yaml
 *.json
 *.txt
+*.h5
