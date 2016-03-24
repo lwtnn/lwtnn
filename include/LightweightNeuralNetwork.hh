@@ -17,6 +17,7 @@
 #include <vector>
 #include <stdexcept>
 #include <map>
+#include <utility>
 
 namespace lwt {
 
@@ -79,6 +80,65 @@ namespace lwt {
   private:
     MatrixXd _matrix;
   };
+
+  class DenseLayer: public ILayer
+  {
+  public: 
+    template <typename T>
+    DenseLayer(const MatrixXd& matrix, const VectorXd& bias, const T& activation)
+    : _matrixlayer(matrix), _biaslayer(bias) {
+      _activation = new T(activation);
+
+    }
+    template <typename T>
+    DenseLayer(const MatrixXd& matrix, const std::vector<double>& bias, const T& activation)
+    : _matrixlayer(matrix), _biaslayer(bias) {
+      _activation = new T(activation);
+
+    }
+
+    // DenseLayer(const DenseLayer& layer)
+    // : _matrixlayer(layer._matrixlayer), _biaslayer(layer._biaslayer) {
+    //   _activation = new ILayer(*(layer._activation));
+    // }
+    ~DenseLayer() {
+      delete _activation;
+    }
+    virtual VectorXd compute(const VectorXd& x) const {
+      return _activation->compute( _biaslayer.compute( _matrixlayer.compute(x)));
+    }
+  private: 
+    MatrixLayer _matrixlayer;
+    BiasLayer _biaslayer;
+    ILayer* _activation;
+    
+    template <typename T>
+    T* get_ptr(const T& t) {
+      return new T(t);
+    }
+  };
+
+
+  class HighwayLayer: public ILayer
+  {
+  public:
+    // HighwayLayer(const DenseLayer& carrylayer, const DenseLayer& transformlayer)
+    //   : _carrylayer(carrylayer), _transformlayer(transformlayer) {}
+    template <typename T>
+    HighwayLayer(const MatrixXd& W_carry, const VectorXd& b_carry, 
+      const MatrixXd& W, const VectorXd& b, const T& activation)
+      : _carrylayer(W_carry, b_carry, SigmoidLayer()), _transformlayer(W, b, activation) {}
+
+    virtual VectorXd compute(const VectorXd& x) const {
+      VectorXd carry_output = _carrylayer.compute(x);
+      VectorXd transform_output = static_cast<VectorXd>(_transformlayer.compute(x).array() * carry_output.array()); 
+      return transform_output + static_cast<VectorXd>((1 - carry_output.array()) * x.array()); 
+    }
+  private: 
+    DenseLayer _carrylayer;
+    DenseLayer _transformlayer;   
+  };
+
 
   // ______________________________________________________________________
   // the NN class
