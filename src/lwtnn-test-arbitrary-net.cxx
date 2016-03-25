@@ -53,6 +53,7 @@ int main(int argc, char* argv[]) {
   std::ifstream values( (std::string(argv[3])) );
   while (std::getline(values, val_line)) {
     auto val_strings = parse_line(val_line);
+    if (val_strings.size() == 0) continue;
     assert(val_strings.size() == labels.size());
     std::map<std::string, double> nn_in;
     for (size_t iii = 0; iii < labels.size(); iii++) {
