@@ -55,6 +55,11 @@ namespace lwt {
   public:
     virtual VectorXd compute(const VectorXd&) const;
   };
+  class TanhLayer: public ILayer
+  {
+  public:
+    virtual VectorXd compute(const VectorXd&) const;
+  };
 
   class BiasLayer: public ILayer
   {

@@ -12,8 +12,9 @@
 #include <string>
 
 namespace lwt {
-  enum class Activation {LINEAR, SIGMOID, RECTIFIED, SOFTMAX};
+  enum class Activation {LINEAR, SIGMOID, RECTIFIED, SOFTMAX, TANH};
   enum class Architecture {DENSE, MAXOUT};
+
   struct LayerConfig
   {
     // dense layer info
