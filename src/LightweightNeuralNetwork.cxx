@@ -225,6 +225,42 @@ namespace lwt {
   }
 
   // ______________________________________________________________________
+  // Recurrent classes
+  VectorXd SumRecurrentLayer::compute(const VectorXd& state,
+                                      const VectorXd& update) const
+  {
+    return state + update;
+  }
+  RecurrentStack::RecurrentStack(size_t n_inputs,
+                                 const LayerConfig& /*layer*/):
+    _layer(0)
+  {
+    // todo: add something useful here
+    _n_outputs = build_sum_layer(n_inputs);
+  }
+  RecurrentStack::~RecurrentStack() {
+    delete _layer;
+  }
+  VectorXd RecurrentStack::compute(const std::vector<VectorXd>& in) const {
+    // TODO: figure out if we have to load this
+    VectorXd state = VectorXd::Zero(_n_outputs);
+
+    for (const auto& update: in) {
+      state = _layer->compute(state, update);
+    }
+    return state;
+  }
+  size_t RecurrentStack::n_outputs() const {
+    return _n_outputs;
+  }
+  // private
+  size_t RecurrentStack::build_sum_layer(size_t n_inputs) {
+    assert(!_layer);
+    _layer = new SumRecurrentLayer;
+    return n_inputs;
+  }
+
+  // ______________________________________________________________________
   // Input preprocessor
   InputPreprocessor::InputPreprocessor(const std::vector<Input>& inputs):
     _offsets(inputs.size()),

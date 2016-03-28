@@ -123,6 +123,45 @@ namespace lwt {
   };
 
   // ______________________________________________________________________
+  // Recurrent classes
+  class IRecurrentLayer
+  {
+  public:
+    virtual ~IRecurrentLayer() {}
+    virtual VectorXd compute(const VectorXd& state,
+                             const VectorXd& update) const = 0;
+  };
+  // this is for testing
+  class SumRecurrentLayer: public IRecurrentLayer
+  {
+  public:
+    virtual VectorXd compute(const VectorXd& state,
+                             const VectorXd& update) const;
+  };
+  // TODO: add LSTM layer
+
+  // The equivelent of Stack above, for a variable number of inputs
+  class RecurrentStack
+  {
+  public:
+    RecurrentStack(size_t n_inputs, const LayerConfig& layer);
+    ~RecurrentStack();
+
+    // make non-copyable for now
+    RecurrentStack(RecurrentStack&) = delete;
+    RecurrentStack& operator=(RecurrentStack&) = delete;
+
+    VectorXd compute(const std::vector<VectorXd>&) const;
+    size_t n_outputs() const;
+  private:
+    size_t build_sum_layer(size_t);
+    IRecurrentLayer* _layer;
+    size_t _n_outputs;
+  };
+  // TODO: add hybrid stack
+  // TODO: add high-level class
+
+  // ______________________________________________________________________
   // input preprocessor (handles normalization and packing into Eigen)
 
   class InputPreprocessor
