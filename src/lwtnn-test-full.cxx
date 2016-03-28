@@ -15,7 +15,7 @@ int main(int argc, char* argv[]) {
   lwt::LightweightNeuralNetwork tagger(config.inputs, config.layers, config.outputs);
 
   // build some dummy inputs and feed them to the tagger
-  lwt::LightweightNeuralNetwork::ValueMap input{
+  lwt::ValueMap input{
     {"in1", 1}, {"in2", 2}, {"in3", 3}, {"in4", 4} };
   auto out = tagger.compute(input);
 

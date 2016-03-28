@@ -18,7 +18,7 @@ int main(int argc, char* argv[]) {
   lwt::NanReplacer replacer(config.defaults);
 
   // build some dummy inputs and feed them to the tagger
-  lwt::LightweightNeuralNetwork::ValueMap input{
+  lwt::ValueMap input{
     {"in1", 1}, {"in2", 2}, {"in3", NAN}, {"in4", 4} };
   auto cleaned_inputs = replacer.replace(input);
   auto out = tagger.compute(cleaned_inputs);

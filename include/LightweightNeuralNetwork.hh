@@ -23,6 +23,9 @@ namespace lwt {
   using Eigen::VectorXd;
   using Eigen::MatrixXd;
 
+  // use a normal map externally, since these are more common in user
+  // code.  TODO: is it worth changing to unordered_map?
+  typedef std::map<std::string, double> ValueMap;
 
   // _______________________________________________________________________
   // layer classes
@@ -120,6 +123,21 @@ namespace lwt {
   };
 
   // ______________________________________________________________________
+  // input preprocessor (handles normalization and packing into Eigen)
+
+  class InputPreprocessor
+  {
+  public:
+    InputPreprocessor(const std::vector<Input>& inputs);
+    VectorXd operator()(const ValueMap&) const;
+  private:
+    // input transformations
+    VectorXd _offsets;
+    VectorXd _scales;
+    std::vector<std::string> _names;
+  };
+
+  // ______________________________________________________________________
   // high-level wrapper
 
   class LightweightNeuralNetwork
@@ -135,17 +153,12 @@ namespace lwt {
     // use a normal map externally, since these are more common in
     // user code.
     // TODO: is it worth changing to unordered_map?
-    typedef std::map<std::string, double> ValueMap;
     ValueMap compute(const ValueMap&) const;
 
   private:
     // use the Stack class above as the computational core
     Stack _stack;
-
-    // input transformations
-    VectorXd _offsets;
-    VectorXd _scales;
-    std::vector<std::string> _names;
+    InputPreprocessor _preproc;
 
     // output labels
     std::vector<std::string> _outputs;
