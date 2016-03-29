@@ -226,10 +226,18 @@ namespace lwt {
 
   // ______________________________________________________________________
   // Recurrent classes
-  VectorXd SumRecurrentLayer::compute(const VectorXd& state,
-                                      const VectorXd& update) const
+  SumRecurrentLayer::SumRecurrentLayer(size_t n_inputs):
+    _initial(VectorXd::Zero(n_inputs)),
+    _sum(_initial)
   {
-    return state + update;
+  }
+  void SumRecurrentLayer::reset() {
+    _sum = _initial;
+  }
+  VectorXd SumRecurrentLayer::update(const VectorXd& update)
+  {
+    _sum += update;
+    return _sum;
   }
   RecurrentStack::RecurrentStack(size_t n_inputs,
                                  const LayerConfig& /*layer*/):
@@ -242,13 +250,12 @@ namespace lwt {
     delete _layer;
   }
   VectorXd RecurrentStack::compute(const std::vector<VectorXd>& in) const {
-    // TODO: figure out if we have to load this
-    VectorXd state = VectorXd::Zero(_n_outputs);
-
+    VectorXd out;
     for (const auto& update: in) {
-      state = _layer->compute(state, update);
+      out = _layer->update(update);
     }
-    return state;
+    _layer->reset();
+    return out;
   }
   size_t RecurrentStack::n_outputs() const {
     return _n_outputs;
@@ -256,7 +263,7 @@ namespace lwt {
   // private
   size_t RecurrentStack::build_sum_layer(size_t n_inputs) {
     assert(!_layer);
-    _layer = new SumRecurrentLayer;
+    _layer = new SumRecurrentLayer(n_inputs);
     return n_inputs;
   }
 

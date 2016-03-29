@@ -128,15 +128,19 @@ namespace lwt {
   {
   public:
     virtual ~IRecurrentLayer() {}
-    virtual VectorXd compute(const VectorXd& state,
-                             const VectorXd& update) const = 0;
+    virtual void reset() = 0;
+    virtual VectorXd update(const VectorXd& update) = 0;
   };
   // this is for testing
   class SumRecurrentLayer: public IRecurrentLayer
   {
   public:
-    virtual VectorXd compute(const VectorXd& state,
-                             const VectorXd& update) const;
+    SumRecurrentLayer(size_t n_inputs);
+    virtual void reset();
+    virtual VectorXd update(const VectorXd& update);
+  private:
+    VectorXd _initial;
+    VectorXd _sum;
   };
   // TODO: add LSTM layer
 
