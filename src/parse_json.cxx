@@ -1,5 +1,5 @@
-#include "parse_json.hh"
-#include "lightweight_nn_streamers.hh"
+#include "lwtnn/parse_json.hh"
+#include "lwtnn/lightweight_nn_streamers.hh"
 
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>

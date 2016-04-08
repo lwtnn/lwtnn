@@ -1,5 +1,5 @@
-#include "LightweightNeuralNetwork.hh"
-#include "parse_json.hh"
+#include "lwtnn/LightweightNeuralNetwork.hh"
+#include "lwtnn/parse_json.hh"
 
 #include <Eigen/Dense>
 
