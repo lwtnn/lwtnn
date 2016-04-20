@@ -35,6 +35,7 @@ _variable_convention_converter = {
     'eta_abs_uCalib': 'jet_eta',
     'pt_uCalib': 'jet_pt',
     'jf_mass': 'jf_m',
+    'jf_mass_check': 'jf_m_check',
     'jf_efrc': 'jf_efc',
     'jf_sig3': 'jf_sig3d',
     'jf_ntrkv': 'jf_ntrkAtVx',
@@ -42,6 +43,7 @@ _variable_convention_converter = {
     'jf_dR': 'jf_dRFlightDir',
     'sv1_ntkv': 'sv1_ntrkv',
     'sv1_mass': 'sv1_m',
+    'sv1_mass_check': 'sv1_m_check',
     'sv1_efrc': 'sv1_efc',
     'sv1_sig3': 'sv1_sig3d',
     }
