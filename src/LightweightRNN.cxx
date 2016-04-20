@@ -1,3 +1,12 @@
+// Lightweight Recurrent NN 
+//
+//basic code for forward pass computation of recurrent NN structures, like LSTM,
+// useful for processing time series / sequence data.
+// goal to be able to evaluate Keras (keras.io) models in c++ in lightweight way
+//
+// Author: Michael Kagan <mkagan@cern.ch>
+
+
 #include "lwtnn/LightweightRNN.hh"
 
 
