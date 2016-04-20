@@ -1,14 +1,13 @@
 #ifndef LIGHTWEIGHT_RNN_HH
 #define LIGHTWEIGHT_RNN_HH
 
-// Lightweight Tagger
+// Lightweight Recurrent NN 
 //
-// This is a simple NN implementation, designed to be lightweight in
-// terms of both size and dependencies. For sanity we use Eigen, but
-// otherwise this aims to be a minimal NN class which is fully
-// configurable at runtime.
+//basic code for forward pass computation of recurrent NN structures, like LSTM,
+// useful for processing time series / sequence data.
+// goal to be able to evaluate Keras (keras.io) models in c++ in lightweight way
 //
-// Author: Dan Guest <dguest@cern.ch>
+// Author: Michael Kagan <mkagan@cern.ch>
 
 #include "NNLayerConfig.hh"
 
