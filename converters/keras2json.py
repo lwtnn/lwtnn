@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 #
-# Converter from Keras saved NN to JSON
+# Converter from Keras (version 1.0.0) saved NN to JSON
 """
 ____________________________________________________________________
 Variable specification file
@@ -17,7 +17,8 @@ format:
        "default": default_value},
       ...
       ],
-    "class_labels": [output_class_1_name, output_class_2_name, ...]
+    "class_labels": [output_class_1_name, output_class_2_name, ...],
+    "Keras version": "1.0.0"
   }
 
 where `scale` and `offset` account for any scaling and shifting to the
@@ -37,6 +38,12 @@ def _run():
         arch = json.load(arch_file)
     with open(args.variables_file, 'r') as inputs_file:
         inputs = json.load(inputs_file)
+
+    if  inputs.get('Keras version')!="1.0.0":
+        print("WARNING: This converter was developed for Keras version 1.0.0. \
+        The provided files were generated using version {} and therefore \
+        the conversion might break.".format(inputs.get('Keras version')))
+
     with h5py.File(args.hdf5_file, 'r') as h5:
         out_dict = {
             'layers': _get_layers(arch, inputs, h5),
@@ -78,8 +85,8 @@ _activation_map = {
 
 def _get_dense_layer_parameters(layer_group, n_in):
     """Get weights, bias, and n-outputs for a dense layer"""
-    weights = layer_group['param_0']
-    bias = layer_group['param_1']
+    weights = layer_group.get(list(layer_group.keys())[0])
+    bias = layer_group.get(list(layer_group.keys())[1])
     assert weights.shape[1] == bias.shape[0]
     assert weights.shape[0] == n_in
     # TODO: confirm that we should be transposing the weight
@@ -94,8 +101,8 @@ def _get_dense_layer_parameters(layer_group, n_in):
 
 def _get_maxout_layer_parameters(layer_group, n_in):
     """Get weights, bias, and n-outputs for a maxout layer"""
-    weights = np.asarray(layer_group['param_0'])
-    bias = np.asarray(layer_group['param_1'])
+    weights = np.asarray(layer_group.get(list(layer_group.keys())[0]))
+    bias = np.asarray(layer_group.get(list(layer_group.keys())[1]))
 
     # checks (note the transposed arrays)
     wt_layers, wt_in, wt_out = weights.shape
@@ -132,21 +139,21 @@ _layer_converters = {
 
 def _get_layers(network, inputs, h5):
     layers = []
-    in_layers = network['layers']
+    in_layers = network['config']
     n_out = len(inputs['inputs'])
     for layer_n in range(len(in_layers)):
         # get converter for this layer
         layer_arch = in_layers[layer_n]
-        layer_type = layer_arch['name'].lower()
+        layer_type = layer_arch['class_name'].lower()
         convert = _layer_converters[layer_type]
 
         # get the hdf5 info
-        layer_group = h5['layer_{}'.format(layer_n)]
+        layer_group = h5['{0}_{1}'.format(layer_type, layer_n+1)]
 
         # build the out layer
         out_layer, n_out = convert(layer_group, n_out)
         out_layer['activation'] = _activation_map[
-            layer_arch.get('activation')]
+            layer_arch.get('config').get('activation')]
         layers.append(out_layer)
     return layers
 
