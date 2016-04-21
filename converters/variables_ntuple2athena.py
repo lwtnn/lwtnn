@@ -32,7 +32,7 @@ def _get_args():
     return parser.parse_args()
 
 _variable_convention_converter = {
-    'eta_abs_uCalib': 'jet_eta',
+    'eta_abs_uCalib': 'jet_abs_eta',
     'pt_uCalib': 'jet_pt',
     'jf_mass': 'jf_m',
     'jf_mass_check': 'jf_m_check',
