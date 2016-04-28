@@ -18,7 +18,7 @@ format:
       ...
       ],
     "class_labels": [output_class_1_name, output_class_2_name, ...],
-    "Keras version": "1.0.0"
+    "keras_version": "1.0.0"
   }
 
 where `scale` and `offset` account for any scaling and shifting to the
@@ -27,9 +27,11 @@ input variables in preprocessing. The "default" value is optional.
 """
 
 import argparse
+import warnings
 import json
 import h5py
 import numpy as np
+from collections import Counter
 
 def _run():
     """Top level routine"""
@@ -39,8 +41,8 @@ def _run():
     with open(args.variables_file, 'r') as inputs_file:
         inputs = json.load(inputs_file)
 
-    if  inputs.get('Keras version')!="1.0.0":
-        print("WARNING: This converter was developed for Keras version 1.0.0. \
+    if  inputs.get('keras_version')!="1.0.0":
+        warnings.warn("This converter was developed for Keras version 1.0.0. \
         The provided files were generated using version {} and therefore \
         the conversion might break.".format(inputs.get('Keras version')))
 
@@ -101,6 +103,7 @@ def _get_dense_layer_parameters(layer_group, n_in):
 
 def _get_maxout_layer_parameters(layer_group, n_in):
     """Get weights, bias, and n-outputs for a maxout layer"""
+    # TODO: make this more robust, should look by key, not key index
     weights = np.asarray(layer_group.get(list(layer_group.keys())[0]))
     bias = np.asarray(layer_group.get(list(layer_group.keys())[1]))
 
@@ -123,6 +126,30 @@ def _get_maxout_layer_parameters(layer_group, n_in):
         sublayers.append(sublayer)
     return {'sublayers': sublayers, 'architecture': 'maxout'}, wt_out
 
+def _lstm_parameters(layer_group, n_in):
+    """LSTM parameter converter"""
+    # TODO: wrap this prefix-checking stuff in a function, return a dict
+    # of datasets
+    prefixes = set()
+    numbers = set()
+    layers = {}
+    for name, ds in layer_group.items():
+        prefix, number, name = name.split('_', 2)
+        prefixes.add(prefix)
+        numbers.add(number)
+        layers[name] = np.asarray(ds)
+    assert len(prefixes) == 1, 'too many prefixes: {}'.format(prefixes)
+    assert len(numbers) == 1, 'too many numbers: {}'.format(numbers)
+
+    submap = {}
+    for gate in 'cfio':
+        submap[gate] = {
+            'U': layers['U_' + gate].T.flatten().tolist(),
+            'weight': layers['W_' + gate].T.flatten().tolist(),
+            'bias': layers['b_' + gate].flatten().tolist(),
+        }
+    print(submap)
+
 def _dummy_parameters(layer_group, n_in):
     """Return dummy parameters"""
     return {'weights':[], 'bias':[], 'architecture':'dense'}, n_in
@@ -130,6 +157,7 @@ def _dummy_parameters(layer_group, n_in):
 _layer_converters = {
     'dense': _get_dense_layer_parameters,
     'maxoutdense': _get_maxout_layer_parameters,
+    'lstm': _lstm_parameters,
     'activation': _dummy_parameters,
     'flatten': _dummy_parameters,
     }
@@ -148,12 +176,12 @@ def _get_layers(network, inputs, h5):
         convert = _layer_converters[layer_type]
 
         # get the hdf5 info
-        layer_group = h5['{0}_{1}'.format(layer_type, layer_n+1)]
+        layer_group = h5[layer_arch['config']['name']]
 
         # build the out layer
         out_layer, n_out = convert(layer_group, n_out)
         out_layer['activation'] = _activation_map[
-            layer_arch.get('config').get('activation')]
+            layer_arch['config']['activation']]
         layers.append(out_layer)
     return layers
 
