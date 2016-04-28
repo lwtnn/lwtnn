@@ -128,8 +128,8 @@ def _get_maxout_layer_parameters(layer_group, n_in):
 
 def _lstm_parameters(layer_group, n_in):
     """LSTM parameter converter"""
-    # TODO: wrap this prefix-checking stuff in a function, return a dict
-    # of datasets
+    # TODO: wrap this prefix-checking stuff in a function that returns
+    # a dict of layers
     prefixes = set()
     numbers = set()
     layers = {}
@@ -141,14 +141,16 @@ def _lstm_parameters(layer_group, n_in):
     assert len(prefixes) == 1, 'too many prefixes: {}'.format(prefixes)
     assert len(numbers) == 1, 'too many numbers: {}'.format(numbers)
 
+    n_out = layers['W_o'].shape[1]
+
     submap = {}
     for gate in 'cfio':
         submap[gate] = {
             'U': layers['U_' + gate].T.flatten().tolist(),
-            'weight': layers['W_' + gate].T.flatten().tolist(),
+            'weights': layers['W_' + gate].T.flatten().tolist(),
             'bias': layers['b_' + gate].flatten().tolist(),
         }
-    print(submap)
+    return {'layers': submap, 'architecture': 'lstm'}, n_out
 
 def _dummy_parameters(layer_group, n_in):
     """Return dummy parameters"""
