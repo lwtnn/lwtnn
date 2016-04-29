@@ -13,7 +13,8 @@
 #include <map>
 
 namespace lwt {
-  enum class Activation {LINEAR, SIGMOID, RECTIFIED, SOFTMAX, TANH};
+  enum class Activation {ERROR, LINEAR, SIGMOID, RECTIFIED, SOFTMAX, TANH,
+      HARD_SIGMOID};
   enum class Architecture {DENSE, MAXOUT, LSTM};
   // components (for LSTM, etc)
   enum class Component {I,O,C,F};

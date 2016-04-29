@@ -17,11 +17,13 @@ namespace {
   std::string activation_as_string(lwt::Activation act) {
     using namespace lwt;
     switch (act) {
+    case Activation::ERROR: return "error";
     case Activation::LINEAR: return "linear";
     case Activation::SIGMOID: return "sigmoid";
     case Activation::RECTIFIED: return "rectified";
     case Activation::SOFTMAX: return "softmax";
     case Activation::TANH: return "tanh";
+    case Activation::HARD_SIGMOID: return "hard_sigmoid";
     }
   }
 }
