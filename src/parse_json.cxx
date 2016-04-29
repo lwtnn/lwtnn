@@ -12,6 +12,7 @@ namespace {
   lwt::Architecture get_architecture(const std::string&);
   void add_dense_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_maxout_info(LayerConfig& lc, const ptree::value_type& pt);
+  void add_lstm_info(LayerConfig& lc, const ptree::value_type& pt);
 }
 
 
@@ -41,6 +42,8 @@ namespace lwt {
         add_dense_info(layer, v);
       } else if (layer.architecture == Architecture::MAXOUT) {
         add_maxout_info(layer, v);
+      } else if (layer.architecture == Architecture::LSTM) {
+        add_lstm_info(layer, v);
       }
       cfg.layers.push_back(layer);
     }
@@ -76,6 +79,7 @@ namespace {
     using namespace lwt;
     if (str == "dense") return Architecture::DENSE;
     if (str == "maxout") return Architecture::MAXOUT;
+    if (str == "lstm") return Architecture::LSTM;
     throw std::logic_error("architecture " + str + " not recognized");
   }
 
@@ -85,6 +89,12 @@ namespace {
     }
     for (const auto& bs: v.second.get_child("bias")) {
       layer.bias.push_back(bs.second.get_value<double>());
+    }
+    // this last category is currently only used for LSTM
+    if (v.second.count("U") != 0) {
+      for (const auto& wt: v.second.get_child("U") ) {
+        layer.U.push_back(wt.second.get_value<double>());
+      }
     }
   }
 
@@ -96,6 +106,21 @@ namespace {
       sublayer.architecture = Architecture::DENSE;
       sublayer.activation = Activation::LINEAR;
       layer.sublayers.push_back(sublayer);
+    }
+  }
+
+  const std::vector<std::pair<lwt::Component, std::string> > lstm_components {
+    {Component::I, "i"},
+    {Component::O, "o"},
+    {Component::C, "c"},
+    {Component::F, "f"}
+  };
+  void add_lstm_info(LayerConfig& layer, const ptree::value_type& v) {
+    using namespace lwt;
+    for (const auto& pair: lstm_components) {
+      LayerConfig cfg;
+      add_dense_info(cfg, v.second.get_child(pair.second).front());
+      layer.components[pair.first] = cfg;
     }
   }
 

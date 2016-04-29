@@ -15,7 +15,10 @@
 namespace lwt {
   enum class Activation {LINEAR, SIGMOID, RECTIFIED, SOFTMAX, TANH};
   enum class Architecture {DENSE, MAXOUT, LSTM};
+  // components (for LSTM, etc)
   enum class Component {I,O,C,F};
+  // const std::vector<Component> LSTM_COMPONENTS {
+  //   Component::I, Component::O, Component::C, Component::F};
 
   struct LayerConfig
   {
