@@ -18,8 +18,6 @@ namespace lwt {
   enum class Architecture {DENSE, MAXOUT, LSTM};
   // components (for LSTM, etc)
   enum class Component {I,O,C,F};
-  // const std::vector<Component> LSTM_COMPONENTS {
-  //   Component::I, Component::O, Component::C, Component::F};
 
   struct LayerConfig
   {
@@ -28,6 +26,7 @@ namespace lwt {
     std::vector<double> bias;
     std::vector<double> U;      // TODO: what is this thing called in LSTMs?
     Activation activation;
+    Activation inner_activation; // for LSTMs
 
     // additional info for sublayers
     std::vector<LayerConfig> sublayers;

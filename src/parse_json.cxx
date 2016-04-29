@@ -123,6 +123,10 @@ namespace {
       add_dense_info(cfg, v.second.get_child(pair.second).front());
       layer.components[pair.first] = cfg;
     }
+    layer.activation = get_activation(
+      v.second.get<std::string>("activation"));
+    layer.inner_activation = get_activation(
+      v.second.get<std::string>("inner_activation"));
   }
 
 }

@@ -154,7 +154,8 @@ def _lstm_parameters(layer_group, layer_config, n_in):
         }
         # TODO: add activation function for some of these gates
     return {'layers': submap, 'architecture': 'lstm',
-            'activation': layer_config['activation']}, n_out
+            'activation': layer_config['activation'],
+            'inner_activation': layer_config['inner_activation']}, n_out
 
 def _dummy_parameters(layer_group, layer_config, n_in):
     """Return dummy parameters"""
