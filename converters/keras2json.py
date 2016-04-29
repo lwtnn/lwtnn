@@ -85,7 +85,7 @@ _activation_map = {
 #  - A dictionary of layer information which can be serialized to JSON
 #  - The number of outputs (also for error checking)
 
-def _get_dense_layer_parameters(layer_group, n_in):
+def _get_dense_layer_parameters(layer_group, layer_config, n_in):
     """Get weights, bias, and n-outputs for a dense layer"""
     weights = layer_group.get(list(layer_group.keys())[0])
     bias = layer_group.get(list(layer_group.keys())[1])
@@ -96,12 +96,13 @@ def _get_dense_layer_parameters(layer_group, n_in):
     return_dict = {
         'weights': np.asarray(weights).T.flatten('C').tolist(),
         'bias': np.asarray(bias).flatten('C').tolist(),
-        'architecture': 'dense'
+        'architecture': 'dense',
+        'activation': layer_config['activation'],
     }
     return return_dict, weights.shape[1]
 
 
-def _get_maxout_layer_parameters(layer_group, n_in):
+def _get_maxout_layer_parameters(layer_group, layer_config, n_in):
     """Get weights, bias, and n-outputs for a maxout layer"""
     # TODO: make this more robust, should look by key, not key index
     weights = np.asarray(layer_group.get(list(layer_group.keys())[0]))
@@ -124,9 +125,10 @@ def _get_maxout_layer_parameters(layer_group, n_in):
             'architecture': 'dense'
         }
         sublayers.append(sublayer)
-    return {'sublayers': sublayers, 'architecture': 'maxout'}, wt_out
+    return {'sublayers': sublayers, 'architecture': 'maxout',
+            'activation': layer_config['activation']}, wt_out
 
-def _lstm_parameters(layer_group, n_in):
+def _lstm_parameters(layer_group, layer_config, n_in):
     """LSTM parameter converter"""
     # TODO: wrap this prefix-checking stuff in a function that returns
     # a dict of layers
@@ -150,11 +152,14 @@ def _lstm_parameters(layer_group, n_in):
             'weights': layers['W_' + gate].T.flatten().tolist(),
             'bias': layers['b_' + gate].flatten().tolist(),
         }
-    return {'layers': submap, 'architecture': 'lstm'}, n_out
+        # TODO: add activation function for some of these gates
+    return {'layers': submap, 'architecture': 'lstm',
+            'activation': layer_config['activation']}, n_out
 
-def _dummy_parameters(layer_group, n_in):
+def _dummy_parameters(layer_group, layer_config, n_in):
     """Return dummy parameters"""
-    return {'weights':[], 'bias':[], 'architecture':'dense'}, n_in
+    return {'weights':[], 'bias':[], 'architecture':'dense',
+            'activation':layer_config['activation']}, n_in
 
 _layer_converters = {
     'dense': _get_dense_layer_parameters,
@@ -181,9 +186,9 @@ def _get_layers(network, inputs, h5):
         layer_group = h5[layer_arch['config']['name']]
 
         # build the out layer
-        out_layer, n_out = convert(layer_group, n_out)
-        out_layer['activation'] = _activation_map[
-            layer_arch['config']['activation']]
+        out_layer, n_out = convert(layer_group, layer_arch['config'], n_out)
+        # out_layer['activation'] = _activation_map[
+        #     layer_arch['config']['activation']]
         layers.append(out_layer)
     return layers
 
