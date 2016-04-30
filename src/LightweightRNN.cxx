@@ -10,6 +10,19 @@
 #include "lwtnn/LightweightRNN.hh"
 
 
+namespace {
+  // LSTM component for convenience
+  // TODO: consider using this in LSTMLayer
+  struct LSTMComponent
+  {
+    Eigen::MatrixXd W;
+    Eigen::MatrixXd U;
+    Eigen::VectorXd b;
+  };
+  LSTMComponent get_component(const lwt::LayerConfig& layer, size_t n_in);
+}
+
+
 namespace lwt {
 
 
@@ -128,4 +141,58 @@ namespace lwt {
     return MatrixXd(_h_t);
   }
 
+  // ______________________________________________________________________
+  // Recurrent Stack
+
+  RecurrentStack::RecurrentStack(size_t n_inputs,
+                                 const std::vector<lwt::LayerConfig>& layers)
+  {
+    using namespace lwt;
+    size_t layer_n = 0;
+    const size_t n_layers = layers.size();
+    for (;layer_n < n_layers; layer_n++) {
+      auto& layer = layers.at(layer_n);
+      n_inputs = add_lstm_layers(n_inputs, layer);
+      // TODO: add break if this becomes a dense layer
+    }
+  }
+  size_t RecurrentStack::add_lstm_layers(size_t n_inputs,
+                                         const LayerConfig& layer) {
+    auto& comps = layer.components;
+    const auto& i = get_component(comps.at(Component::I), n_inputs);
+    const auto& o = get_component(comps.at(Component::O), n_inputs);
+    const auto& f = get_component(comps.at(Component::F), n_inputs);
+    const auto& c = get_component(comps.at(Component::C), n_inputs);
+    _layers.push_back(
+      new LSTMLayer(layer.activation, layer.inner_activation,
+                    i.W, i.U, i.b,
+                    f.W, f.U, f.b,
+                    o.W, o.U, o.b,
+                    c.W, c.U, c.b));
+    return o.b.rows();
+  }
+
+}
+
+// ________________________________________________________________________
+// convenience functions
+
+namespace {
+  LSTMComponent get_component(const lwt::LayerConfig& layer, size_t n_in) {
+    using namespace Eigen;
+    using namespace lwt;
+    MatrixXd weights = build_matrix(layer.weights, n_in);
+    size_t n_out = weights.rows();
+    MatrixXd U = build_matrix(layer.U, n_out);
+    VectorXd bias = build_vector(layer.bias);
+
+    size_t u_out = U.rows();
+    size_t b_out = bias.rows();
+    if (u_out != n_out || b_out != n_out) {
+      throw NNConfigurationException(
+        "Output dims mismatch, W: " + std::to_string(n_out) +
+        ", U: " + std::to_string(u_out) + ", b: " + std::to_string(b_out));
+    }
+    return {weights, U, bias};
+  }
 }

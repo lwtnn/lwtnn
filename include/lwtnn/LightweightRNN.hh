@@ -111,10 +111,10 @@ namespace lwt {
   };
 
 
-
   /// long short term memory ///
-  class LSTMLayer : IRecurrentLayer
+  class LSTMLayer : public IRecurrentLayer
   {
+  public:
     LSTMLayer(Activation activation, Activation inner_activation,
         MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
         MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
@@ -154,7 +154,20 @@ namespace lwt {
     int _n_outputs;
   };
 
-
+  class RecurrentStack
+  {
+  public:
+    RecurrentStack(size_t n_inputs, const std::vector<LayerConfig>& layers);
+    ~RecurrentStack();
+    RecurrentStack(RecurrentStack&) = delete;
+    RecurrentStack& operator=(RecurrentStack&) = delete;
+    VectorXd reduce(const MatrixXd& inputs) const;
+    size_t n_outputs() const;
+  private:
+    std::vector<IRecurrentLayer*> _layers;
+    size_t add_lstm_layers(size_t n_inputs, const LayerConfig&);
+    Stack _stack;
+  };
 
 
 }
