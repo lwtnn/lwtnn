@@ -5,6 +5,8 @@
 #include <cassert>
 #include <string>
 
+#include <iostream>
+
 namespace {
   using namespace boost::property_tree;
   using namespace lwt;
@@ -33,18 +35,24 @@ namespace lwt {
     }
     for (const auto& v: pt.get_child("layers")) {
       LayerConfig layer;
-      layer.activation = get_activation(
-        v.second.get<std::string>("activation"));
-      layer.architecture = get_architecture(
+      Architecture arch = get_architecture(
         v.second.get<std::string>("architecture"));
 
-      if (layer.architecture == Architecture::DENSE) {
+      if (arch == Architecture::DENSE) {
         add_dense_info(layer, v);
-      } else if (layer.architecture == Architecture::MAXOUT) {
+      } else if (arch == Architecture::MAXOUT) {
         add_maxout_info(layer, v);
-      } else if (layer.architecture == Architecture::LSTM) {
+      } else if (arch == Architecture::LSTM) {
         add_lstm_info(layer, v);
+      } else {
+        throw std::logic_error("architecture not implemented");
       }
+      layer.architecture = arch;
+      if (layer.activation == Activation::NONE) {
+        throw std::logic_error("Activation function must be specified for "
+                               "main sequence layers");
+      }
+
       cfg.layers.push_back(layer);
     }
     for (const auto& v: pt.get_child("outputs"))
@@ -64,6 +72,7 @@ namespace lwt {
 }
 
 namespace {
+
   lwt::Activation get_activation(const std::string& str) {
     using namespace lwt;
     if (str == "linear") return Activation::LINEAR;
@@ -76,6 +85,7 @@ namespace {
     return Activation::LINEAR;
   }
 
+
   lwt::Architecture get_architecture(const std::string& str) {
     using namespace lwt;
     if (str == "dense") return Architecture::DENSE;
@@ -83,6 +93,7 @@ namespace {
     if (str == "lstm") return Architecture::LSTM;
     throw std::logic_error("architecture " + str + " not recognized");
   }
+
 
   void add_dense_info(LayerConfig& layer, const ptree::value_type& v) {
     for (const auto& wt: v.second.get_child("weights")) {
@@ -97,6 +108,15 @@ namespace {
         layer.U.push_back(wt.second.get_value<double>());
       }
     }
+
+    if (v.second.count("activation") == 0) {
+      layer.activation = Activation::NONE;
+    } else {
+      layer.activation = get_activation(
+        v.second.get<std::string>("activation"));
+    }
+    layer.inner_activation = Activation::NONE;
+
   }
 
   void add_maxout_info(LayerConfig& layer, const ptree::value_type& v) {
@@ -104,24 +124,25 @@ namespace {
     for (const auto& sub: v.second.get_child("sublayers")) {
       LayerConfig sublayer;
       add_dense_info(sublayer, sub);
-      sublayer.architecture = Architecture::DENSE;
-      sublayer.activation = Activation::LINEAR;
       layer.sublayers.push_back(sublayer);
     }
   }
 
-  const std::vector<std::pair<lwt::Component, std::string> > lstm_components {
-    {Component::I, "i"},
-    {Component::O, "o"},
-    {Component::C, "c"},
-    {Component::F, "f"}
+
+  const std::map<std::string, lwt::Component> lstm_components {
+    {"i", Component::I},
+    {"o", Component::O},
+    {"c", Component::C},
+    {"f", Component::F}
   };
+
   void add_lstm_info(LayerConfig& layer, const ptree::value_type& v) {
     using namespace lwt;
-    for (const auto& pair: lstm_components) {
+
+    for (const auto& comp: v.second.get_child("components")) {
       LayerConfig cfg;
-      add_dense_info(cfg, v.second.get_child(pair.second).front());
-      layer.components[pair.first] = cfg;
+      add_dense_info(cfg, comp);
+      layer.components[lstm_components.at(comp.first)] = cfg;
     }
     layer.activation = get_activation(
       v.second.get<std::string>("activation"));
