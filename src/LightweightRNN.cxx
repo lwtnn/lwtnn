@@ -1,4 +1,4 @@
-// Lightweight Recurrent NN 
+// Lightweight Recurrent NN
 //
 //basic code for forward pass computation of recurrent NN structures, like LSTM,
 // useful for processing time series / sequence data.
@@ -20,7 +20,7 @@ namespace lwt {
 
   MatrixXd EmbeddingLayer::scan( const MatrixXd& x) {
     MatrixXd out(_W.rows(), x.cols());
-    
+
     for(int icol=0; icol<x.cols(); icol++)
       out.col(icol) = _W.col( x(0, icol) ) + _b;
 
@@ -41,11 +41,11 @@ namespace lwt {
   }
 
   LSTMLayer::LSTMLayer(bool return_sequences,
-		       std::string activation, std::string inner_activation,
-		       MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
-		       MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
-		       MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
-		       MatrixXd W_c, MatrixXd U_c, VectorXd b_c ):
+           std::string activation, std::string inner_activation,
+           MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
+           MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
+           MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
+           MatrixXd W_c, MatrixXd U_c, VectorXd b_c ):
     _return_sequences(return_sequences),
     _activation("tanh"),
     _inner_activation("hard_sigmoid"),
@@ -83,9 +83,9 @@ namespace lwt {
 
     if(_time == 0){
       if( get_mask()(_time) == 1 ){
-	//_C_t.col(_time).setZero();
-	//_h_t.col(_time).setZero();
-	return VectorXd( _h_t.col(_time) );
+  //_C_t.col(_time).setZero();
+  //_h_t.col(_time).setZero();
+  return VectorXd( _h_t.col(_time) );
       }
 
       VectorXd i =  (_W_i*x_t + _b_i).unaryExpr(_inner_activation_fun);
@@ -97,9 +97,9 @@ namespace lwt {
 
     else{
       if( get_mask()(_time) == 1 ){
-	_C_t.col(_time) = _C_t.col(_time - 1);
-	_h_t.col(_time) = _h_t.col(_time - 1);
-	return VectorXd( _h_t.col(_time) );
+  _C_t.col(_time) = _C_t.col(_time - 1);
+  _h_t.col(_time) = _h_t.col(_time - 1);
+  return VectorXd( _h_t.col(_time) );
       }
 
       VectorXd h_tm1 = _h_t.col(_time - 1);
@@ -122,16 +122,16 @@ namespace lwt {
     _h_t.resize(_n_outputs, x.cols());
     _h_t.setZero();
     _time = -1;
-    
+
 
     for(_time=0; _time < x.cols(); _time++)
       {
-	this->step( x.col( _time ) );
+  this->step( x.col( _time ) );
       }
 
     if( this->_return_sequences == true)
       return MatrixXd(_h_t);
-  
+
     return MatrixXd( _h_t.col( _h_t.cols()-1 ) );
   }
 

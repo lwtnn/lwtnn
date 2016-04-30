@@ -1,7 +1,7 @@
 #ifndef LIGHTWEIGHT_RNN_HH
 #define LIGHTWEIGHT_RNN_HH
 
-// Lightweight Recurrent NN 
+// Lightweight Recurrent NN
 //
 //basic code for forward pass computation of recurrent NN structures, like LSTM,
 // useful for processing time series / sequence data.
@@ -23,7 +23,7 @@
 
 
 namespace lwt {
-  
+
   using Eigen::VectorXd;
   using Eigen::VectorXi;
 
@@ -60,29 +60,29 @@ namespace lwt {
 
     return out;
   }
-  
+
   double nn_tanh( double x ){
     return std::tanh(x);
   }
-  
+
   /// base recurrent class ///
   class IRecurrentLayer : ILayer
   {
   public:
     IRecurrentLayer() {}
-    
+
     virtual ~IRecurrentLayer() {}
     virtual VectorXd compute(const VectorXd& x) const { return x; } // can be virtually overloaded if needed
-    
+
     virtual MatrixXd scan( const MatrixXd&) = 0;
-    
+
     virtual void     set_mask( const VectorXi& mask ) { _mask = mask; }
     virtual VectorXi get_mask() const { return _mask; }
-    
+
   private:
     VectorXi _mask;
   };
-  
+
 
   /// masking layer ///
   class MaskingLayer : IRecurrentLayer
@@ -90,18 +90,18 @@ namespace lwt {
     virtual ~MaskingLayer() {};
     virtual MatrixXd scan( const MatrixXd&);
   };
-  
+
   class EmbeddingLayer : IRecurrentLayer
   {
     EmbeddingLayer(MatrixXd W, VectorXd b) : _W(W), _b(b) {};
     virtual ~EmbeddingLayer() {};
     virtual MatrixXd scan( const MatrixXd&);
-    
+
   private:
     MatrixXd _W;
     VectorXd _b;
   };
-  
+
 
   /// layer for merging matrices processed through different layers ///
   class TimeDistributedMergeLayer
@@ -109,18 +109,18 @@ namespace lwt {
     virtual ~TimeDistributedMergeLayer() {};
     virtual MatrixXd scan( const MatrixXd&, const MatrixXd&);
   };
-  
+
 
 
   /// long short term memory ///
   class LSTMLayer : IRecurrentLayer
   {
     LSTMLayer(bool return_sequences,
-	      std::string activation, std::string inner_activation,
-	      MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
-	      MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
-	      MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
-	      MatrixXd W_c, MatrixXd U_c, VectorXd b_c);
+        std::string activation, std::string inner_activation,
+        MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
+        MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
+        MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
+        MatrixXd W_c, MatrixXd U_c, VectorXd b_c);
 
     virtual ~LSTMLayer() {};
     virtual VectorXd step( const VectorXd&);
@@ -128,7 +128,7 @@ namespace lwt {
 
   private:
     bool _return_sequences;
-    
+
     std::string _activation;
     std::string _inner_activation;
 
@@ -159,7 +159,7 @@ namespace lwt {
     int _n_inputs;
     int _n_outputs;
   };
-  
+
 
 
 
