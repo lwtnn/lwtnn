@@ -6,15 +6,7 @@
 namespace {
   using namespace Eigen;
   using namespace lwt;
-  // functions to build up basic units from vectors
-  MatrixXd build_matrix(const std::vector<double>& weights, size_t n_inputs);
-  VectorXd build_vector(const std::vector<double>& bias);
-
-  // consistency checks
-  void throw_if_not_maxout(const LayerConfig& layer);
-  void throw_if_not_dense(const LayerConfig& layer);
 }
-
 namespace lwt {
 
   // _______________________________________________________________________
@@ -298,12 +290,9 @@ namespace lwt {
   NNEvaluationException::NNEvaluationException(std::string problem):
     LightweightNNException(problem)
   {}
-}
-
 
 // ________________________________________________________________________
 // utility functions
-namespace {
   MatrixXd build_matrix(const std::vector<double>& weights, size_t n_inputs)
   {
     size_t n_elements = weights.size();
