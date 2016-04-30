@@ -115,8 +115,7 @@ namespace lwt {
   /// long short term memory ///
   class LSTMLayer : IRecurrentLayer
   {
-    LSTMLayer(bool return_sequences,
-        std::string activation, std::string inner_activation,
+    LSTMLayer(Activation activation, Activation inner_activation,
         MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
         MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
         MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
@@ -127,11 +126,6 @@ namespace lwt {
     virtual MatrixXd scan( const MatrixXd&);
 
   private:
-    bool _return_sequences;
-
-    std::string _activation;
-    std::string _inner_activation;
-
     std::function<double(double)> _activation_fun;
     std::function<double(double)> _inner_activation_fun;
 

@@ -40,15 +40,11 @@ namespace lwt {
     return out;
   }
 
-  LSTMLayer::LSTMLayer(bool return_sequences,
-           std::string activation, std::string inner_activation,
+  LSTMLayer::LSTMLayer(Activation activation, Activation inner_activation,
            MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
            MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
            MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
            MatrixXd W_c, MatrixXd U_c, VectorXd b_c ):
-    _return_sequences(return_sequences),
-    _activation("tanh"),
-    _inner_activation("hard_sigmoid"),
     _W_i(W_i),
     _U_i(U_i),
     _b_i(b_i),
@@ -65,13 +61,13 @@ namespace lwt {
     _n_inputs  = _W_o.cols();
     _n_outputs = _W_o.rows();
 
-    if(_activation=="sigmoid")           _activation_fun = nn_sigmoid;
-    else if(_activation=="hard_sigmoid") _activation_fun = nn_hard_sigmoid;
-    else if(_activation=="tanh")         _activation_fun = nn_tanh;
+    if(activation==Activation::SIGMOID)           _activation_fun = nn_sigmoid;
+    else if(activation==Activation::HARD_SIGMOID) _activation_fun = nn_hard_sigmoid;
+    else if(activation==Activation::TANH)         _activation_fun = nn_tanh;
 
-    if(_inner_activation=="sigmoid")           _inner_activation_fun = nn_sigmoid;
-    else if(_inner_activation=="hard_sigmoid") _inner_activation_fun = nn_hard_sigmoid;
-    else if(_inner_activation=="tanh")         _inner_activation_fun = nn_tanh;
+    if(inner_activation==Activation::SIGMOID)           _inner_activation_fun = nn_sigmoid;
+    else if(inner_activation==Activation::HARD_SIGMOID) _inner_activation_fun = nn_hard_sigmoid;
+    else if(inner_activation==Activation::TANH)         _inner_activation_fun = nn_tanh;
 
   }
 
@@ -129,10 +125,7 @@ namespace lwt {
   this->step( x.col( _time ) );
       }
 
-    if( this->_return_sequences == true)
-      return MatrixXd(_h_t);
-
-    return MatrixXd( _h_t.col( _h_t.cols()-1 ) );
+    return MatrixXd(_h_t);
   }
 
 }
