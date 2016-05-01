@@ -11,30 +11,42 @@
 #include <fstream>
 
 void usage(const std::string& name) {
-  std::cout << "usage: " << name << " <nn config>\n"
+  std::cout << "usage: " << name << " <nn config> [<disable>]\n"
             << "\n"
-            << "Read in an RNN, feed it data.\n";
+            << "Read in an RNN, feed it data.\n"
+            << "With anything for <disable>, just run the random number gen";
 }
 
 int main(int argc, char* argv[]) {
-  if (argc != 2) {
+  if (argc < 2 || argc > 3) {
     usage(argv[0]);
     exit(1);
+  }
+  bool run_stack = true;
+  if (argc == 3) {
+    run_stack = false;
   }
   // Read in the configuration.
   std::string in_file_name(argv[1]);
   std::ifstream in_file(in_file_name);
-  std::cout << "reading in NN" << std::endl;
   auto config = lwt::parse_json(in_file);
 
   size_t n_inputs = config.inputs.size();
-  std::cout << "read in NN, constructing recurrent stack..." << std::endl;
   lwt::RecurrentStack stack(n_inputs, config.layers);
-  std::cout << "constructed stack, making inputs..." << std::endl;
-  Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(n_inputs, 10);
-  std::cout << "made inputs:\n" << test_pattern << std::endl;
-  std::cout << "feeding inputs to RNN" << std::endl;
-  Eigen::VectorXd outputs = stack.reduce(test_pattern);
-  std::cout << outputs << std::endl;
+  Eigen::VectorXd sum_outputs = Eigen::VectorXd::Zero(stack.n_outputs());
+  Eigen::VectorXd sum_inputs = Eigen::VectorXd::Zero(n_inputs);
+  size_t n_loops = 10000;
+  std::cout << "running over " << n_loops << " loops" << std::endl;
+  for (size_t nnn = 0; nnn < n_loops; nnn++) {
+    Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(n_inputs, 40);
+    for (size_t iii = 0; iii < test_pattern.cols(); iii++) {
+      sum_inputs += test_pattern.col(iii);
+    }
+    if (run_stack) {
+      sum_outputs += stack.reduce(test_pattern);
+    }
+  }
+  std::cout << "input sum:\n" << sum_inputs << std::endl;
+  std::cout << "output sum:\n" << sum_outputs << std::endl;
   return 0;
 }
