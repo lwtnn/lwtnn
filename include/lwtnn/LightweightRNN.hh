@@ -33,37 +33,10 @@ namespace lwt {
   //now using std::function, since ptr_fun is deprecated, and will be removed in c++17
   //typedef double (*activation_type)(double);
 
-
-  double nn_sigmoid( double x ){
-    //https://github.com/Theano/Theano/blob/master/theano/tensor/nnet/sigm.py#L35
-
-    if( x< -30.0 )
-      return 0.0;
-
-    if( x > 30.0 )
-      return 1.0;
-
-    return 1.0 / (1.0 + std::exp(-1.0*x));
-
-  }
-
-  double nn_hard_sigmoid( double x ){
-    //https://github.com/Theano/Theano/blob/master/theano/tensor/nnet/sigm.py#L279
-
-    double out = 0.2*x + 0.5;
-
-    if( out < 0)
-      return 0.0;
-
-    if ( out > 1 )
-      return 1.0;
-
-    return out;
-  }
-
-  double nn_tanh( double x ){
-    return std::tanh(x);
-  }
+  // forward declare activation functions
+  double nn_sigmoid( double x );
+  double nn_hard_sigmoid( double x );
+  double nn_tanh( double x );
 
   /// base recurrent class ///
   class IRecurrentLayer : ILayer
