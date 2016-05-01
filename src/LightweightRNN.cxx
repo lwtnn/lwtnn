@@ -152,6 +152,8 @@ namespace lwt {
     const size_t n_layers = layers.size();
     for (;layer_n < n_layers; layer_n++) {
       auto& layer = layers.at(layer_n);
+
+      // add recurrent layers (now only LSTM)
       if (layer.architecture == Architecture::LSTM) {
         n_inputs = add_lstm_layers(n_inputs, layer);
       } else {
