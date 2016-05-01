@@ -91,11 +91,6 @@ namespace lwt {
       throw NNEvaluationException("LSTMLayer::compute - time is less than zero!");
 
     if(_time == 0){
-      if( get_mask()(_time) == 1 ){
-  //_C_t.col(_time).setZero();
-  //_h_t.col(_time).setZero();
-  return VectorXd( _h_t.col(_time) );
-      }
 
       VectorXd i =  (_W_i*x_t + _b_i).unaryExpr(_inner_activation_fun);
       VectorXd f =  (_W_f*x_t + _b_f).unaryExpr(_inner_activation_fun);
@@ -105,11 +100,6 @@ namespace lwt {
     }
 
     else{
-      if( get_mask()(_time) == 1 ){
-  _C_t.col(_time) = _C_t.col(_time - 1);
-  _h_t.col(_time) = _h_t.col(_time - 1);
-  return VectorXd( _h_t.col(_time) );
-      }
 
       VectorXd h_tm1 = _h_t.col(_time - 1);
       VectorXd C_tm1 = _C_t.col(_time - 1);
