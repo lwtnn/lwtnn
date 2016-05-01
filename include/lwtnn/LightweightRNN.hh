@@ -161,12 +161,12 @@ namespace lwt {
     ~RecurrentStack();
     RecurrentStack(RecurrentStack&) = delete;
     RecurrentStack& operator=(RecurrentStack&) = delete;
-    VectorXd reduce(const MatrixXd& inputs) const;
+    VectorXd reduce(MatrixXd inputs) const;
     size_t n_outputs() const;
   private:
     std::vector<IRecurrentLayer*> _layers;
     size_t add_lstm_layers(size_t n_inputs, const LayerConfig&);
-    Stack _stack;
+    Stack* _stack;
   };
 
 

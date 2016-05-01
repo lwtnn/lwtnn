@@ -103,7 +103,8 @@ namespace lwt {
     // constructor for dummy net
     Stack();
     // constructor for real net
-    Stack(size_t n_inputs, const std::vector<LayerConfig>& layers);
+    Stack(size_t n_inputs, const std::vector<LayerConfig>& layers,
+          size_t skip_layers = 0);
     ~Stack();
 
     // make non-copyable for now

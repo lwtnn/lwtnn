@@ -152,10 +152,34 @@ namespace lwt {
     const size_t n_layers = layers.size();
     for (;layer_n < n_layers; layer_n++) {
       auto& layer = layers.at(layer_n);
-      n_inputs = add_lstm_layers(n_inputs, layer);
-      // TODO: add break if this becomes a dense layer
+      if (layer.architecture == Architecture::LSTM) {
+        n_inputs = add_lstm_layers(n_inputs, layer);
+      } else {
+        // leave this loop if we're done with the recurrent stuff
+        break;
+      }
     }
+    // fill the remaining dense layers
+    _stack = new Stack(n_inputs, layers, layer_n);
   }
+  RecurrentStack::~RecurrentStack() {
+    for (auto& layer: _layers) {
+      delete layer;
+      layer = 0;
+    }
+    delete _stack;
+    _stack = 0;
+  }
+  VectorXd RecurrentStack::reduce(MatrixXd in) const {
+    for (auto* layer: _layers) {
+      in = layer->scan(in);
+    }
+    return _stack->compute(in.col(in.cols() - 1));
+  }
+  size_t RecurrentStack::n_outputs() const {
+    return _stack->n_outputs();
+  }
+
   size_t RecurrentStack::add_lstm_layers(size_t n_inputs,
                                          const LayerConfig& layer) {
     auto& comps = layer.components;

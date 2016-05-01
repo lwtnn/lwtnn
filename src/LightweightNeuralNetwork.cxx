@@ -118,9 +118,10 @@ namespace lwt {
   }
 
   // construct from LayerConfig
-  Stack::Stack(size_t n_inputs, const std::vector<LayerConfig>& layers) {
-    for (const auto& layer: layers) {
-      n_inputs = add_layers(n_inputs, layer);
+  Stack::Stack(size_t n_inputs, const std::vector<LayerConfig>& layers,
+               size_t skip) {
+    for (size_t nnn = skip; nnn < layers.size(); nnn++) {
+      n_inputs = add_layers(n_inputs, layers.at(nnn));
     }
     // the final assigned n_inputs is the number of output nodes
     _n_outputs = n_inputs;
