@@ -189,6 +189,7 @@ def _get_merge_layer_parameters(h5, layer_config, n_in):
             sublayer = {
                 'weights': layers['W'].T.flatten().tolist(),
                 'index': sum_inputs,
+                'n_out': subcfg['output_dim']
                 }
             sublayers.append(sublayer)
             sum_inputs += 1

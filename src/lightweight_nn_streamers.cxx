@@ -33,6 +33,7 @@ namespace {
     case Architecture::DENSE: return "dense";
     case Architecture::MAXOUT: return "maxout";
     case Architecture::LSTM: return "lstm";
+    case Architecture::EMBEDDING: return "embedding";
     }
   }
   std::ostream& operator<<(std::ostream& out, lwt::Architecture ach) {
@@ -63,6 +64,12 @@ std::ostream& operator<<(std::ostream& out, const lwt::LayerConfig& cfg){
   out << "bias: [" << cfg.bias << "]\n";
   if (cfg.U.size() > 0) {
     out << "U: [" << cfg.U << "]\n";
+  }
+  if (cfg.index != NO_INDEX) {
+    out << "index: " << cfg.index << "\n";
+  }
+  if (cfg.n_out != NO_INDEX) {
+    out << "n_out: " << cfg.n_out << "\n";
   }
   if (cfg.sublayers.size() > 0) {
     out << "[\n";

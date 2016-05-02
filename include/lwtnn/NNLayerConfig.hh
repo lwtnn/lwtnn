@@ -15,9 +15,11 @@
 namespace lwt {
   enum class Activation {NONE, LINEAR, SIGMOID, RECTIFIED, SOFTMAX, TANH,
       HARD_SIGMOID};
-  enum class Architecture {NONE, DENSE, MAXOUT, LSTM};
+  enum class Architecture {NONE, DENSE, MAXOUT, LSTM, EMBEDDING};
   // components (for LSTM, etc)
   enum class Component {I,O,C,F};
+  // placeholder for "no index"
+  const int NO_INDEX = -1;
 
   struct LayerConfig
   {
@@ -27,6 +29,8 @@ namespace lwt {
     std::vector<double> U;      // TODO: what is this thing called in LSTMs?
     Activation activation;
     Activation inner_activation; // for LSTMs
+    int index;                   // for embedding
+    int n_out;                   // for embedding
 
     // additional info for sublayers
     std::vector<LayerConfig> sublayers;

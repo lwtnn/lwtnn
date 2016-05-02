@@ -12,9 +12,11 @@ namespace {
   using namespace lwt;
   lwt::Activation get_activation(const std::string&);
   lwt::Architecture get_architecture(const std::string&);
+  void set_defaults(LayerConfig& lc);
   void add_dense_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_maxout_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_lstm_info(LayerConfig& lc, const ptree::value_type& pt);
+  void add_embedding_info(LayerConfig& lc, const ptree::value_type& pt);
 }
 
 
@@ -35,6 +37,7 @@ namespace lwt {
     }
     for (const auto& v: pt.get_child("layers")) {
       LayerConfig layer;
+      set_defaults(layer);
       Architecture arch = get_architecture(
         v.second.get<std::string>("architecture"));
 
@@ -44,14 +47,12 @@ namespace lwt {
         add_maxout_info(layer, v);
       } else if (arch == Architecture::LSTM) {
         add_lstm_info(layer, v);
+      } else if (arch == Architecture::EMBEDDING) {
+        add_embedding_info(layer, v);
       } else {
         throw std::logic_error("architecture not implemented");
       }
       layer.architecture = arch;
-      if (layer.activation == Activation::NONE) {
-        throw std::logic_error("Activation function must be specified for "
-                               "main sequence layers");
-      }
 
       cfg.layers.push_back(layer);
     }
@@ -91,9 +92,17 @@ namespace {
     if (str == "dense") return Architecture::DENSE;
     if (str == "maxout") return Architecture::MAXOUT;
     if (str == "lstm") return Architecture::LSTM;
+    if (str == "embedding") return Architecture::EMBEDDING;
     throw std::logic_error("architecture " + str + " not recognized");
   }
 
+  void set_defaults(LayerConfig& layer) {
+    layer.activation = Activation::NONE;
+    layer.inner_activation = Activation::NONE;
+    layer.index = lwt::NO_INDEX;
+    layer.n_out = lwt::NO_INDEX;
+    layer.architecture = Architecture::NONE;
+  }
 
   void add_dense_info(LayerConfig& layer, const ptree::value_type& v) {
     for (const auto& wt: v.second.get_child("weights")) {
@@ -109,13 +118,10 @@ namespace {
       }
     }
 
-    if (v.second.count("activation") == 0) {
-      layer.activation = Activation::NONE;
-    } else {
+    if (v.second.count("activation") != 0) {
       layer.activation = get_activation(
         v.second.get<std::string>("activation"));
     }
-    layer.inner_activation = Activation::NONE;
 
   }
 
@@ -123,6 +129,7 @@ namespace {
     using namespace lwt;
     for (const auto& sub: v.second.get_child("sublayers")) {
       LayerConfig sublayer;
+      set_defaults(sublayer);
       add_dense_info(sublayer, sub);
       layer.sublayers.push_back(sublayer);
     }
@@ -138,9 +145,9 @@ namespace {
 
   void add_lstm_info(LayerConfig& layer, const ptree::value_type& v) {
     using namespace lwt;
-
     for (const auto& comp: v.second.get_child("components")) {
       LayerConfig cfg;
+      set_defaults(cfg);
       add_dense_info(cfg, comp);
       layer.components[lstm_components.at(comp.first)] = cfg;
     }
@@ -148,6 +155,21 @@ namespace {
       v.second.get<std::string>("activation"));
     layer.inner_activation = get_activation(
       v.second.get<std::string>("inner_activation"));
+  }
+
+
+  void add_embedding_info(LayerConfig& layer, const ptree::value_type& v) {
+    using namespace lwt;
+    for (const auto& sub: v.second.get_child("sublayers")) {
+      LayerConfig sublayer;
+      set_defaults(sublayer);
+      for (const auto& wt: sub.second.get_child("weights")) {
+        sublayer.weights.push_back(wt.second.get_value<double>());
+      }
+      sublayer.index = sub.second.get<int>("index");
+      sublayer.n_out = sub.second.get<int>("n_out");
+      layer.sublayers.push_back(sublayer);
+    }
   }
 
 }
