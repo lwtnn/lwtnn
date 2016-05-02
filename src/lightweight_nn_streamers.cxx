@@ -65,11 +65,9 @@ std::ostream& operator<<(std::ostream& out, const lwt::LayerConfig& cfg){
   if (cfg.U.size() > 0) {
     out << "U: [" << cfg.U << "]\n";
   }
-  if (cfg.index != NO_INDEX) {
-    out << "index: " << cfg.index << "\n";
-  }
-  if (cfg.n_out != NO_INDEX) {
-    out << "n_out: " << cfg.n_out << "\n";
+  for (const auto& emb: cfg.embedding) {
+    out << "embedding - index: " << emb.index << " n_out: " << emb.n_out
+        << "\n";
   }
   if (cfg.sublayers.size() > 0) {
     out << "[\n";

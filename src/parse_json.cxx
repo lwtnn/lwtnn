@@ -99,8 +99,6 @@ namespace {
   void set_defaults(LayerConfig& layer) {
     layer.activation = Activation::NONE;
     layer.inner_activation = Activation::NONE;
-    layer.index = lwt::NO_INDEX;
-    layer.n_out = lwt::NO_INDEX;
     layer.architecture = Architecture::NONE;
   }
 
@@ -161,14 +159,13 @@ namespace {
   void add_embedding_info(LayerConfig& layer, const ptree::value_type& v) {
     using namespace lwt;
     for (const auto& sub: v.second.get_child("sublayers")) {
-      LayerConfig sublayer;
-      set_defaults(sublayer);
+      EmbeddingConfig emb;
       for (const auto& wt: sub.second.get_child("weights")) {
-        sublayer.weights.push_back(wt.second.get_value<double>());
+        emb.weights.push_back(wt.second.get_value<double>());
       }
-      sublayer.index = sub.second.get<int>("index");
-      sublayer.n_out = sub.second.get<int>("n_out");
-      layer.sublayers.push_back(sublayer);
+      emb.index = sub.second.get<int>("index");
+      emb.n_out = sub.second.get<int>("n_out");
+      layer.embedding.push_back(emb);
     }
   }
 

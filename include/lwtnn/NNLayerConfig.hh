@@ -18,9 +18,16 @@ namespace lwt {
   enum class Architecture {NONE, DENSE, MAXOUT, LSTM, EMBEDDING};
   // components (for LSTM, etc)
   enum class Component {I,O,C,F};
-  // placeholder for "no index"
-  const int NO_INDEX = -1;
 
+  // structure for embedding layers
+  struct EmbeddingConfig
+  {
+    std::vector<double> weights;
+    int index;
+    int n_out;
+  };
+
+  // main layer configuration
   struct LayerConfig
   {
     // dense layer info
@@ -29,12 +36,11 @@ namespace lwt {
     std::vector<double> U;      // TODO: what is this thing called in LSTMs?
     Activation activation;
     Activation inner_activation; // for LSTMs
-    int index;                   // for embedding
-    int n_out;                   // for embedding
 
     // additional info for sublayers
     std::vector<LayerConfig> sublayers;
     std::map<Component, LayerConfig> components;
+    std::vector<EmbeddingConfig> embedding;
 
     // arch flag
     Architecture architecture;
