@@ -26,10 +26,9 @@ namespace {
 namespace lwt {
 
 
-  EmbeddingLayer::EmbeddingLayer(int var_row_index, MatrixXd W, VectorXd b) :
+  EmbeddingLayer::EmbeddingLayer(int var_row_index, MatrixXd W):
     _var_row_index(var_row_index),
-    _W(W),
-    _b(b)
+    _W(W)
   {
     if(var_row_index < 0)
       throw NNConfigurationException("EmbeddingLayer::EmbeddingLayer - can not set var_row_index<0, it is an index for a matrix row!");
@@ -45,7 +44,7 @@ namespace lwt {
     MatrixXd embedded(_W.rows(), x.cols());
 
     for(int icol=0; icol<x.cols(); icol++)
-      embedded.col(icol) = _W.col( x(_var_row_index, icol) ) + _b;
+      embedded.col(icol) = _W.col( x(_var_row_index, icol) );
 
     //only embed 1 variable at a time, so this should be correct size
     MatrixXd out(_W.rows() + (x.rows() - 1), x.cols());
