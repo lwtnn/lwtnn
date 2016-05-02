@@ -69,7 +69,8 @@ namespace lwt {
         MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
         MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
         MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
-        MatrixXd W_c, MatrixXd U_c, VectorXd b_c);
+        MatrixXd W_c, MatrixXd U_c, VectorXd b_c,
+        bool return_sequences = true);
 
     virtual ~LSTMLayer() {};
     virtual VectorXd step( const VectorXd&);
@@ -102,6 +103,8 @@ namespace lwt {
 
     int _n_inputs;
     int _n_outputs;
+
+    bool _return_sequences;
   };
 
   class RecurrentStack

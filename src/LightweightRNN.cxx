@@ -73,7 +73,8 @@ namespace lwt {
            MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
            MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
            MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
-           MatrixXd W_c, MatrixXd U_c, VectorXd b_c ):
+           MatrixXd W_c, MatrixXd U_c, VectorXd b_c,
+           bool return_sequences):
     _W_i(W_i),
     _U_i(U_i),
     _b_i(b_i),
@@ -85,7 +86,8 @@ namespace lwt {
     _b_o(b_o),
     _W_c(W_c),
     _U_c(U_c),
-    _b_c(b_c)
+    _b_c(b_c),
+    _return_sequences(return_sequences)
   {
     _n_inputs  = _W_o.cols();
     _n_outputs = _W_o.rows();
@@ -133,7 +135,7 @@ namespace lwt {
   this->step( x.col( _time ) );
       }
 
-    return MatrixXd(_h_t);
+    return _return_sequences ? _h_t : _h_t.col(_h_t.cols() - 1);
   }
 
   // ______________________________________________________________________
