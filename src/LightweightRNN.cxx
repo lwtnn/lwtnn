@@ -101,30 +101,20 @@ namespace lwt {
       throw NNEvaluationException(
         "LSTMLayer::compute - time is less than zero!");
 
-    const auto& act = _activation_fun;
-    const auto& in_act = _inner_activation_fun;
+    const auto& act_fun = _activation_fun;
+    const auto& in_act_fun = _inner_activation_fun;
 
-    if(_time == 0){
+    int tm1 = std::max(0, _time - 1);
+    VectorXd h_tm1 = _h_t.col(tm1);
+    VectorXd C_tm1 = _C_t.col(tm1);
 
-      VectorXd i =  (_W_i*x_t + _b_i).unaryExpr(in_act);
-      VectorXd f =  (_W_f*x_t + _b_f).unaryExpr(in_act);
-      VectorXd o =  (_W_o*x_t + _b_o).unaryExpr(in_act);
-      _C_t.col(_time) = i.cwiseProduct(  (_W_c*x_t + _b_c).unaryExpr(act) );
-      _h_t.col(_time) = o.cwiseProduct( _C_t.col(_time).unaryExpr(act) );
-    }
+    VectorXd i  =  (_W_i*x_t + _b_i + _U_i*h_tm1).unaryExpr(in_act_fun);
+    VectorXd f  =  (_W_f*x_t + _b_f + _U_f*h_tm1).unaryExpr(in_act_fun);
+    VectorXd o  =  (_W_o*x_t + _b_o + _U_o*h_tm1).unaryExpr(in_act_fun);
+    VectorXd ct =  (_W_c*x_t + _b_c + _U_c*h_tm1).unaryExpr(act_fun);
 
-    else{
-
-      VectorXd h_tm1 = _h_t.col(_time - 1);
-      VectorXd C_tm1 = _C_t.col(_time - 1);
-
-      VectorXd i =  (_W_i*x_t + _b_i + _U_i*h_tm1).unaryExpr(in_act);
-      VectorXd f =  (_W_f*x_t + _b_f + _U_f*h_tm1).unaryExpr(in_act);
-      VectorXd o =  (_W_o*x_t + _b_o + _U_o*h_tm1).unaryExpr(in_act);
-      _C_t.col(_time) = f.cwiseProduct(C_tm1)
-        + i.cwiseProduct( (_W_c*x_t + _b_c + _U_c*h_tm1).unaryExpr(act) );
-      _h_t.col(_time) = o.cwiseProduct( _C_t.col(_time).unaryExpr(act) );
-    }
+    _C_t.col(_time) = f.cwiseProduct(C_tm1) + i.cwiseProduct(ct);
+    _h_t.col(_time) = o.cwiseProduct( _C_t.col(_time).unaryExpr(act_fun) );
 
     return VectorXd( _h_t.col(_time) );
   }
