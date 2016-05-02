@@ -72,37 +72,62 @@ _activation_map = {
     'tanh': 'tanh',
 }
 
+# utility function to handle keras layer naming
+def _get_h5_layers(layer_group):
+    """
+    For some reason Keras prefixes the datasets we need with the group
+    name. This function returns a dictionary of the datasets, keyed
+    with the group name stripped off.
+    """
+    prefixes = set()
+    numbers = set()
+    layers = {}
+    for name, ds in layer_group.items():
+        prefix, number, name = name.split('_', 2)
+        prefixes.add(prefix)
+        numbers.add(number)
+        layers[name] = np.asarray(ds)
+    assert len(prefixes) == 1, 'too many prefixes: {}'.format(prefixes)
+    assert len(numbers) == 1, 'too many numbers: {}'.format(numbers)
+    return layers
+
 # __________________________________________________________________________
 # Layer converters
 #
-# Each of these converters takes two arguments:
-#  - An H5 Group with the layer parameters
+# Each of these converters takes three arguments:
+#  - The H5 Group with the layer parameters
+#  - The layer configuration
 #  - The number of inputs (for error checking)
 #
 # Each returns two outputs:
 #  - A dictionary of layer information which can be serialized to JSON
 #  - The number of outputs (also for error checking)
 
-def _get_dense_layer_parameters(layer_group, n_in):
+def _get_dense_layer_parameters(h5, layer_config, n_in):
     """Get weights, bias, and n-outputs for a dense layer"""
-    weights = layer_group.get(list(layer_group.keys())[0])
-    bias = layer_group.get(list(layer_group.keys())[1])
+    layer_group = h5[layer_config['name']]
+    layers = _get_h5_layers(layer_group)
+    weights = layers['W']
+    bias = layers['b']
     assert weights.shape[1] == bias.shape[0]
     assert weights.shape[0] == n_in
     # TODO: confirm that we should be transposing the weight
     # matrix the Keras case
     return_dict = {
-        'weights': np.asarray(weights).T.flatten('C').tolist(),
-        'bias': np.asarray(bias).flatten('C').tolist(),
-        'architecture': 'dense'
+        'weights': weights.T.flatten('C').tolist(),
+        'bias': bias.flatten('C').tolist(),
+        'architecture': 'dense',
+        'activation': layer_config['activation'],
     }
     return return_dict, weights.shape[1]
 
 
 def _get_maxout_layer_parameters(layer_group, n_in):
     """Get weights, bias, and n-outputs for a maxout layer"""
-    weights = np.asarray(layer_group.get(list(layer_group.keys())[0]))
-    bias = np.asarray(layer_group.get(list(layer_group.keys())[1]))
+    layer_group = h5[layer_config['name']]
+    layers = _get_h5_layers(layer_group)
+    weights = layers['W']
+    bias = layers['b']
 
     # checks (note the transposed arrays)
     wt_layers, wt_in, wt_out = weights.shape
