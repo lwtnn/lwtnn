@@ -31,11 +31,38 @@ namespace lwt {
     return x;
   }
 
+
+  EmbeddingLayer::EmbeddingLayer(int var_row_index, MatrixXd W, VectorXd b) : 
+    _var_row_index(var_row_index), 
+    _W(W), 
+    _b(b) 
+  {
+    if(var_row_index < 0)
+      throw NNConfigurationException("EmbeddingLayer::EmbeddingLayer - can not set var_row_index<0, it is an index for a matrix row!");
+  }
+
+
+
   MatrixXd EmbeddingLayer::scan( const MatrixXd& x) {
-    MatrixXd out(_W.rows(), x.cols());
+
+    if( _var_row_index >= x.rows() )
+      throw NNEvaluationException("EmbeddingLayer::scan - var_row_index is larger than input matrix number of rows!");
+
+    MatrixXd embedded(_W.rows(), x.cols());
 
     for(int icol=0; icol<x.cols(); icol++)
-      out.col(icol) = _W.col( x(0, icol) ) + _b;
+      embedded.col(icol) = _W.col( x(_var_row_index, icol) ) + _b;
+
+    //only embed 1 variable at a time, so this should be correct size
+    MatrixXd out(_W.rows() + (x.rows() - 1), x.cols());
+
+    if(_var_row_index > 0)
+      out.topRows(_var_row_index) = x.topRows(_var_row_index); //assuming _var_row_index is an index with first possible value of 0
+
+    out.block(_var_row_index, 0, embedded.rows(), embedded.cols()) = embedded;
+
+    if( _var_row_index < (x.rows()-1) )
+      out.bottomRows( x.cols() - 1 - _var_row_index) = x.bottomRows( x.cols() - 1 - _var_row_index);
 
     return out;
   }
