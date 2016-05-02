@@ -1,8 +1,9 @@
 // Lightweight Recurrent NN
 //
-//basic code for forward pass computation of recurrent NN structures, like LSTM,
-// useful for processing time series / sequence data.
-// goal to be able to evaluate Keras (keras.io) models in c++ in lightweight way
+//basic code for forward pass computation of recurrent NN structures,
+// like LSTM, useful for processing time series / sequence data.  goal
+// to be able to evaluate Keras (keras.io) models in c++ in
+// lightweight way
 //
 // Author: Michael Kagan <mkagan@cern.ch>
 
@@ -20,6 +21,8 @@ namespace {
     Eigen::VectorXd b;
   };
   LSTMComponent get_component(const lwt::LayerConfig& layer, size_t n_in);
+
+  std::function<double(double)> get_activation(lwt::Activation);
 }
 
 
@@ -31,7 +34,9 @@ namespace lwt {
     _W(W)
   {
     if(var_row_index < 0)
-      throw NNConfigurationException("EmbeddingLayer::EmbeddingLayer - can not set var_row_index<0, it is an index for a matrix row!");
+      throw NNConfigurationException(
+        "EmbeddingLayer::EmbeddingLayer - can not set var_row_index<0,"
+        " it is an index for a matrix row!");
   }
 
 
@@ -39,7 +44,9 @@ namespace lwt {
   MatrixXd EmbeddingLayer::scan( const MatrixXd& x) {
 
     if( _var_row_index >= x.rows() )
-      throw NNEvaluationException("EmbeddingLayer::scan - var_row_index is larger than input matrix number of rows!");
+      throw NNEvaluationException(
+        "EmbeddingLayer::scan - var_row_index is larger than input matrix"
+        " number of rows!");
 
     MatrixXd embedded(_W.rows(), x.cols());
 
@@ -49,13 +56,15 @@ namespace lwt {
     //only embed 1 variable at a time, so this should be correct size
     MatrixXd out(_W.rows() + (x.rows() - 1), x.cols());
 
+    //assuming _var_row_index is an index with first possible value of 0
     if(_var_row_index > 0)
-      out.topRows(_var_row_index) = x.topRows(_var_row_index); //assuming _var_row_index is an index with first possible value of 0
+      out.topRows(_var_row_index) = x.topRows(_var_row_index);
 
     out.block(_var_row_index, 0, embedded.rows(), embedded.cols()) = embedded;
 
     if( _var_row_index < (x.rows()-1) )
-      out.bottomRows( x.cols() - 1 - _var_row_index) = x.bottomRows( x.cols() - 1 - _var_row_index);
+      out.bottomRows( x.cols() - 1 - _var_row_index)
+        = x.bottomRows( x.cols() - 1 - _var_row_index);
 
     return out;
   }
@@ -81,29 +90,27 @@ namespace lwt {
     _n_inputs  = _W_o.cols();
     _n_outputs = _W_o.rows();
 
-    if(activation==Activation::SIGMOID)           _activation_fun = nn_sigmoid;
-    else if(activation==Activation::HARD_SIGMOID) _activation_fun = nn_hard_sigmoid;
-    else if(activation==Activation::TANH)         _activation_fun = nn_tanh;
-
-    if(inner_activation==Activation::SIGMOID)           _inner_activation_fun = nn_sigmoid;
-    else if(inner_activation==Activation::HARD_SIGMOID) _inner_activation_fun = nn_hard_sigmoid;
-    else if(inner_activation==Activation::TANH)         _inner_activation_fun = nn_tanh;
-
+    _activation_fun = get_activation(activation);
+    _inner_activation_fun = get_activation(inner_activation);
   }
 
   VectorXd LSTMLayer::step( const VectorXd& x_t ) {
     // https://github.com/fchollet/keras/blob/master/keras/layers/recurrent.py#L740
 
     if(_time < 0)
-      throw NNEvaluationException("LSTMLayer::compute - time is less than zero!");
+      throw NNEvaluationException(
+        "LSTMLayer::compute - time is less than zero!");
+
+    const auto& act = _activation_fun;
+    const auto& in_act = _inner_activation_fun;
 
     if(_time == 0){
 
-      VectorXd i =  (_W_i*x_t + _b_i).unaryExpr(_inner_activation_fun);
-      VectorXd f =  (_W_f*x_t + _b_f).unaryExpr(_inner_activation_fun);
-      VectorXd o =  (_W_o*x_t + _b_o).unaryExpr(_inner_activation_fun);
-      _C_t.col(_time) = i.cwiseProduct(  (_W_c*x_t + _b_c).unaryExpr(_activation_fun)  );
-      _h_t.col(_time) = o.cwiseProduct( _C_t.col(_time).unaryExpr(_activation_fun) );
+      VectorXd i =  (_W_i*x_t + _b_i).unaryExpr(in_act);
+      VectorXd f =  (_W_f*x_t + _b_f).unaryExpr(in_act);
+      VectorXd o =  (_W_o*x_t + _b_o).unaryExpr(in_act);
+      _C_t.col(_time) = i.cwiseProduct(  (_W_c*x_t + _b_c).unaryExpr(act) );
+      _h_t.col(_time) = o.cwiseProduct( _C_t.col(_time).unaryExpr(act) );
     }
 
     else{
@@ -111,11 +118,12 @@ namespace lwt {
       VectorXd h_tm1 = _h_t.col(_time - 1);
       VectorXd C_tm1 = _C_t.col(_time - 1);
 
-      VectorXd i =  (_W_i*x_t + _b_i + _U_i*h_tm1).unaryExpr(_inner_activation_fun);
-      VectorXd f =  (_W_f*x_t + _b_f + _U_f*h_tm1).unaryExpr(_inner_activation_fun);
-      VectorXd o =  (_W_o*x_t + _b_o + _U_o*h_tm1).unaryExpr(_inner_activation_fun);
-      _C_t.col(_time) = f.cwiseProduct(C_tm1) + i.cwiseProduct(  (_W_c*x_t + _b_c + _U_c*h_tm1).unaryExpr(_activation_fun)  );
-      _h_t.col(_time) = o.cwiseProduct( _C_t.col(_time).unaryExpr(_activation_fun) );
+      VectorXd i =  (_W_i*x_t + _b_i + _U_i*h_tm1).unaryExpr(in_act);
+      VectorXd f =  (_W_f*x_t + _b_f + _U_f*h_tm1).unaryExpr(in_act);
+      VectorXd o =  (_W_o*x_t + _b_o + _U_o*h_tm1).unaryExpr(in_act);
+      _C_t.col(_time) = f.cwiseProduct(C_tm1)
+        + i.cwiseProduct( (_W_c*x_t + _b_c + _U_c*h_tm1).unaryExpr(act) );
+      _h_t.col(_time) = o.cwiseProduct( _C_t.col(_time).unaryExpr(act) );
     }
 
     return VectorXd( _h_t.col(_time) );
@@ -251,4 +259,16 @@ namespace {
     }
     return {weights, U, bias};
   }
+  std::function<double(double)> get_activation(lwt::Activation act) {
+    using namespace lwt;
+    switch (act) {
+    case Activation::SIGMOID: return nn_sigmoid;
+    case Activation::HARD_SIGMOID: return nn_hard_sigmoid;
+    case Activation::TANH: return nn_tanh;
+    default: {
+      throw NNConfigurationException("Got undefined activation function");
+    }
+    }
+  }
+
 }
