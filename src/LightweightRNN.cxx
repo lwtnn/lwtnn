@@ -26,10 +26,10 @@ namespace {
 namespace lwt {
 
 
-  EmbeddingLayer::EmbeddingLayer(int var_row_index, MatrixXd W, VectorXd b) : 
-    _var_row_index(var_row_index), 
-    _W(W), 
-    _b(b) 
+  EmbeddingLayer::EmbeddingLayer(int var_row_index, MatrixXd W, VectorXd b) :
+    _var_row_index(var_row_index),
+    _W(W),
+    _b(b)
   {
     if(var_row_index < 0)
       throw NNConfigurationException("EmbeddingLayer::EmbeddingLayer - can not set var_row_index<0, it is an index for a matrix row!");
