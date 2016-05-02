@@ -66,11 +66,12 @@ namespace lwt {
 
   class EmbeddingLayer : IRecurrentLayer
   {
-    EmbeddingLayer(MatrixXd W, VectorXd b) : _W(W), _b(b) {};
+    EmbeddingLayer(int var_row_index, MatrixXd W, VectorXd b);
     virtual ~EmbeddingLayer() {};
     virtual MatrixXd scan( const MatrixXd&);
 
   private:
+    int _var_row_index;
     MatrixXd _W;
     VectorXd _b;
   };
