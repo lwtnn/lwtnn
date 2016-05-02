@@ -62,15 +62,6 @@ namespace lwt {
   };
 
 
-  /// layer for merging matrices processed through different layers ///
-  // TODO: this isn't used, can we remove it?
-  class TimeDistributedMergeLayer
-  {
-    virtual ~TimeDistributedMergeLayer() {};
-    virtual MatrixXd scan( const MatrixXd&, const MatrixXd&);
-  };
-
-
   /// long short term memory ///
   class LSTMLayer : public IRecurrentLayer
   {

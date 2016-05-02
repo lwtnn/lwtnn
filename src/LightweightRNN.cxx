@@ -61,19 +61,6 @@ namespace lwt {
     return out;
   }
 
-  MatrixXd TimeDistributedMergeLayer::scan(const MatrixXd& X1, const MatrixXd& X2) {
-
-    if(X1.cols() != X2.cols())
-      throw NNEvaluationException("TimeDistributedMergeLayer::scan - Matrices do not have same number of columns (time-dim.)");
-
-    MatrixXd out(X1.rows()+X2.rows(), X1.cols());
-    out << X1,
-           X2;
-    // need to check that this concatenates properly...
-
-    return out;
-  }
-
   LSTMLayer::LSTMLayer(Activation activation, Activation inner_activation,
            MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
            MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
