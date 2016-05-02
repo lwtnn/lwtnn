@@ -39,7 +39,7 @@ namespace lwt {
   double nn_tanh( double x );
 
   /// base recurrent class ///
-  class IRecurrentLayer : ILayer
+  class IRecurrentLayer : public ILayer
   {
   public:
     IRecurrentLayer() {}
@@ -58,13 +58,13 @@ namespace lwt {
 
 
   /// masking layer ///
-  class MaskingLayer : IRecurrentLayer
+  class MaskingLayer : public IRecurrentLayer
   {
     virtual ~MaskingLayer() {};
     virtual MatrixXd scan( const MatrixXd&);
   };
 
-  class EmbeddingLayer : IRecurrentLayer
+  class EmbeddingLayer : public IRecurrentLayer
   {
     EmbeddingLayer(int var_row_index, MatrixXd W, VectorXd b);
     virtual ~EmbeddingLayer() {};
