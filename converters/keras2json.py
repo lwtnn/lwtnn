@@ -171,12 +171,43 @@ def _lstm_parameters(h5, layer_config, n_in):
             'inner_activation': layer_config['inner_activation']}, n_out
 
 def _get_merge_layer_parameters(h5, layer_config, n_in):
-    """Merge layer converter, currently only supports embedding"""
-    # layer_group = h5[layer_config['name']]
-    layers = _get_h5_layers(layer_group)
+    """
+    Merge layer converter, currently only supports embedding, and only
+    for the first layer.
+    """
+    sum_inputs = 0
+    sum_outputs = 0
+    sublayers = []
+    for sublayer in layer_config['layers']:
+        assert sublayer['class_name'].lower() == 'sequential'
+        assert len(sublayer['config']) == 1
+        subcfg = sublayer['config'][0]['config']
+        class_name = sublayer['config'][0]['class_name'].lower()
+
+        if class_name == 'embedding':
+            layers = _get_h5_layers(h5[subcfg['name']])
+            sublayer = {
+                'weights': layers['W'].T.flatten().tolist(),
+                'index': sum_inputs,
+                }
+            sublayers.append(sublayer)
+            sum_inputs += 1
+            sum_outputs += subcfg['output_dim']
+        elif class_name == 'activation':
+            if subcfg['activation'] != 'linear':
+                raise ValueError('we only support linear activation here')
+            dims = subcfg['batch_input_shape'][2]
+            sum_inputs += dims
+            sum_outputs += dims
+        else:
+            raise ValueError('unsupported merge layer {}'.format(class_name))
+
+    assert sum_inputs == n_in
+    return {'sublayers': sublayers, 'architecture': 'embedding',
+            'activation': 'linear'}, sum_outputs
 
 
-def _dummy_parameters(h5, layer_config, n_in):
+def _activation_parameters(h5, layer_config, n_in):
     """Return dummy parameters"""
     return {'weights':[], 'bias':[], 'architecture':'dense',
             'activation':layer_config['activation']}, n_in
@@ -186,9 +217,9 @@ _layer_converters = {
     'maxoutdense': _get_maxout_layer_parameters,
     'lstm': _lstm_parameters,
     'merge': _get_merge_layer_parameters,
-    'activation': _dummy_parameters,
-    'flatten': _dummy_parameters,
+    'activation': _activation_parameters,
     }
+_skip_layers = {'flatten', 'dropout'}
 
 # __________________________________________________________________________
 # master layer converter / inputs function
@@ -201,6 +232,7 @@ def _get_layers(network, inputs, h5):
         # get converter for this layer
         layer_arch = in_layers[layer_n]
         layer_type = layer_arch['class_name'].lower()
+        if layer_type in _skip_layers: continue
         convert = _layer_converters[layer_type]
 
         # build the out layer
