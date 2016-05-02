@@ -63,6 +63,7 @@ def _get_args():
     parser.add_argument('hdf5_file', help='Keras weights file')
     return parser.parse_args()
 
+# translate from keras to json representation
 _activation_map = {
     'relu': 'rectified',
     'sigmoid': 'sigmoid',
@@ -73,6 +74,20 @@ _activation_map = {
     'softmax': 'softmax',
     'tanh': 'tanh',
 }
+
+# utility function to handle keras layer naming
+def _get_h5_layers(layer_group):
+    prefixes = set()
+    numbers = set()
+    layers = {}
+    for name, ds in layer_group.items():
+        prefix, number, name = name.split('_', 2)
+        prefixes.add(prefix)
+        numbers.add(number)
+        layers[name] = np.asarray(ds)
+    assert len(prefixes) == 1, 'too many prefixes: {}'.format(prefixes)
+    assert len(numbers) == 1, 'too many numbers: {}'.format(numbers)
+    return layers
 
 # __________________________________________________________________________
 # Layer converters
@@ -85,8 +100,10 @@ _activation_map = {
 #  - A dictionary of layer information which can be serialized to JSON
 #  - The number of outputs (also for error checking)
 
-def _get_dense_layer_parameters(layer_group, layer_config, n_in):
+
+def _get_dense_layer_parameters(h5, layer_config, n_in):
     """Get weights, bias, and n-outputs for a dense layer"""
+    layer_group = h5[layer_config['name']]
     weights = layer_group.get(list(layer_group.keys())[0])
     bias = layer_group.get(list(layer_group.keys())[1])
     assert weights.shape[1] == bias.shape[0]
@@ -102,8 +119,9 @@ def _get_dense_layer_parameters(layer_group, layer_config, n_in):
     return return_dict, weights.shape[1]
 
 
-def _get_maxout_layer_parameters(layer_group, layer_config, n_in):
+def _get_maxout_layer_parameters(h5, layer_config, n_in):
     """Get weights, bias, and n-outputs for a maxout layer"""
+    layer_group = h5[layer_config['name']]
     # TODO: make this more robust, should look by key, not key index
     weights = np.asarray(layer_group.get(list(layer_group.keys())[0]))
     bias = np.asarray(layer_group.get(list(layer_group.keys())[1]))
@@ -128,21 +146,10 @@ def _get_maxout_layer_parameters(layer_group, layer_config, n_in):
     return {'sublayers': sublayers, 'architecture': 'maxout',
             'activation': layer_config['activation']}, wt_out
 
-def _lstm_parameters(layer_group, layer_config, n_in):
+def _lstm_parameters(h5, layer_config, n_in):
     """LSTM parameter converter"""
-    # TODO: wrap this prefix-checking stuff in a function that returns
-    # a dict of layers
-    prefixes = set()
-    numbers = set()
-    layers = {}
-    for name, ds in layer_group.items():
-        prefix, number, name = name.split('_', 2)
-        prefixes.add(prefix)
-        numbers.add(number)
-        layers[name] = np.asarray(ds)
-    assert len(prefixes) == 1, 'too many prefixes: {}'.format(prefixes)
-    assert len(numbers) == 1, 'too many numbers: {}'.format(numbers)
-
+    layer_group = h5[layer_config['name']]
+    layers = _get_h5_layers(layer_group)
     n_out = layers['W_o'].shape[1]
 
     submap = {}
@@ -157,7 +164,13 @@ def _lstm_parameters(layer_group, layer_config, n_in):
             'activation': layer_config['activation'],
             'inner_activation': layer_config['inner_activation']}, n_out
 
-def _dummy_parameters(layer_group, layer_config, n_in):
+def _get_merge_layer_parameters(h5, layer_config, n_in):
+    """Merge layer converter, currently only supports embedding"""
+    # layer_group = h5[layer_config['name']]
+    layers = _get_h5_layers(layer_group)
+
+
+def _dummy_parameters(h5, layer_config, n_in):
     """Return dummy parameters"""
     return {'weights':[], 'bias':[], 'architecture':'dense',
             'activation':layer_config['activation']}, n_in
@@ -166,6 +179,7 @@ _layer_converters = {
     'dense': _get_dense_layer_parameters,
     'maxoutdense': _get_maxout_layer_parameters,
     'lstm': _lstm_parameters,
+    'merge': _get_merge_layer_parameters,
     'activation': _dummy_parameters,
     'flatten': _dummy_parameters,
     }
@@ -183,13 +197,8 @@ def _get_layers(network, inputs, h5):
         layer_type = layer_arch['class_name'].lower()
         convert = _layer_converters[layer_type]
 
-        # get the hdf5 info
-        layer_group = h5[layer_arch['config']['name']]
-
         # build the out layer
-        out_layer, n_out = convert(layer_group, layer_arch['config'], n_out)
-        # out_layer['activation'] = _activation_map[
-        #     layer_arch['config']['activation']]
+        out_layer, n_out = convert(h5, layer_arch['config'], n_out)
         layers.append(out_layer)
     return layers
 
