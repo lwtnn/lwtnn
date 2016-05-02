@@ -14,8 +14,6 @@
 #include <Eigen/Dense>
 
 #include <vector>
-#include <stdexcept>
-#include <map>
 #include <functional>
 
 #include "lwtnn/LightweightNeuralNetwork.hh"
