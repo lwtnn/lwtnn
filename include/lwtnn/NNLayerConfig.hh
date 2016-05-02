@@ -10,20 +10,27 @@
 
 #include <vector>
 #include <string>
+#include <map>
 
 namespace lwt {
-  enum class Activation {LINEAR, SIGMOID, RECTIFIED, SOFTMAX, TANH};
-  enum class Architecture {DENSE, MAXOUT};
+  enum class Activation {NONE, LINEAR, SIGMOID, RECTIFIED, SOFTMAX, TANH,
+      HARD_SIGMOID};
+  enum class Architecture {NONE, DENSE, MAXOUT, LSTM};
+  // components (for LSTM, etc)
+  enum class Component {I,O,C,F};
 
   struct LayerConfig
   {
     // dense layer info
     std::vector<double> weights;
     std::vector<double> bias;
+    std::vector<double> U;      // TODO: what is this thing called in LSTMs?
     Activation activation;
+    Activation inner_activation; // for LSTMs
 
     // additional info for sublayers
     std::vector<LayerConfig> sublayers;
+    std::map<Component, LayerConfig> components;
 
     // arch flag
     Architecture architecture;

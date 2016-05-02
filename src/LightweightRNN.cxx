@@ -1,4 +1,4 @@
-// Lightweight Recurrent NN 
+// Lightweight Recurrent NN
 //
 //basic code for forward pass computation of recurrent NN structures, like LSTM,
 // useful for processing time series / sequence data.
@@ -8,6 +8,19 @@
 
 
 #include "lwtnn/LightweightRNN.hh"
+
+
+namespace {
+  // LSTM component for convenience
+  // TODO: consider using this in LSTMLayer
+  struct LSTMComponent
+  {
+    Eigen::MatrixXd W;
+    Eigen::MatrixXd U;
+    Eigen::VectorXd b;
+  };
+  LSTMComponent get_component(const lwt::LayerConfig& layer, size_t n_in);
+}
 
 
 namespace lwt {
@@ -20,7 +33,7 @@ namespace lwt {
 
   MatrixXd EmbeddingLayer::scan( const MatrixXd& x) {
     MatrixXd out(_W.rows(), x.cols());
-    
+
     for(int icol=0; icol<x.cols(); icol++)
       out.col(icol) = _W.col( x(0, icol) ) + _b;
 
@@ -40,15 +53,11 @@ namespace lwt {
     return out;
   }
 
-  LSTMLayer::LSTMLayer(bool return_sequences,
-		       std::string activation, std::string inner_activation,
-		       MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
-		       MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
-		       MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
-		       MatrixXd W_c, MatrixXd U_c, VectorXd b_c ):
-    _return_sequences(return_sequences),
-    _activation("tanh"),
-    _inner_activation("hard_sigmoid"),
+  LSTMLayer::LSTMLayer(Activation activation, Activation inner_activation,
+           MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
+           MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
+           MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
+           MatrixXd W_c, MatrixXd U_c, VectorXd b_c ):
     _W_i(W_i),
     _U_i(U_i),
     _b_i(b_i),
@@ -65,13 +74,13 @@ namespace lwt {
     _n_inputs  = _W_o.cols();
     _n_outputs = _W_o.rows();
 
-    if(_activation=="sigmoid")           _activation_fun = nn_sigmoid;
-    else if(_activation=="hard_sigmoid") _activation_fun = nn_hard_sigmoid;
-    else if(_activation=="tanh")         _activation_fun = nn_tanh;
+    if(activation==Activation::SIGMOID)           _activation_fun = nn_sigmoid;
+    else if(activation==Activation::HARD_SIGMOID) _activation_fun = nn_hard_sigmoid;
+    else if(activation==Activation::TANH)         _activation_fun = nn_tanh;
 
-    if(_inner_activation=="sigmoid")           _inner_activation_fun = nn_sigmoid;
-    else if(_inner_activation=="hard_sigmoid") _inner_activation_fun = nn_hard_sigmoid;
-    else if(_inner_activation=="tanh")         _inner_activation_fun = nn_tanh;
+    if(inner_activation==Activation::SIGMOID)           _inner_activation_fun = nn_sigmoid;
+    else if(inner_activation==Activation::HARD_SIGMOID) _inner_activation_fun = nn_hard_sigmoid;
+    else if(inner_activation==Activation::TANH)         _inner_activation_fun = nn_tanh;
 
   }
 
@@ -82,11 +91,6 @@ namespace lwt {
       throw NNEvaluationException("LSTMLayer::compute - time is less than zero!");
 
     if(_time == 0){
-      if( get_mask()(_time) == 1 ){
-	//_C_t.col(_time).setZero();
-	//_h_t.col(_time).setZero();
-	return VectorXd( _h_t.col(_time) );
-      }
 
       VectorXd i =  (_W_i*x_t + _b_i).unaryExpr(_inner_activation_fun);
       VectorXd f =  (_W_f*x_t + _b_f).unaryExpr(_inner_activation_fun);
@@ -96,11 +100,6 @@ namespace lwt {
     }
 
     else{
-      if( get_mask()(_time) == 1 ){
-	_C_t.col(_time) = _C_t.col(_time - 1);
-	_h_t.col(_time) = _h_t.col(_time - 1);
-	return VectorXd( _h_t.col(_time) );
-      }
 
       VectorXd h_tm1 = _h_t.col(_time - 1);
       VectorXd C_tm1 = _C_t.col(_time - 1);
@@ -122,17 +121,127 @@ namespace lwt {
     _h_t.resize(_n_outputs, x.cols());
     _h_t.setZero();
     _time = -1;
-    
+
 
     for(_time=0; _time < x.cols(); _time++)
       {
-	this->step( x.col( _time ) );
+  this->step( x.col( _time ) );
       }
 
-    if( this->_return_sequences == true)
-      return MatrixXd(_h_t);
-  
-    return MatrixXd( _h_t.col( _h_t.cols()-1 ) );
+    return MatrixXd(_h_t);
   }
 
+  // ______________________________________________________________________
+  // Recurrent Stack
+
+  RecurrentStack::RecurrentStack(size_t n_inputs,
+                                 const std::vector<lwt::LayerConfig>& layers)
+  {
+    using namespace lwt;
+    size_t layer_n = 0;
+    const size_t n_layers = layers.size();
+    for (;layer_n < n_layers; layer_n++) {
+      auto& layer = layers.at(layer_n);
+
+      // add recurrent layers (now only LSTM)
+      if (layer.architecture == Architecture::LSTM) {
+        n_inputs = add_lstm_layers(n_inputs, layer);
+      } else {
+        // leave this loop if we're done with the recurrent stuff
+        break;
+      }
+    }
+    // fill the remaining dense layers
+    _stack = new Stack(n_inputs, layers, layer_n);
+  }
+  RecurrentStack::~RecurrentStack() {
+    for (auto& layer: _layers) {
+      delete layer;
+      layer = 0;
+    }
+    delete _stack;
+    _stack = 0;
+  }
+  VectorXd RecurrentStack::reduce(MatrixXd in) const {
+    for (auto* layer: _layers) {
+      in = layer->scan(in);
+    }
+    return _stack->compute(in.col(in.cols() - 1));
+  }
+  size_t RecurrentStack::n_outputs() const {
+    return _stack->n_outputs();
+  }
+
+  size_t RecurrentStack::add_lstm_layers(size_t n_inputs,
+                                         const LayerConfig& layer) {
+    auto& comps = layer.components;
+    const auto& i = get_component(comps.at(Component::I), n_inputs);
+    const auto& o = get_component(comps.at(Component::O), n_inputs);
+    const auto& f = get_component(comps.at(Component::F), n_inputs);
+    const auto& c = get_component(comps.at(Component::C), n_inputs);
+    _layers.push_back(
+      new LSTMLayer(layer.activation, layer.inner_activation,
+                    i.W, i.U, i.b,
+                    f.W, f.U, f.b,
+                    o.W, o.U, o.b,
+                    c.W, c.U, c.b));
+    return o.b.rows();
+  }
+
+  // ______________________________________________________________________
+  // Activation functions
+  double nn_sigmoid( double x ){
+    //https://github.com/Theano/Theano/blob/master/theano/tensor/nnet/sigm.py#L35
+
+    if( x< -30.0 )
+      return 0.0;
+
+    if( x > 30.0 )
+      return 1.0;
+
+    return 1.0 / (1.0 + std::exp(-1.0*x));
+
+  }
+
+  double nn_hard_sigmoid( double x ){
+    //https://github.com/Theano/Theano/blob/master/theano/tensor/nnet/sigm.py#L279
+
+    double out = 0.2*x + 0.5;
+
+    if( out < 0)
+      return 0.0;
+
+    if ( out > 1 )
+      return 1.0;
+
+    return out;
+  }
+
+  double nn_tanh( double x ){
+    return std::tanh(x);
+  }
+
+}
+
+// ________________________________________________________________________
+// convenience functions
+
+namespace {
+  LSTMComponent get_component(const lwt::LayerConfig& layer, size_t n_in) {
+    using namespace Eigen;
+    using namespace lwt;
+    MatrixXd weights = build_matrix(layer.weights, n_in);
+    size_t n_out = weights.rows();
+    MatrixXd U = build_matrix(layer.U, n_out);
+    VectorXd bias = build_vector(layer.bias);
+
+    size_t u_out = U.rows();
+    size_t b_out = bias.rows();
+    if (u_out != n_out || b_out != n_out) {
+      throw NNConfigurationException(
+        "Output dims mismatch, W: " + std::to_string(n_out) +
+        ", U: " + std::to_string(u_out) + ", b: " + std::to_string(b_out));
+    }
+    return {weights, U, bias};
+  }
 }
