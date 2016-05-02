@@ -26,12 +26,6 @@ namespace {
 namespace lwt {
 
 
-  MatrixXd MaskingLayer::scan( const MatrixXd& x) {
-    set_mask(   (x.colwise().sum().array() == 0).cast<int>()   );
-    return x;
-  }
-
-
   EmbeddingLayer::EmbeddingLayer(int var_row_index, MatrixXd W, VectorXd b) : 
     _var_row_index(var_row_index), 
     _W(W), 

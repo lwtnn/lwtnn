@@ -39,33 +39,18 @@ namespace lwt {
   double nn_tanh( double x );
 
   /// base recurrent class ///
-  class IRecurrentLayer : public ILayer
+  class IRecurrentLayer
   {
   public:
-    IRecurrentLayer() {}
-
     virtual ~IRecurrentLayer() {}
-    virtual VectorXd compute(const VectorXd& x) const { return x; } // can be virtually overloaded if needed
-
     virtual MatrixXd scan( const MatrixXd&) = 0;
-
-    virtual void     set_mask( const VectorXi& mask ) { _mask = mask; }
-    virtual VectorXi get_mask() const { return _mask; }
-
-  private:
-    VectorXi _mask;
   };
 
-
-  /// masking layer ///
-  class MaskingLayer : public IRecurrentLayer
-  {
-    virtual ~MaskingLayer() {};
-    virtual MatrixXd scan( const MatrixXd&);
-  };
-
+  // __________________________________________________________________
+  // recurrent layers
   class EmbeddingLayer : public IRecurrentLayer
   {
+  public:
     EmbeddingLayer(int var_row_index, MatrixXd W, VectorXd b);
     virtual ~EmbeddingLayer() {};
     virtual MatrixXd scan( const MatrixXd&);
@@ -78,6 +63,7 @@ namespace lwt {
 
 
   /// layer for merging matrices processed through different layers ///
+  // TODO: this isn't used, can we remove it?
   class TimeDistributedMergeLayer
   {
     virtual ~TimeDistributedMergeLayer() {};
