@@ -8,8 +8,8 @@ main design principles are:
    C++11 and [Eigen][eg]. The JSON parser to read in NNs also requires
    boost [PropertyTree][pt].
  - **Flat structure:** Each layer in the NN inherits from the `ILayer`
-   abstract base class, the NN itself is just a stack of `ILayer`
-   derived classes.
+   or `IRecurrentLayer` abstract base class, the NN itself is just a
+   stack of derived classes.
  - **Easy to extend:** Should cover 95% of deep network architectures we
    would realistically consider.
  - **Hard to break:** The NN constructor checks the serialized NN for
@@ -40,11 +40,10 @@ out3 2
 out4 1
 ```
 
-There may be some problems if you don't have the right version of
-python or don't have [`pyyaml`][pyy] installed, but these should be
-limited to the YAML -> JSON converter. At the very least calling
-`./bin/lwtag-test-hlwrapper` with no arguments (which doesn't depend
-on the converter) should work.
+There may be some problems if you don't have python 3 or don't have
+[`pyyaml`][pyy] installed, but these should be limited to the YAML ->
+JSON converter. At the very least calling `./bin/lwtag-test-hlwrapper`
+with no arguments (which doesn't depend on the converter) should work.
 
 #### Cool, what the hell did that do? ####
 
@@ -111,6 +110,13 @@ Testing an Arbitrary NN
 The `lwtnn-test-arbitrary-net` executable takes in a JSON file along
 with two text files, one to specify the variable names and another to
 give the input values. Run with no arguments to get help.
+
+Recurrent Networks
+------------------
+
+Currently we support LSTMs in sequential models. The low level
+interface is implemented as `RecurrentStack`. See `lwtnn-test-rnn` for
+a working example.
 
 Have problems?
 --------------

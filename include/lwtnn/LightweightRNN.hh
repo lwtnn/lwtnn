@@ -3,9 +3,10 @@
 
 // Lightweight Recurrent NN
 //
-//basic code for forward pass computation of recurrent NN structures, like LSTM,
-// useful for processing time series / sequence data.
-// goal to be able to evaluate Keras (keras.io) models in c++ in lightweight way
+//basic code for forward pass computation of recurrent NN structures,
+// like LSTM, useful for processing time series / sequence data.  goal
+// to be able to evaluate Keras (keras.io) models in c++ in
+// lightweight way
 //
 // Author: Michael Kagan <mkagan@cern.ch>
 
@@ -27,9 +28,10 @@ namespace lwt {
 
   using Eigen::MatrixXd;
 
-  //was going to use std::ptr_fun to reference function, which this typedef may help with
-  //now using std::function, since ptr_fun is deprecated, and will be removed in c++17
-  //typedef double (*activation_type)(double);
+  //was going to use std::ptr_fun to reference function, which this
+  //typedef may help with now using std::function, since ptr_fun is
+  //deprecated, and will be removed in c++17 typedef double
+  //(*activation_type)(double);
 
   // forward declare activation functions
   double nn_sigmoid( double x );
@@ -99,7 +101,6 @@ namespace lwt {
     MatrixXd _h_t;
     int _time;
 
-    int _n_inputs;
     int _n_outputs;
 
     bool _return_sequences;

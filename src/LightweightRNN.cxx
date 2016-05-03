@@ -89,7 +89,6 @@ namespace lwt {
     _b_c(b_c),
     _return_sequences(return_sequences)
   {
-    _n_inputs  = _W_o.cols();
     _n_outputs = _W_o.rows();
 
     _activation_fun = get_activation(activation);
