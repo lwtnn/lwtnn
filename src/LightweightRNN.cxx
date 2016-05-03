@@ -153,6 +153,8 @@ namespace lwt {
       // add recurrent layers (now only LSTM)
       if (layer.architecture == Architecture::LSTM) {
         n_inputs = add_lstm_layers(n_inputs, layer);
+      } else if (layer.architecture == Architecture::EMBEDDING) {
+        n_inputs = add_embedding_layers(n_inputs, layer);
       } else {
         // leave this loop if we're done with the recurrent stuff
         break;
@@ -193,6 +195,18 @@ namespace lwt {
                     o.W, o.U, o.b,
                     c.W, c.U, c.b));
     return o.b.rows();
+  }
+
+  size_t RecurrentStack::add_embedding_layers(size_t n_inputs,
+                                              const LayerConfig& layer) {
+    for (const auto& emb: layer.embedding) {
+      size_t n_wt = emb.weights.size();
+      size_t n_cats = n_wt / emb.n_out;
+      MatrixXd mat = build_matrix(emb.weights, n_cats);
+      _layers.push_back(new EmbeddingLayer(emb.index, mat));
+      n_inputs += emb.n_out - 1;
+    }
+    return n_inputs;
   }
 
   // ______________________________________________________________________

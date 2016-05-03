@@ -117,6 +117,7 @@ namespace lwt {
   private:
     std::vector<IRecurrentLayer*> _layers;
     size_t add_lstm_layers(size_t n_inputs, const LayerConfig&);
+    size_t add_embedding_layers(size_t n_inputs, const LayerConfig&);
     Stack* _stack;
   };
 
