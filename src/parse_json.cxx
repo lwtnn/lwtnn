@@ -5,13 +5,18 @@
 #include <cassert>
 #include <string>
 
+#include <iostream>
+
 namespace {
   using namespace boost::property_tree;
   using namespace lwt;
   lwt::Activation get_activation(const std::string&);
   lwt::Architecture get_architecture(const std::string&);
+  void set_defaults(LayerConfig& lc);
   void add_dense_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_maxout_info(LayerConfig& lc, const ptree::value_type& pt);
+  void add_lstm_info(LayerConfig& lc, const ptree::value_type& pt);
+  void add_embedding_info(LayerConfig& lc, const ptree::value_type& pt);
 }
 
 
@@ -32,16 +37,23 @@ namespace lwt {
     }
     for (const auto& v: pt.get_child("layers")) {
       LayerConfig layer;
-      layer.activation = get_activation(
-        v.second.get<std::string>("activation"));
-      layer.architecture = get_architecture(
+      set_defaults(layer);
+      Architecture arch = get_architecture(
         v.second.get<std::string>("architecture"));
 
-      if (layer.architecture == Architecture::DENSE) {
+      if (arch == Architecture::DENSE) {
         add_dense_info(layer, v);
-      } else if (layer.architecture == Architecture::MAXOUT) {
+      } else if (arch == Architecture::MAXOUT) {
         add_maxout_info(layer, v);
+      } else if (arch == Architecture::LSTM) {
+        add_lstm_info(layer, v);
+      } else if (arch == Architecture::EMBEDDING) {
+        add_embedding_info(layer, v);
+      } else {
+        throw std::logic_error("architecture not implemented");
       }
+      layer.architecture = arch;
+
       cfg.layers.push_back(layer);
     }
     for (const auto& v: pt.get_child("outputs"))
@@ -61,6 +73,7 @@ namespace lwt {
 }
 
 namespace {
+
   lwt::Activation get_activation(const std::string& str) {
     using namespace lwt;
     if (str == "linear") return Activation::LINEAR;
@@ -68,15 +81,25 @@ namespace {
     if (str == "rectified") return Activation::RECTIFIED;
     if (str == "softmax") return Activation::SOFTMAX;
     if (str == "tanh") return Activation::TANH;
+    if (str == "hard_sigmoid") return Activation::HARD_SIGMOID;
     throw std::logic_error("activation function " + str + " not recognized");
     return Activation::LINEAR;
   }
+
 
   lwt::Architecture get_architecture(const std::string& str) {
     using namespace lwt;
     if (str == "dense") return Architecture::DENSE;
     if (str == "maxout") return Architecture::MAXOUT;
+    if (str == "lstm") return Architecture::LSTM;
+    if (str == "embedding") return Architecture::EMBEDDING;
     throw std::logic_error("architecture " + str + " not recognized");
+  }
+
+  void set_defaults(LayerConfig& layer) {
+    layer.activation = Activation::NONE;
+    layer.inner_activation = Activation::NONE;
+    layer.architecture = Architecture::NONE;
   }
 
   void add_dense_info(LayerConfig& layer, const ptree::value_type& v) {
@@ -86,16 +109,63 @@ namespace {
     for (const auto& bs: v.second.get_child("bias")) {
       layer.bias.push_back(bs.second.get_value<double>());
     }
+    // this last category is currently only used for LSTM
+    if (v.second.count("U") != 0) {
+      for (const auto& wt: v.second.get_child("U") ) {
+        layer.U.push_back(wt.second.get_value<double>());
+      }
+    }
+
+    if (v.second.count("activation") != 0) {
+      layer.activation = get_activation(
+        v.second.get<std::string>("activation"));
+    }
+
   }
 
   void add_maxout_info(LayerConfig& layer, const ptree::value_type& v) {
     using namespace lwt;
     for (const auto& sub: v.second.get_child("sublayers")) {
       LayerConfig sublayer;
+      set_defaults(sublayer);
       add_dense_info(sublayer, sub);
-      sublayer.architecture = Architecture::DENSE;
-      sublayer.activation = Activation::LINEAR;
       layer.sublayers.push_back(sublayer);
+    }
+  }
+
+
+  const std::map<std::string, lwt::Component> lstm_components {
+    {"i", Component::I},
+    {"o", Component::O},
+    {"c", Component::C},
+    {"f", Component::F}
+  };
+
+  void add_lstm_info(LayerConfig& layer, const ptree::value_type& v) {
+    using namespace lwt;
+    for (const auto& comp: v.second.get_child("components")) {
+      LayerConfig cfg;
+      set_defaults(cfg);
+      add_dense_info(cfg, comp);
+      layer.components[lstm_components.at(comp.first)] = cfg;
+    }
+    layer.activation = get_activation(
+      v.second.get<std::string>("activation"));
+    layer.inner_activation = get_activation(
+      v.second.get<std::string>("inner_activation"));
+  }
+
+
+  void add_embedding_info(LayerConfig& layer, const ptree::value_type& v) {
+    using namespace lwt;
+    for (const auto& sub: v.second.get_child("sublayers")) {
+      EmbeddingConfig emb;
+      for (const auto& wt: sub.second.get_child("weights")) {
+        emb.weights.push_back(wt.second.get_value<double>());
+      }
+      emb.index = sub.second.get<int>("index");
+      emb.n_out = sub.second.get<int>("n_out");
+      layer.embedding.push_back(emb);
     }
   }
 

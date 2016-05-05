@@ -6,15 +6,7 @@
 namespace {
   using namespace Eigen;
   using namespace lwt;
-  // functions to build up basic units from vectors
-  MatrixXd build_matrix(const std::vector<double>& weights, size_t n_inputs);
-  VectorXd build_vector(const std::vector<double>& bias);
-
-  // consistency checks
-  void throw_if_not_maxout(const LayerConfig& layer);
-  void throw_if_not_dense(const LayerConfig& layer);
 }
-
 namespace lwt {
 
   // _______________________________________________________________________
@@ -126,9 +118,10 @@ namespace lwt {
   }
 
   // construct from LayerConfig
-  Stack::Stack(size_t n_inputs, const std::vector<LayerConfig>& layers) {
-    for (const auto& layer: layers) {
-      n_inputs = add_layers(n_inputs, layer);
+  Stack::Stack(size_t n_inputs, const std::vector<LayerConfig>& layers,
+               size_t skip) {
+    for (size_t nnn = skip; nnn < layers.size(); nnn++) {
+      n_inputs = add_layers(n_inputs, layers.at(nnn));
     }
     // the final assigned n_inputs is the number of output nodes
     _n_outputs = n_inputs;
@@ -298,12 +291,9 @@ namespace lwt {
   NNEvaluationException::NNEvaluationException(std::string problem):
     LightweightNNException(problem)
   {}
-}
-
 
 // ________________________________________________________________________
 // utility functions
-namespace {
   MatrixXd build_matrix(const std::vector<double>& weights, size_t n_inputs)
   {
     size_t n_elements = weights.size();

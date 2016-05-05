@@ -103,7 +103,8 @@ namespace lwt {
     // constructor for dummy net
     Stack();
     // constructor for real net
-    Stack(size_t n_inputs, const std::vector<LayerConfig>& layers);
+    Stack(size_t n_inputs, const std::vector<LayerConfig>& layers,
+          size_t skip_layers = 0);
     ~Stack();
 
     // make non-copyable for now
@@ -169,6 +170,13 @@ namespace lwt {
   // WARNING: you own this pointer! Only call when assigning to member data!
   ILayer* get_raw_activation_layer(Activation);
 
+  // functions to build up basic units from vectors
+  MatrixXd build_matrix(const std::vector<double>& weights, size_t n_inputs);
+  VectorXd build_vector(const std::vector<double>& bias);
+
+  // consistency checks
+  void throw_if_not_maxout(const LayerConfig& layer);
+  void throw_if_not_dense(const LayerConfig& layer);
 
   // ______________________________________________________________________
   // exceptions
