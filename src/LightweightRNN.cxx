@@ -209,6 +209,39 @@ namespace lwt {
   }
 
   // ______________________________________________________________________
+  // LightweightRNN
+
+  LightweightRNN::LightweightRNN(const std::vector<Input>& inputs,
+                                 const std::vector<LayerConfig>& layers,
+                                 const std::vector<std::string>& outputs):
+    _stack(inputs.size(), layers),
+    _preproc(inputs),
+    _outputs(outputs.begin(), outputs.end()),
+    _n_inputs(inputs.size())
+  {
+    if (_outputs.size() != _stack.n_outputs()) {
+      throw NNConfigurationException(
+        "Mismatch between NN output dimensions and output labels");
+    }
+  }
+
+  // TODO: This is a bit slow. Try using a sorted
+  // std::vector<std::pair<std::string, double> >
+  //
+  ValueMap LightweightRNN::reduce(const std::vector<ValueMap>& in) const {
+    MatrixXd inputs(_n_inputs, in.size());
+    for (size_t iii = 0; iii < in.size(); iii++) {
+      inputs.col(iii) = _preproc(in.at(iii));
+    }
+    auto outvec = _stack.reduce(inputs);
+    ValueMap out;
+    for (size_t iii = 0; iii < outvec.rows(); iii++) {
+      out.emplace(_outputs.at(iii), outvec(iii));
+    }
+    return out;
+  }
+
+  // ______________________________________________________________________
   // Activation functions
   double nn_sigmoid( double x ){
     //https://github.com/Theano/Theano/blob/master/theano/tensor/nnet/sigm.py#L35

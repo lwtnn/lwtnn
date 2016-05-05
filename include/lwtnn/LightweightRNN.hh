@@ -123,6 +123,23 @@ namespace lwt {
   };
 
 
+  class LightweightRNN
+  {
+  public:
+    LightweightRNN(const std::vector<Input>& inputs,
+                   const std::vector<LayerConfig>& layers,
+                   const std::vector<std::string>& outputs);
+    LightweightRNN(LightweightRNN&) = delete;
+    LightweightRNN& operator=(LightweightRNN&) = delete;
+
+    ValueMap reduce(const std::vector<ValueMap>&) const;
+  private:
+    RecurrentStack _stack;
+    InputPreprocessor _preproc;
+    std::vector<std::string> _outputs;
+    size_t _n_inputs;
+  };
+
 }
 
 

@@ -26,6 +26,7 @@ namespace lwt {
   // use a normal map externally, since these are more common in user
   // code.  TODO: is it worth changing to unordered_map?
   typedef std::map<std::string, double> ValueMap;
+  typedef std::vector<std::pair<std::string, double> > ValueVector;
 
   // _______________________________________________________________________
   // layer classes

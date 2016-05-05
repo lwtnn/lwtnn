@@ -17,6 +17,35 @@ void usage(const std::string& name) {
             << "With anything for <disable>, just run the random number gen";
 }
 
+std::vector<lwt::ValueMap> get_values(
+  const std::vector<lwt::Input>& inputs) {
+  Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(inputs.size(), 40);
+  std::vector<lwt::ValueMap> out;
+  for (size_t iii = 0; iii < test_pattern.cols(); iii++) {
+    lwt::ValueMap vals;
+    for (size_t jjj = 0; jjj < inputs.size(); jjj++) {
+      vals[inputs.at(jjj).name] = test_pattern(jjj, iii);
+    }
+    out.push_back(vals);
+  }
+  return out;
+}
+
+std::vector<lwt::ValueVector> get_values_vec(
+  const std::vector<std::string>& inputs) {
+  Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(inputs.size(), 40);
+  std::vector<lwt::ValueVector> out;
+  for (size_t iii = 0; iii < test_pattern.cols(); iii++) {
+    lwt::ValueVector vals;
+    for (size_t jjj = 0; jjj < inputs.size(); jjj++) {
+      vals.emplace_back(inputs.at(jjj), test_pattern(jjj, iii));
+    }
+    // std::sort(vals.begin(), vals.end());
+    out.push_back(vals);
+  }
+  return out;
+}
+
 int main(int argc, char* argv[]) {
   if (argc < 2 || argc > 3) {
     usage(argv[0]);
@@ -30,23 +59,31 @@ int main(int argc, char* argv[]) {
   std::string in_file_name(argv[1]);
   std::ifstream in_file(in_file_name);
   auto config = lwt::parse_json(in_file);
+  // std::vector<std::string> in_sorted;
+  // for (const auto& input: config.inputs) {
+  //   in_sorted.push_back(input.name);
+  // }
+  // std::sort(in_sorted.begin(), in_sorted.end());
 
   size_t n_inputs = config.inputs.size();
   lwt::RecurrentStack stack(n_inputs, config.layers);
+  lwt::LightweightRNN rnn(config.inputs, config.layers, config.outputs);
   Eigen::VectorXd sum_outputs = Eigen::VectorXd::Zero(stack.n_outputs());
-  Eigen::VectorXd sum_inputs = Eigen::VectorXd::Zero(n_inputs);
   size_t n_loops = 10000;
   std::cout << "running over " << n_loops << " loops" << std::endl;
+  std::cout << "running " << (run_stack ? "fast": "slow") << std::endl;
   for (size_t nnn = 0; nnn < n_loops; nnn++) {
-    Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(n_inputs, 40);
-    for (size_t iii = 0; iii < test_pattern.cols(); iii++) {
-      sum_inputs += test_pattern.col(iii);
-    }
     if (run_stack) {
+      Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(n_inputs, 40);
       sum_outputs += stack.reduce(test_pattern);
+    } else {
+      const auto inputs = get_values(config.inputs);
+      auto out = rnn.reduce(inputs);
+      for (size_t iii = 0; iii < config.outputs.size(); iii++) {
+        sum_outputs(iii) += out.at(config.outputs.at(iii));
+      }
     }
   }
-  std::cout << "input sum:\n" << sum_inputs << std::endl;
   std::cout << "output sum:\n" << sum_outputs << std::endl;
   return 0;
 }
