@@ -138,6 +138,7 @@ def _get_maxout_layer_parameters(h5, layer_config, n_in):
     assert wt_out == bias_n
     assert wt_in == n_in, '{} != {}'.format(wt_in, n_in)
     assert wt_layers == bias_layers
+    assert 'activation' not in layer_config
 
     sublayers = []
     for nnn in range(weights.shape[0]):
@@ -150,7 +151,7 @@ def _get_maxout_layer_parameters(h5, layer_config, n_in):
         }
         sublayers.append(sublayer)
     return {'sublayers': sublayers, 'architecture': 'maxout',
-            'activation': layer_config['activation']}, wt_out
+            'activation': 'linear'}, wt_out
 
 def _lstm_parameters(h5, layer_config, n_in):
     """LSTM parameter converter"""
