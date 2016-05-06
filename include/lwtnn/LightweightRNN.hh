@@ -23,6 +23,8 @@
 
 namespace lwt {
 
+  typedef std::map<std::string, std::vector<double> > VectorMap;
+
   using Eigen::VectorXd;
   using Eigen::VectorXi;
 
@@ -123,6 +125,19 @@ namespace lwt {
   };
 
 
+  class InputVectorPreprocessor
+  {
+  public:
+    InputVectorPreprocessor(const std::vector<Input>& inputs);
+    MatrixXd operator()(const VectorMap&) const;
+  private:
+    // input transformations
+    VectorXd _offsets;
+    VectorXd _scales;
+    std::vector<std::string> _names;
+  };
+
+
   class LightweightRNN
   {
   public:
@@ -133,9 +148,11 @@ namespace lwt {
     LightweightRNN& operator=(LightweightRNN&) = delete;
 
     ValueMap reduce(const std::vector<ValueMap>&) const;
+    ValueMap reduce(const VectorMap&) const;
   private:
     RecurrentStack _stack;
     InputPreprocessor _preproc;
+    InputVectorPreprocessor _vec_preproc;
     std::vector<std::string> _outputs;
     size_t _n_inputs;
   };

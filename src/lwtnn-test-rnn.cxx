@@ -31,17 +31,15 @@ std::vector<lwt::ValueMap> get_values(
   return out;
 }
 
-std::vector<lwt::ValueVector> get_values_vec(
-  const std::vector<std::string>& inputs) {
+lwt::VectorMap get_values_vec(const std::vector<lwt::Input>& inputs) {
   Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(inputs.size(), 40);
-  std::vector<lwt::ValueVector> out;
-  for (size_t iii = 0; iii < test_pattern.cols(); iii++) {
-    lwt::ValueVector vals;
-    for (size_t jjj = 0; jjj < inputs.size(); jjj++) {
-      vals.emplace_back(inputs.at(jjj), test_pattern(jjj, iii));
+  lwt::VectorMap out;
+  for (size_t in_num = 0; in_num < inputs.size(); in_num++) {
+    std::vector<double> ins;
+    for (size_t iii = 0; iii < test_pattern.cols(); iii++) {
+      ins.push_back(test_pattern(in_num, iii));
     }
-    // std::sort(vals.begin(), vals.end());
-    out.push_back(vals);
+    out[inputs.at(in_num).name] = std::move(ins);
   }
   return out;
 }
@@ -77,7 +75,7 @@ int main(int argc, char* argv[]) {
       Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(n_inputs, 40);
       sum_outputs += stack.reduce(test_pattern);
     } else {
-      const auto inputs = get_values(config.inputs);
+      const auto inputs = get_values_vec(config.inputs);
       auto out = rnn.reduce(inputs);
       for (size_t iii = 0; iii < config.outputs.size(); iii++) {
         sum_outputs(iii) += out.at(config.outputs.at(iii));
