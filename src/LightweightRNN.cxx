@@ -276,7 +276,8 @@ namespace lwt {
     }
     auto outvec = _stack.reduce(inputs);
     ValueMap out;
-    for (size_t iii = 0; iii < outvec.rows(); iii++) {
+    const auto n_rows = static_cast<size_t>(outvec.rows());
+    for (size_t iii = 0; iii < n_rows; iii++) {
       out.emplace(_outputs.at(iii), outvec(iii));
     }
     return out;
@@ -287,7 +288,8 @@ namespace lwt {
   ValueMap LightweightRNN::reduce(const VectorMap& in) const {
     auto outvec = _stack.reduce(_vec_preproc(in));
     ValueMap out;
-    for (size_t iii = 0; iii < outvec.rows(); iii++) {
+    const auto n_rows = static_cast<size_t>(outvec.rows());
+    for (size_t iii = 0; iii < n_rows; iii++) {
       out.emplace(_outputs.at(iii), outvec(iii));
     }
     return out;

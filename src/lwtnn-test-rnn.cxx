@@ -21,7 +21,8 @@ std::vector<lwt::ValueMap> get_values(
   const std::vector<lwt::Input>& inputs) {
   Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(inputs.size(), 40);
   std::vector<lwt::ValueMap> out;
-  for (size_t iii = 0; iii < test_pattern.cols(); iii++) {
+  const auto n_cols = static_cast<size_t>(test_pattern.cols());
+  for (size_t iii = 0; iii < n_cols; iii++) {
     lwt::ValueMap vals;
     for (size_t jjj = 0; jjj < inputs.size(); jjj++) {
       vals[inputs.at(jjj).name] = test_pattern(jjj, iii);
@@ -36,7 +37,8 @@ lwt::VectorMap get_values_vec(const std::vector<lwt::Input>& inputs) {
   lwt::VectorMap out;
   for (size_t in_num = 0; in_num < inputs.size(); in_num++) {
     std::vector<double> ins;
-    for (size_t iii = 0; iii < test_pattern.cols(); iii++) {
+    const auto n_cols = static_cast<size_t>(test_pattern.cols());
+    for (size_t iii = 0; iii < n_cols; iii++) {
       ins.push_back(test_pattern(in_num, iii));
     }
     out[inputs.at(in_num).name] = std::move(ins);
