@@ -11,15 +11,12 @@
 // Author: Michael Kagan <mkagan@cern.ch>
 
 #include "NNLayerConfig.hh"
+#include "LightweightNeuralNetwork.hh"
 
 #include <Eigen/Dense>
 
 #include <vector>
 #include <functional>
-
-#include "lwtnn/LightweightNeuralNetwork.hh"
-
-
 
 namespace lwt {
 
