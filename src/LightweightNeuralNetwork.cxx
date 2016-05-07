@@ -1,6 +1,8 @@
 #include "lwtnn/LightweightNeuralNetwork.hh"
+#include <Eigen/Dense>
 
 #include <set>
+#include <assert.h>
 
 // internal utility functions
 namespace {
@@ -78,6 +80,33 @@ namespace lwt {
     }
     outputs += _bias;
     return outputs.colwise().maxCoeff();
+  }
+
+  // dense layer
+  DenseLayer::DenseLayer(const MatrixXd& matrix, const VectorXd& bias, lwt::Activation activation): 
+  _matrixlayer(matrix), _biaslayer(bias), _activation(activation) 
+  {
+  }
+  VectorXd DenseLayer::compute(const VectorXd& in) const {
+    return _activation.compute(_biaslayer.compute(_matrixlayer.compute(in)));
+  }
+
+  // highway layer
+  HighwayLayer::HighwayLayer(const MatrixXd& W_carry, const VectorXd& b_carry, 
+      const MatrixXd& W, const VectorXd& b, Activation activation):
+  _carrylayer(W_carry, b_carry, Activation::SIGMOID), 
+  _transformlayer(W, b, activation)
+  {
+    assert (W_carry.rows() == W_carry.cols());
+    assert (W_carry.rows() == b_carry.size());
+    assert (W_carry.rows() == W.rows());
+    assert (W.rows() == W.cols());
+    assert (W.rows() == b.size());
+  }
+  VectorXd HighwayLayer::compute(const VectorXd& in) const {
+    VectorXd carry_output = _carrylayer.compute(in);
+    VectorXd transform_output = static_cast<VectorXd>(_transformlayer.compute(in).array() * carry_output.array());
+    return transform_output + static_cast<VectorXd>(1 - carry_output.array() * in.array()); 
   }
 
   // ______________________________________________________________________

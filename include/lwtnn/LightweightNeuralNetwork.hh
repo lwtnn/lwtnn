@@ -98,6 +98,28 @@ namespace lwt {
     MatrixXd _bias;
   };
 
+  class DenseLayer: public ILayer
+  {
+  public:
+    DenseLayer(const MatrixXd& matrix, const VectorXd& bias, Activation activation);
+    virtual VectorXd compute(const VectorXd&) const;
+  private: 
+    MatrixLayer _matrixlayer;
+    BiasLayer _biaslayer;
+    UnaryActivationLayer _activation; 
+  };
+
+  class HighwayLayer: public ILayer
+  {
+  public:
+    HighwayLayer(const MatrixXd& W_carry, const VectorXd& b_carry, 
+      const MatrixXd& W, const VectorXd& b, Activation activation);
+    virtual VectorXd compute(const VectorXd&) const;
+  private:
+    DenseLayer _carrylayer;
+    DenseLayer _transformlayer;
+  };
+
   // ______________________________________________________________________
   // the NN class
 
