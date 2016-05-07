@@ -21,8 +21,6 @@ namespace {
     Eigen::VectorXd b;
   };
   LSTMComponent get_component(const lwt::LayerConfig& layer, size_t n_in);
-
-  std::function<double(double)> get_activation(lwt::Activation);
 }
 
 
@@ -231,17 +229,6 @@ namespace {
         ", U: " + std::to_string(u_out) + ", b: " + std::to_string(b_out));
     }
     return {weights, U, bias};
-  }
-  std::function<double(double)> get_activation(lwt::Activation act) {
-    using namespace lwt;
-    switch (act) {
-    case Activation::SIGMOID: return nn_sigmoid;
-    case Activation::HARD_SIGMOID: return nn_hard_sigmoid;
-    case Activation::TANH: return nn_tanh;
-    default: {
-      throw NNConfigurationException("Got undefined activation function");
-    }
-    }
   }
 
 }
