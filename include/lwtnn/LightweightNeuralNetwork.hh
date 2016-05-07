@@ -17,6 +17,7 @@
 #include <vector>
 #include <stdexcept>
 #include <map>
+#include <functional>
 
 namespace lwt {
 
@@ -27,6 +28,12 @@ namespace lwt {
   // code.  TODO: is it worth changing to unordered_map?
   typedef std::map<std::string, double> ValueMap;
   typedef std::vector<std::pair<std::string, double> > ValueVector;
+
+  // forward declare activation functions
+  // TODO: migrate all the activation layers to use these
+  double nn_sigmoid( double x );
+  double nn_hard_sigmoid( double x );
+  double nn_tanh( double x );
 
   // _______________________________________________________________________
   // layer classes
