@@ -32,6 +32,7 @@ namespace {
     case Architecture::NONE: return "none";
     case Architecture::DENSE: return "dense";
     case Architecture::MAXOUT: return "maxout";
+    case Architecture::HIGHWAY: return "highway";
     case Architecture::LSTM: return "lstm";
     case Architecture::EMBEDDING: return "embedding";
     }
