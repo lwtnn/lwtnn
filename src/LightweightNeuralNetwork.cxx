@@ -92,8 +92,8 @@ namespace lwt {
   }
 
   // highway layer
-  HighwayLayer::HighwayLayer(const MatrixXd& W_carry, const VectorXd& b_carry, 
-      const MatrixXd& W, const VectorXd& b, Activation activation):
+  HighwayLayer::HighwayLayer(const MatrixXd& W, const VectorXd& b, 
+      const MatrixXd& W_carry, const VectorXd& b_carry, Activation activation):
   _carrylayer(W_carry, b_carry, Activation::SIGMOID), 
   _transformlayer(W, b, activation)
   {
@@ -106,7 +106,7 @@ namespace lwt {
   VectorXd HighwayLayer::compute(const VectorXd& in) const {
     VectorXd carry_output = _carrylayer.compute(in);
     VectorXd transform_output = static_cast<VectorXd>(_transformlayer.compute(in).array() * carry_output.array());
-    return transform_output + static_cast<VectorXd>(1 - carry_output.array() * in.array()); 
+    return transform_output + static_cast<VectorXd>((1 - carry_output.array()) * in.array()); 
   }
 
   // ______________________________________________________________________
