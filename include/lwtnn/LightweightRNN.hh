@@ -16,7 +16,6 @@
 #include <Eigen/Dense>
 
 #include <vector>
-#include <functional>
 
 namespace lwt {
 
@@ -29,11 +28,6 @@ namespace lwt {
   //typedef may help with now using std::function, since ptr_fun is
   //deprecated, and will be removed in c++17 typedef double
   //(*activation_type)(double);
-
-  // forward declare activation functions
-  double nn_sigmoid( double x );
-  double nn_hard_sigmoid( double x );
-  double nn_tanh( double x );
 
   /// base recurrent class ///
   class IRecurrentLayer
