@@ -21,8 +21,6 @@ namespace {
     Eigen::VectorXd b;
   };
   LSTMComponent get_component(const lwt::LayerConfig& layer, size_t n_in);
-
-  std::function<double(double)> get_activation(lwt::Activation);
 }
 
 
@@ -295,39 +293,6 @@ namespace lwt {
     return out;
   }
 
-  // ______________________________________________________________________
-  // Activation functions
-  double nn_sigmoid( double x ){
-    //https://github.com/Theano/Theano/blob/master/theano/tensor/nnet/sigm.py#L35
-
-    if( x< -30.0 )
-      return 0.0;
-
-    if( x > 30.0 )
-      return 1.0;
-
-    return 1.0 / (1.0 + std::exp(-1.0*x));
-
-  }
-
-  double nn_hard_sigmoid( double x ){
-    //https://github.com/Theano/Theano/blob/master/theano/tensor/nnet/sigm.py#L279
-
-    double out = 0.2*x + 0.5;
-
-    if( out < 0)
-      return 0.0;
-
-    if ( out > 1 )
-      return 1.0;
-
-    return out;
-  }
-
-  double nn_tanh( double x ){
-    return std::tanh(x);
-  }
-
 }
 
 // ________________________________________________________________________
@@ -350,17 +315,6 @@ namespace {
         ", U: " + std::to_string(u_out) + ", b: " + std::to_string(b_out));
     }
     return {weights, U, bias};
-  }
-  std::function<double(double)> get_activation(lwt::Activation act) {
-    using namespace lwt;
-    switch (act) {
-    case Activation::SIGMOID: return nn_sigmoid;
-    case Activation::HARD_SIGMOID: return nn_hard_sigmoid;
-    case Activation::TANH: return nn_tanh;
-    default: {
-      throw NNConfigurationException("Got undefined activation function");
-    }
-    }
   }
 
 }

@@ -17,26 +17,14 @@ namespace lwt {
   }
 
   // activation functions
-  VectorXd SigmoidLayer::compute(const VectorXd& in) const {
-    // TODO: is there a more efficient way to do this?
-    size_t n_elements = in.rows();
-    VectorXd out(n_elements);
-    for (size_t iii = 0; iii < n_elements; iii++) {
-      out(iii) = 1 / (1 + std::exp(-in(iii)));
-    }
-    return out;
+  UnaryActivationLayer::UnaryActivationLayer(Activation act):
+    _func(get_activation(act))
+  {
   }
-  VectorXd RectifiedLayer::compute(const VectorXd& in) const {
-    // TODO: is there a more efficient way to do this?
-    size_t n_elements = in.rows();
-    VectorXd out(n_elements);
-    for (size_t iii = 0; iii < n_elements; iii++) {
-      // pass through NaN values
-      if (std::isnan(in(iii))) out(iii) = in(iii);
-      else out(iii) = in(iii) > 0 ? in(iii) : 0;
-    }
-    return out;
+  VectorXd UnaryActivationLayer::compute(const VectorXd& in) const {
+    return in.unaryExpr(_func);
   }
+
   VectorXd SoftmaxLayer::compute(const VectorXd& in) const {
     size_t n_elements = in.rows();
     VectorXd exp(n_elements);
@@ -45,14 +33,6 @@ namespace lwt {
     }
     double sum_exp = exp.sum();
     return exp / sum_exp;
-  }
-  VectorXd TanhLayer::compute(const VectorXd& in) const {
-    size_t n_elements = in.rows();
-    VectorXd out(n_elements);
-    for (size_t iii = 0; iii < n_elements; iii++) {
-      out(iii) = std::tanh(in(iii));
-    }
-    return out;
   }
 
   // bias layer
@@ -106,7 +86,7 @@ namespace lwt {
   // dummy construction routine
   Stack::Stack() {
     _layers.push_back(new DummyLayer);
-    _layers.push_back(new SigmoidLayer);
+    _layers.push_back(new UnaryActivationLayer(Activation::SIGMOID));
     _layers.push_back(new BiasLayer(std::vector<double>{1, 1, 1, 1}));
     MatrixXd mat(4, 4);
     mat <<
@@ -144,7 +124,10 @@ namespace lwt {
   }
 
   // _______________________________________________________________________
-  // private stuff
+  // Private Stack methods to add various types of layers
+
+  // top level add_layers method. This delegates to the other methods
+  // below
   size_t Stack::add_layers(size_t n_inputs, const LayerConfig& layer) {
     if (layer.architecture == Architecture::DENSE) {
       return add_dense_layers(n_inputs, layer);
@@ -153,6 +136,7 @@ namespace lwt {
     }
     throw NNConfigurationException("unknown architecture");
   }
+
   size_t Stack::add_dense_layers(size_t n_inputs, const LayerConfig& layer) {
     assert(layer.architecture == Architecture::DENSE);
     throw_if_not_dense(layer);
@@ -182,6 +166,7 @@ namespace lwt {
     }
     return n_outputs;
   }
+
   size_t Stack::add_maxout_layers(size_t n_inputs, const LayerConfig& layer) {
     assert(layer.architecture == Architecture::MAXOUT);
     throw_if_not_maxout(layer);
@@ -203,18 +188,61 @@ namespace lwt {
     return *n_outputs.begin();
   }
 
-  // function for internal use
+  // _____________________________________________________________________
+  // Activation functions
+  //
+  // There are two functions below. In most cases the activation layer
+  // can be implemented as a unary function, but in some cases
+  // (i.e. softmax) something more complicated is reqired.
+
+  // Note that in the first case you own this layer! It's your
+  // responsibility to delete it.
   ILayer* get_raw_activation_layer(Activation activation) {
+    // Check for special cases. If it's not one, use
+    // UnaryActivationLayer
     switch (activation) {
-    case Activation::SIGMOID: return new SigmoidLayer;
-    case Activation::RECTIFIED: return new RectifiedLayer;
     case Activation::SOFTMAX: return new SoftmaxLayer;
-    case Activation::TANH: return new TanhLayer;
+    default: return new UnaryActivationLayer(activation);
+    }
+  }
+
+  // Most activation functions should be handled here.
+  std::function<double(double)> get_activation(lwt::Activation act) {
+    using namespace lwt;
+    switch (act) {
+    case Activation::SIGMOID: return nn_sigmoid;
+    case Activation::HARD_SIGMOID: return nn_hard_sigmoid;
+    case Activation::TANH: return nn_tanh;
+    case Activation::RECTIFIED: return nn_relu;
     default: {
-      std::string problem = "asked for a non-implemented activation function";
-      throw NNConfigurationException(problem);
+      throw NNConfigurationException("Got undefined activation function");
     }
     }
+  }
+
+
+  double nn_sigmoid( double x ){
+    //github.com/Theano/Theano/blob/master/theano/tensor/nnet/sigm.py#L35
+    if (x < -30.0) return 0.0;
+    if (x >  30.0) return 1.0;
+    return 1.0 / (1.0 + std::exp(-1.0*x));
+  }
+
+  double nn_hard_sigmoid( double x ){
+    //github.com/Theano/Theano/blob/master/theano/tensor/nnet/sigm.py#L279
+    double out = 0.2*x + 0.5;
+    if (out < 0) return 0.0;
+    if (out > 1) return 1.0;
+    return out;
+  }
+
+  double nn_tanh( double x ){
+    return std::tanh(x);
+  }
+
+  double nn_relu( double x) {
+    if (std::isnan(x)) return x;
+    else return x > 0 ? x : 0;
   }
 
   // ______________________________________________________________________
@@ -337,5 +365,6 @@ namespace lwt {
       throw NNConfigurationException("sublayers in dense layer");
     }
   }
+
 
 }
