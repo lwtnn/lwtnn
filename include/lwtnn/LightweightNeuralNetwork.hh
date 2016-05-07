@@ -30,10 +30,12 @@ namespace lwt {
   typedef std::vector<std::pair<std::string, double> > ValueVector;
 
   // forward declare activation functions
-  // TODO: migrate all the activation layers to use these
+  // TODO: migrate more of the activation layers to use these
   double nn_sigmoid( double x );
   double nn_hard_sigmoid( double x );
   double nn_tanh( double x );
+  double nn_relu( double x );
+  std::function<double(double)> get_activation(lwt::Activation);
 
   // _______________________________________________________________________
   // layer classes
@@ -51,22 +53,16 @@ namespace lwt {
     virtual VectorXd compute(const VectorXd&) const;
   };
 
-  class SigmoidLayer: public ILayer
+  class UnaryActivationLayer: public ILayer
   {
   public:
+    UnaryActivationLayer(Activation);
     virtual VectorXd compute(const VectorXd&) const;
+  private:
+    std::function<double(double)> _func;
   };
-  class RectifiedLayer: public ILayer
-  {
-  public:
-    virtual VectorXd compute(const VectorXd&) const;
-  };
+
   class SoftmaxLayer: public ILayer
-  {
-  public:
-    virtual VectorXd compute(const VectorXd&) const;
-  };
-  class TanhLayer: public ILayer
   {
   public:
     virtual VectorXd compute(const VectorXd&) const;
