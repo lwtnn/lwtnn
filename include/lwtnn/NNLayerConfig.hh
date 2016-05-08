@@ -33,6 +33,8 @@ namespace lwt {
     // dense layer info
     std::vector<double> weights;
     std::vector<double> bias;
+    std::vector<double> weights_carry; // for Highway
+    std::vector<double> bias_carry; // for Highway
     std::vector<double> U;      // TODO: what is this thing called in LSTMs?
     Activation activation;
     Activation inner_activation; // for LSTMs

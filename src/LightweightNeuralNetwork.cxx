@@ -381,6 +381,7 @@ namespace lwt {
   }
 
   // consistency checks
+  // TO-DO: to be modified for highway?
   void throw_if_not_maxout(const LayerConfig& layer) {
     bool wt_ok = layer.weights.size() == 0;
     bool bias_ok = layer.bias.size() == 0;

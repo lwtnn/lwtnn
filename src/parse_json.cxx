@@ -14,6 +14,7 @@ namespace {
   lwt::Architecture get_architecture(const std::string&);
   void set_defaults(LayerConfig& lc);
   void add_dense_info(LayerConfig& lc, const ptree::value_type& pt);
+  void add_highway_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_maxout_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_lstm_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_embedding_info(LayerConfig& lc, const ptree::value_type& pt);
@@ -42,6 +43,8 @@ namespace lwt {
         v.second.get<std::string>("architecture"));
 
       if (arch == Architecture::DENSE) {
+        add_dense_info(layer, v);
+      } else if (arch == Architecture::HIGHWAY) {
         add_dense_info(layer, v);
       } else if (arch == Architecture::MAXOUT) {
         add_maxout_info(layer, v);
@@ -90,6 +93,7 @@ namespace {
   lwt::Architecture get_architecture(const std::string& str) {
     using namespace lwt;
     if (str == "dense") return Architecture::DENSE;
+    if (str == "highway") return Architecture::HIGHWAY;
     if (str == "maxout") return Architecture::MAXOUT;
     if (str == "lstm") return Architecture::LSTM;
     if (str == "embedding") return Architecture::EMBEDDING;
@@ -108,6 +112,33 @@ namespace {
     }
     for (const auto& bs: v.second.get_child("bias")) {
       layer.bias.push_back(bs.second.get_value<double>());
+    }
+    // this last category is currently only used for LSTM
+    if (v.second.count("U") != 0) {
+      for (const auto& wt: v.second.get_child("U") ) {
+        layer.U.push_back(wt.second.get_value<double>());
+      }
+    }
+
+    if (v.second.count("activation") != 0) {
+      layer.activation = get_activation(
+        v.second.get<std::string>("activation"));
+    }
+
+  }
+
+  void add_highway_info(LayerConfig& layer, const ptree::value_type& v) {
+    for (const auto& wt: v.second.get_child("weights")) {
+      layer.weights.push_back(wt.second.get_value<double>());
+    }
+    for (const auto& bs: v.second.get_child("bias")) {
+      layer.bias.push_back(bs.second.get_value<double>());
+    }
+    for (const auto& wt: v.second.get_child("weights_carry")) {
+      layer.weights_carry.push_back(wt.second.get_value<double>());
+    }
+    for (const auto& bs: v.second.get_child("bias_carry")) {
+      layer.bias_carry.push_back(bs.second.get_value<double>());
     }
     // this last category is currently only used for LSTM
     if (v.second.count("U") != 0) {

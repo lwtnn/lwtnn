@@ -124,6 +124,33 @@ def _get_dense_layer_parameters(h5, layer_config, n_in):
     }
     return return_dict, weights.shape[1]
 
+def _get_highway_layer_parameters(h5, layer_config, n_in):
+    """Get weights, bias, and n-outputs for a highway layer"""
+    layer_group = h5[layer_config['name']]
+    layers = _get_h5_layers(layer_group)
+    weights = layers['W']
+    weights_carry = layers['W_carry']
+    bias = layers['b']
+    bias_carry = layers['b_carry']
+
+    # -- check all objects have equal dimensions
+    assert weights.shape[1] == bias.shape[0] # W must be n x n
+    assert weights.shape[0] == n_in # the input must have length n
+    assert bias.shape[0] == weights.shape[0] # b must have length n
+    assert weights.shape[0] == weights_carry.shape[0] # W_carry must be n x n (same n as W)
+    assert weights_carry.shape[0] == weights_carry.shape[1] # W_carry must be n x n
+    assert bias_carry.shape[0] == weights_carry.shape[0] # b_carry must have length n
+    
+    return_dict = {
+        'weights': weights.T.flatten('C').tolist(),
+        'bias': bias.flatten('C').tolist(),
+        'weights_carry': weights_carry.T.flatten('C').tolist(),
+        'bias_carry': bias_carry.flatten('C').tolist(),
+        'architecture': 'dense',
+        'activation': layer_config['activation'],
+    }
+    return return_dict, weights.shape[1]
+
 
 def _get_maxout_layer_parameters(h5, layer_config, n_in):
     """Get weights, bias, and n-outputs for a maxout layer"""
@@ -216,6 +243,7 @@ def _activation_parameters(h5, layer_config, n_in):
 
 _layer_converters = {
     'dense': _get_dense_layer_parameters,
+    'highway': _get_highway_layer_parameters,
     'maxoutdense': _get_maxout_layer_parameters,
     'lstm': _lstm_parameters,
     'merge': _get_merge_layer_parameters,

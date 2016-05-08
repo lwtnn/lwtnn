@@ -63,6 +63,10 @@ std::ostream& operator<<(std::ostream& out, const lwt::LayerConfig& cfg){
   }
   out << "weights: [" << cfg.weights << "]\n";
   out << "bias: [" << cfg.bias << "]\n";
+  if (cfg.weights_carry.size() > 0) { // for highway
+    out << "weights_carry: [" << cfg.weights_carry << "]\n";
+    out << "bias_carry: [" << cfg.bias_carry << "]\n";
+  }
   if (cfg.U.size() > 0) {
     out << "U: [" << cfg.U << "]\n";
   }
