@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 #
 # Converter from Keras (version 1.0.0) saved NN to JSON
-"""
-____________________________________________________________________
+"""____________________________________________________________________
 Variable specification file
 
 In additon to the standard Keras architecture and weights files, you
@@ -18,11 +17,15 @@ format:
       ...
       ],
     "class_labels": [output_class_1_name, output_class_2_name, ...],
-    "keras_version": "1.0.0"
+    "keras_version": "1.0.0",
+    "miscellaneous": {"key": "value"}
   }
 
 where `scale` and `offset` account for any scaling and shifting to the
 input variables in preprocessing. The "default" value is optional.
+
+The "miscellaneous" object is also optional and can contain (key,
+value) pairs of strings to pass to the application.
 
 """
 
@@ -252,11 +255,17 @@ def _parse_inputs(keras_dict):
         default = val.get("default")
         if default is not None:
             defaults[val['name']] = default
-    return {
+    out = {
         'inputs': inputs,
         'outputs': keras_dict['class_labels'],
         'defaults': defaults,
     }
+    if 'miscellaneous' in keras_dict:
+        misc_dict = {}
+        for key, val in keras_dict['miscellaneous'].items():
+            misc_dict[str(key)] = str(val)
+        out['miscellaneous'] = misc_dict
+    return out
 
 if __name__ == '__main__':
     _run()
