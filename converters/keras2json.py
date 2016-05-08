@@ -41,7 +41,8 @@ def _run():
     with open(args.variables_file, 'r') as inputs_file:
         inputs = json.load(inputs_file)
 
-    if  inputs.get('keras_version')!="1.0.0":
+    #if inputs.get('keras_version')!="1.0.0":
+    if "1.0" not in inputs.get('keras_version'):
         warnings.warn("This converter was developed for Keras version 1.0.0. \
         The provided files were generated using version {} and therefore \
         the conversion might break.".format(inputs.get('Keras version')))
@@ -236,7 +237,7 @@ _layer_converters = {
     'dense': _get_dense_layer_parameters,
     'maxoutdense': _get_maxout_layer_parameters,
     'lstm': _lstm_parameters,
-    'gru': _gru_parameters,'
+    'gru': _gru_parameters,
     'merge': _get_merge_layer_parameters,
     'activation': _activation_parameters,
     }
