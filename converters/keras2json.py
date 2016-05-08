@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 #
 # Converter from Keras (version 1.0.0) saved NN to JSON
 """
@@ -185,7 +185,7 @@ def _gru_parameters(h5, layer_config, n_in):
             'bias': layers['b_' + gate].flatten().tolist(),
         }
         # TODO: add activation function for some of these gates
-    return {'gru_components': submap, 'architecture': 'lstm',
+    return {'gru_components': submap, 'architecture': 'gru',
             'activation': layer_config['activation'],
             'inner_activation': layer_config['inner_activation']}, n_out
 

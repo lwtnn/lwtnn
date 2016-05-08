@@ -175,7 +175,7 @@ namespace lwt {
     VectorXd z  = (_W_z*x_t + _b_z + _U_z*h_tm1).unaryExpr(in_act_fun);
     VectorXd r  = (_W_r*x_t + _b_r + _U_r*h_tm1).unaryExpr(in_act_fun);
     VectorXd hh = (_W_h*x_t + _b_h + _U_h*(r.cwiseProduct(h_tm1))).unaryExpr(act_fun); // r??
-    _h_t.col(_time)  = z.cwiseProduct(h_tm1) + (1-z).cwiseProduct(hh); // ?
+    _h_t.col(_time)  = z.cwiseProduct(h_tm1) + (static_cast<VectorXd>(1) - z).cwiseProduct(hh); // ?
 
     return VectorXd( _h_t.col(_time) );
   }

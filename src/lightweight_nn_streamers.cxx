@@ -33,6 +33,7 @@ namespace {
     case Architecture::DENSE: return "dense";
     case Architecture::MAXOUT: return "maxout";
     case Architecture::LSTM: return "lstm";
+    case Architecture::GRU: return "gru";
     case Architecture::EMBEDDING: return "embedding";
     }
   }
@@ -40,13 +41,21 @@ namespace {
     out << arch_as_string(ach);
     return out;
   }
-  std::string component_as_string(lwt::Component comp) {
+  std::string component_as_string(lwt::LSTMComponent comp) {
     using namespace lwt;
     switch (comp) {
-    case Component::I: return "i";
-    case Component::O: return "o";
-    case Component::C: return "c";
-    case Component::F: return "f";
+    case LSTMComponent::I: return "i";
+    case LSTMComponent::O: return "o";
+    case LSTMComponent::C: return "c";
+    case LSTMComponent::F: return "f";
+    }
+  }
+  std::string component_as_string(lwt::GRUComponent comp) {
+    using namespace lwt;
+    switch (comp) {
+    case GRUComponent::Z: return "z";
+    case GRUComponent::R: return "r";
+    case GRUComponent::H: return "h"; 
     }
   }
 }
@@ -76,9 +85,17 @@ std::ostream& operator<<(std::ostream& out, const lwt::LayerConfig& cfg){
     }
     out << "]\n";
   }
-  if (cfg.components.size() > 0) {
+  if (cfg.lstm_components.size() > 0) {
     out << "{\n";
-    for (const auto& comp: cfg.components) {
+    for (const auto& comp: cfg.lstm_components) {
+      out << " - component: " << component_as_string(comp.first) << " -\n";
+      out << comp.second << "\n";
+    }
+    out << "}\n";
+  }
+  if (cfg.gru_components.size() > 0) {
+    out << "{\n";
+    for (const auto& comp: cfg.gru_components) {
       out << " - component: " << component_as_string(comp.first) << " -\n";
       out << comp.second << "\n";
     }
