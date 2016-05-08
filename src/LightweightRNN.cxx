@@ -14,13 +14,13 @@
 namespace {
   // LSTM component for convenience
   // TODO: consider using this in LSTMLayer
-  struct LSTMComponent
+  struct Component
   {
     Eigen::MatrixXd W;
     Eigen::MatrixXd U;
     Eigen::VectorXd b;
   };
-  LSTMComponent get_component(const lwt::LayerConfig& layer, size_t n_in);
+  Component get_component(const lwt::LayerConfig& layer, size_t n_in);
 }
 
 
@@ -66,6 +66,7 @@ namespace lwt {
 
     return out;
   }
+
 
   LSTMLayer::LSTMLayer(Activation activation, Activation inner_activation,
            MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
@@ -126,9 +127,66 @@ namespace lwt {
     _h_t.setZero();
     _time = -1;
 
-
     for(_time=0; _time < x.cols(); _time++)
       {
+  this->step( x.col( _time ) );
+      }
+
+    return _return_sequences ? _h_t : _h_t.col(_h_t.cols() - 1);
+  }
+
+
+  GRULayer::GRULayer(Activation activation, Activation inner_activation,
+           MatrixXd W_z, MatrixXd U_z, VectorXd b_z,
+           MatrixXd W_r, MatrixXd U_r, VectorXd b_r,
+           MatrixXd W_h, MatrixXd U_h, VectorXd b_h,
+           bool return_sequences):
+    _W_z(W_z),
+    _U_z(U_z),
+    _b_z(b_z),
+    _W_r(W_r),
+    _U_r(U_r),
+    _b_r(b_r),
+    _W_h(W_h),
+    _U_h(U_h),
+    _b_h(b_h),
+    _return_sequences(return_sequences)
+  {
+    _n_outputs = _W_h.rows();
+
+    _activation_fun = get_activation(activation);
+    _inner_activation_fun = get_activation(inner_activation);
+  }
+
+  VectorXd GRULayer::step( const VectorXd& x_t ) {
+    // https://github.com/fchollet/keras/blob/master/keras/layers/recurrent.py#L547
+
+    if(_time < 0)
+      throw NNEvaluationException(
+        "LSTMLayer::compute - time is less than zero!");
+
+    const auto& act_fun = _activation_fun;
+    const auto& in_act_fun = _inner_activation_fun;
+
+    int tm1 = std::max(0, _time - 1);
+    VectorXd h_tm1 = _h_t.col(tm1);
+    //VectorXd C_tm1 = _C_t.col(tm1);
+
+    VectorXd z  = (_W_z*x_t + _b_z + _U_z*h_tm1).unaryExpr(in_act_fun);
+    VectorXd r  = (_W_r*x_t + _b_r + _U_r*h_tm1).unaryExpr(in_act_fun);
+    VectorXd hh = (_W_h*x_t + _b_h + _U_h*(r.cwiseProduct(h_tm1))).unaryExpr(act_fun); // r??
+    _h_t.col(_time)  = z.cwiseProduct(h_tm1) + (1-z).cwiseProduct(hh); // ?
+
+    return VectorXd( _h_t.col(_time) );
+  }
+
+  MatrixXd GRULayer::scan( const MatrixXd& x ){
+
+    _h_t.resize(_n_outputs, x.cols());
+    _h_t.setZero();
+    _time = -1;
+
+    for(_time=0; _time < x.cols(); _time++){
   this->step( x.col( _time ) );
       }
 
@@ -147,11 +205,13 @@ namespace lwt {
     for (;layer_n < n_layers; layer_n++) {
       auto& layer = layers.at(layer_n);
 
-      // add recurrent layers (now only LSTM)
+      // add recurrent layers (now LSTM and GRU!)
       if (layer.architecture == Architecture::LSTM) {
         n_inputs = add_lstm_layers(n_inputs, layer);
+      } else if (layer.architecture == Architecture::GRU) {
+        n_inputs = add_gru_layers(n_inputs, layer);
       } else if (layer.architecture == Architecture::EMBEDDING) {
-        n_inputs = add_embedding_layers(n_inputs, layer);
+        n_inputs = add_embedding_layers(n_inputs, layer); 
       } else {
         // leave this loop if we're done with the recurrent stuff
         break;
@@ -180,11 +240,11 @@ namespace lwt {
 
   size_t RecurrentStack::add_lstm_layers(size_t n_inputs,
                                          const LayerConfig& layer) {
-    auto& comps = layer.components;
-    const auto& i = get_component(comps.at(Component::I), n_inputs);
-    const auto& o = get_component(comps.at(Component::O), n_inputs);
-    const auto& f = get_component(comps.at(Component::F), n_inputs);
-    const auto& c = get_component(comps.at(Component::C), n_inputs);
+    auto& comps = layer.lstm_components;
+    const auto& i = get_component(comps.at(LSTMComponent::I), n_inputs);
+    const auto& o = get_component(comps.at(LSTMComponent::O), n_inputs);
+    const auto& f = get_component(comps.at(LSTMComponent::F), n_inputs);
+    const auto& c = get_component(comps.at(LSTMComponent::C), n_inputs);
     _layers.push_back(
       new LSTMLayer(layer.activation, layer.inner_activation,
                     i.W, i.U, i.b,
@@ -192,6 +252,20 @@ namespace lwt {
                     o.W, o.U, o.b,
                     c.W, c.U, c.b));
     return o.b.rows();
+  }
+
+  size_t RecurrentStack::add_gru_layers(size_t n_inputs,
+                                         const LayerConfig& layer) {
+    auto& comps = layer.gru_components;
+    const auto& z = get_component(comps.at(GRUComponent::Z), n_inputs);
+    const auto& r = get_component(comps.at(GRUComponent::R), n_inputs);
+    const auto& h = get_component(comps.at(GRUComponent::H), n_inputs);
+    _layers.push_back(
+      new GRULayer(layer.activation, layer.inner_activation,
+                    z.W, z.U, z.b,
+                    r.W, r.U, r.b,
+                    h.W, h.U, h.b));
+    return h.b.rows();
   }
 
   size_t RecurrentStack::add_embedding_layers(size_t n_inputs,
@@ -299,7 +373,7 @@ namespace lwt {
 // convenience functions
 
 namespace {
-  LSTMComponent get_component(const lwt::LayerConfig& layer, size_t n_in) {
+  Component get_component(const lwt::LayerConfig& layer, size_t n_in) {
     using namespace Eigen;
     using namespace lwt;
     MatrixXd weights = build_matrix(layer.weights, n_in);
@@ -316,5 +390,4 @@ namespace {
     }
     return {weights, U, bias};
   }
-
 }
