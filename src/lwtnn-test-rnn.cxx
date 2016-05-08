@@ -69,12 +69,13 @@ int main(int argc, char* argv[]) {
   lwt::RecurrentStack stack(n_inputs, config.layers);
   lwt::LightweightRNN rnn(config.inputs, config.layers, config.outputs);
   Eigen::VectorXd sum_outputs = Eigen::VectorXd::Zero(stack.n_outputs());
-  size_t n_loops = 10000;
+  size_t n_loops = 1;
   std::cout << "running over " << n_loops << " loops" << std::endl;
   std::cout << "running " << (run_stack ? "fast": "slow") << std::endl;
   for (size_t nnn = 0; nnn < n_loops; nnn++) {
     if (run_stack) {
-      Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(n_inputs, 40);
+      Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(n_inputs, 2);
+      std::cout << test_pattern << std::endl;
       sum_outputs += stack.reduce(test_pattern);
     } else {
       const auto inputs = get_values_vec(config.inputs);
