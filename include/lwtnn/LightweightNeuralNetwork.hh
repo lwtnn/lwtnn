@@ -101,23 +101,31 @@ namespace lwt {
   class DenseLayer: public ILayer
   {
   public:
-    DenseLayer(const MatrixXd& matrix, const VectorXd& bias, Activation activation);
+    DenseLayer(const MatrixXd& matrix,
+               const VectorXd& bias,
+               Activation activation);
     virtual VectorXd compute(const VectorXd&) const;
-  private: 
-    MatrixLayer _matrixlayer;
-    BiasLayer _biaslayer;
-    UnaryActivationLayer _activation; 
+  private:
+    MatrixXd _matrix;
+    VectorXd _bias;
+    std::function<double(double)> _activation;
   };
 
   class HighwayLayer: public ILayer
   {
   public:
-    HighwayLayer(const MatrixXd& W_carry, const VectorXd& b_carry, 
-      const MatrixXd& W, const VectorXd& b, Activation activation);
+    HighwayLayer(const MatrixXd& W,
+                 const VectorXd& b,
+                 const MatrixXd& W_carry,
+                 const VectorXd& b_carry,
+                 Activation activation);
     virtual VectorXd compute(const VectorXd&) const;
   private:
-    DenseLayer _carrylayer;
-    DenseLayer _transformlayer;
+    MatrixXd _w_t;
+    VectorXd _b_t;
+    MatrixXd _w_c;
+    VectorXd _b_c;
+    std::function<double(double)> _act;
   };
 
   // ______________________________________________________________________
