@@ -246,6 +246,7 @@ namespace lwt {
     case Activation::HARD_SIGMOID: return nn_hard_sigmoid;
     case Activation::TANH: return nn_tanh;
     case Activation::RECTIFIED: return nn_relu;
+    case Activation::LINEAR: return [](double x){return x;};
     default: {
       throw NNConfigurationException("Got undefined activation function");
     }
