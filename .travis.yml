@@ -1,0 +1,24 @@
+sudo: required
+dist: trusty
+language: python
+
+notifications:
+  email: on_failure
+
+# Add dependencies
+addons:
+  apt:
+    packages:
+      - libhdf5-serial-dev
+      - libboost-dev
+      - libeigen3-dev
+
+# python dependencies
+python:
+  - "3.4"
+install:
+  - pip install h5py
+
+# TODO: add some regression tests
+script:
+  - make

@@ -123,6 +123,8 @@ Have problems?
 
 If you find a bug in this code, or have any ideas, criticisms, etc, please email me at `dguest@cern.ch`.
 
+[![Build Status][build-img]][build-link]
+
 To Do List
 ----------
 
@@ -140,3 +142,5 @@ To Do List
 [pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
 [pyy]: http://pyyaml.org/wiki/PyYAML
 [julian]: https://github.com/dguest/lw-client/wiki/Julian-file-format
+[build-img]: https://travis-ci.org/dguest/lwtnn.svg?branch=travis
+[build-link]: https://travis-ci.org/dguest/lwtnn
