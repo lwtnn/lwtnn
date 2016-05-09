@@ -66,7 +66,6 @@ namespace lwt {
     return out;
   }
 
-
   LSTMLayer::LSTMLayer(Activation activation, Activation inner_activation,
            MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
            MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
@@ -125,6 +124,7 @@ namespace lwt {
     _h_t.resize(_n_outputs, x.cols());
     _h_t.setZero();
     _time = -1;
+
 
     for(_time=0; _time < x.cols(); _time++)
       {
@@ -209,7 +209,7 @@ namespace lwt {
       } else if (layer.architecture == Architecture::GRU) {
         n_inputs = add_gru_layers(n_inputs, layer);
       } else if (layer.architecture == Architecture::EMBEDDING) {
-        n_inputs = add_embedding_layers(n_inputs, layer); 
+        n_inputs = add_embedding_layers(n_inputs, layer);
       } else {
         // leave this loop if we're done with the recurrent stuff
         break;
@@ -238,11 +238,11 @@ namespace lwt {
 
   size_t RecurrentStack::add_lstm_layers(size_t n_inputs,
                                          const LayerConfig& layer) {
-    auto& comps = layer.lstm_components;
-    const auto& i = get_component(comps.at(LSTMComponent::I), n_inputs);
-    const auto& o = get_component(comps.at(LSTMComponent::O), n_inputs);
-    const auto& f = get_component(comps.at(LSTMComponent::F), n_inputs);
-    const auto& c = get_component(comps.at(LSTMComponent::C), n_inputs);
+    auto& comps = layer.components;
+    const auto& i = get_component(comps.at(Component::I), n_inputs);
+    const auto& o = get_component(comps.at(Component::O), n_inputs);
+    const auto& f = get_component(comps.at(Component::F), n_inputs);
+    const auto& c = get_component(comps.at(Component::C), n_inputs);
     _layers.push_back(
       new LSTMLayer(layer.activation, layer.inner_activation,
                     i.W, i.U, i.b,
@@ -254,10 +254,10 @@ namespace lwt {
 
   size_t RecurrentStack::add_gru_layers(size_t n_inputs,
                                          const LayerConfig& layer) {
-    auto& comps = layer.gru_components;
-    const auto& z = get_component(comps.at(GRUComponent::Z), n_inputs);
-    const auto& r = get_component(comps.at(GRUComponent::R), n_inputs);
-    const auto& h = get_component(comps.at(GRUComponent::H), n_inputs);
+    auto& comps = layer.components;
+    const auto& z = get_component(comps.at(Component::Z), n_inputs);
+    const auto& r = get_component(comps.at(Component::R), n_inputs);
+    const auto& h = get_component(comps.at(Component::H), n_inputs);
     _layers.push_back(
       new GRULayer(layer.activation, layer.inner_activation,
                     z.W, z.U, z.b,

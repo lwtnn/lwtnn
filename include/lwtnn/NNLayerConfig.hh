@@ -17,8 +17,7 @@ namespace lwt {
       HARD_SIGMOID};
   enum class Architecture {NONE, DENSE, MAXOUT, LSTM, GRU, EMBEDDING};
   // components (for LSTM, etc)
-  enum class LSTMComponent {I, O, C, F};
-  enum class GRUComponent {Z, R, H};
+  enum class Component {I, O, C, F, Z, R, H};
 
   // structure for embedding layers
   struct EmbeddingConfig
@@ -40,8 +39,7 @@ namespace lwt {
 
     // additional info for sublayers
     std::vector<LayerConfig> sublayers;
-    std::map<LSTMComponent, LayerConfig> lstm_components;
-    std::map<GRUComponent, LayerConfig> gru_components;
+    std::map<Component, LayerConfig> components;
     std::vector<EmbeddingConfig> embedding;
 
     // arch flag

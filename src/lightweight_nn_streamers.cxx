@@ -41,21 +41,16 @@ namespace {
     out << arch_as_string(ach);
     return out;
   }
-  std::string component_as_string(lwt::LSTMComponent comp) {
+  std::string component_as_string(lwt::Component comp) {
     using namespace lwt;
     switch (comp) {
-    case LSTMComponent::I: return "i";
-    case LSTMComponent::O: return "o";
-    case LSTMComponent::C: return "c";
-    case LSTMComponent::F: return "f";
-    }
-  }
-  std::string component_as_string(lwt::GRUComponent comp) {
-    using namespace lwt;
-    switch (comp) {
-    case GRUComponent::Z: return "z";
-    case GRUComponent::R: return "r";
-    case GRUComponent::H: return "h"; 
+    case Component::I: return "i";
+    case Component::O: return "o";
+    case Component::C: return "c";
+    case Component::F: return "f";
+    case Component::Z: return "z";
+    case Component::R: return "r";
+    case Component::H: return "h";
     }
   }
 }
@@ -85,17 +80,9 @@ std::ostream& operator<<(std::ostream& out, const lwt::LayerConfig& cfg){
     }
     out << "]\n";
   }
-  if (cfg.lstm_components.size() > 0) {
+  if (cfg.components.size() > 0) {
     out << "{\n";
-    for (const auto& comp: cfg.lstm_components) {
-      out << " - component: " << component_as_string(comp.first) << " -\n";
-      out << comp.second << "\n";
-    }
-    out << "}\n";
-  }
-  if (cfg.gru_components.size() > 0) {
-    out << "{\n";
-    for (const auto& comp: cfg.gru_components) {
+    for (const auto& comp: cfg.components) {
       out << " - component: " << component_as_string(comp.first) << " -\n";
       out << comp.second << "\n";
     }

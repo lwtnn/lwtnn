@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 #
 # Converter from Keras (version 1.0.0) saved NN to JSON
 """____________________________________________________________________
@@ -28,6 +28,8 @@ The "miscellaneous" object is also optional and can contain (key,
 value) pairs of strings to pass to the application.
 
 """
+_keras_version = '1.0'
+
 
 import argparse
 import warnings
@@ -44,11 +46,13 @@ def _run():
     with open(args.variables_file, 'r') as inputs_file:
         inputs = json.load(inputs_file)
 
-    #if inputs.get('keras_version')!="1.0.0":
-    if "1.0" not in inputs.get('keras_version'):
-        warnings.warn("This converter was developed for Keras version 1.0.0. \
-        The provided files were generated using version {} and therefore \
-        the conversion might break.".format(inputs.get('Keras version')))
+    file_version = inputs.get('keras_version')
+    if  _mvers(file_version) != _mvers(_keras_version):
+        warnings.warn(
+            "This converter was developed for Keras version {}. "
+            "The provided files were generated using version {} and "
+            "therefore the conversion might break.".format(
+                _keras_version, file_version))
 
     with h5py.File(args.hdf5_file, 'r') as h5:
         out_dict = {
@@ -56,6 +60,12 @@ def _run():
         }
         out_dict.update(_parse_inputs(inputs))
     print(json.dumps(out_dict, indent=2))
+
+def _mvers(vstring):
+    """crude versioning, take the first two decimals"""
+    if vstring is None:
+        return 0;
+    return [int(s) for s in vstring.split('.')][:2]
 
 def _get_args():
     parser = argparse.ArgumentParser(
@@ -170,8 +180,7 @@ def _lstm_parameters(h5, layer_config, n_in):
             'weights': layers['W_' + gate].T.flatten().tolist(),
             'bias': layers['b_' + gate].flatten().tolist(),
         }
-        # TODO: add activation function for some of these gates
-    return {'lstm_components': submap, 'architecture': 'lstm',
+    return {'components': submap, 'architecture': 'lstm',
             'activation': layer_config['activation'],
             'inner_activation': layer_config['inner_activation']}, n_out
 
@@ -188,8 +197,7 @@ def _gru_parameters(h5, layer_config, n_in):
             'weights': layers['W_' + gate].T.flatten().tolist(),
             'bias': layers['b_' + gate].flatten().tolist(),
         }
-        # TODO: add activation function for some of these gates
-    return {'gru_components': submap, 'architecture': 'gru',
+    return {'components': submap, 'architecture': 'gru',
             'activation': layer_config['activation'],
             'inner_activation': layer_config['inner_activation']}, n_out
 
