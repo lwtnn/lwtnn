@@ -99,6 +99,45 @@ namespace lwt {
     bool _return_sequences;
   };
 
+  /// gated recurrent unit ///
+  class GRULayer : public IRecurrentLayer
+  {
+  public:
+    GRULayer(Activation activation, Activation inner_activation,
+        MatrixXd W_z, MatrixXd U_z, VectorXd b_z,
+        MatrixXd W_r, MatrixXd U_r, VectorXd b_r,
+        MatrixXd W_h, MatrixXd U_h, VectorXd b_h,
+        bool return_sequences = true);
+
+    virtual ~GRULayer() {};
+    virtual VectorXd step( const VectorXd&);
+    virtual MatrixXd scan( const MatrixXd&);
+
+  private:
+    std::function<double(double)> _activation_fun;
+    std::function<double(double)> _inner_activation_fun;
+
+    MatrixXd _W_z;
+    MatrixXd _U_z;
+    VectorXd _b_z;
+
+    MatrixXd _W_r;
+    MatrixXd _U_r;
+    VectorXd _b_r;
+
+    MatrixXd _W_h;
+    MatrixXd _U_h;
+    VectorXd _b_h;
+
+    //states
+    MatrixXd _h_t;
+    int _time;
+
+    int _n_outputs;
+
+    bool _return_sequences;
+  };
+
   class RecurrentStack
   {
   public:
@@ -111,6 +150,7 @@ namespace lwt {
   private:
     std::vector<IRecurrentLayer*> _layers;
     size_t add_lstm_layers(size_t n_inputs, const LayerConfig&);
+    size_t add_gru_layers(size_t n_inputs, const LayerConfig&);
     size_t add_embedding_layers(size_t n_inputs, const LayerConfig&);
     Stack* _stack;
   };

@@ -44,10 +44,13 @@ def _run():
     with open(args.variables_file, 'r') as inputs_file:
         inputs = json.load(inputs_file)
 
-    if  inputs.get('keras_version')!="1.0.0":
-        warnings.warn("This converter was developed for Keras version 1.0.0. \
-        The provided files were generated using version {} and therefore \
-        the conversion might break.".format(inputs.get('Keras version')))
+    file_version = inputs.get('keras_version')
+    if not file_version.startswith('1.0'):
+        warnings.warn(
+            "This converter was developed for Keras version 1.0.0. "
+            "The provided files were generated using version {} and "
+            "therefore the conversion might break.".format(
+                file_version))
 
     with h5py.File(args.hdf5_file, 'r') as h5:
         out_dict = {
@@ -169,8 +172,24 @@ def _lstm_parameters(h5, layer_config, n_in):
             'weights': layers['W_' + gate].T.flatten().tolist(),
             'bias': layers['b_' + gate].flatten().tolist(),
         }
-        # TODO: add activation function for some of these gates
     return {'components': submap, 'architecture': 'lstm',
+            'activation': layer_config['activation'],
+            'inner_activation': layer_config['inner_activation']}, n_out
+
+def _gru_parameters(h5, layer_config, n_in):
+    """GRU parameter converter"""
+    layer_group = h5[layer_config['name']]
+    layers = _get_h5_layers(layer_group)
+    n_out = layers['W_h'].shape[1]
+
+    submap = {}
+    for gate in 'zrh':
+        submap[gate] = {
+            'U': layers['U_' + gate].T.flatten().tolist(),
+            'weights': layers['W_' + gate].T.flatten().tolist(),
+            'bias': layers['b_' + gate].flatten().tolist(),
+        }
+    return {'components': submap, 'architecture': 'gru',
             'activation': layer_config['activation'],
             'inner_activation': layer_config['inner_activation']}, n_out
 
@@ -221,6 +240,7 @@ _layer_converters = {
     'dense': _get_dense_layer_parameters,
     'maxoutdense': _get_maxout_layer_parameters,
     'lstm': _lstm_parameters,
+    'gru': _gru_parameters,
     'merge': _get_merge_layer_parameters,
     'activation': _activation_parameters,
     }

@@ -33,6 +33,7 @@ namespace {
     case Architecture::DENSE: return "dense";
     case Architecture::MAXOUT: return "maxout";
     case Architecture::LSTM: return "lstm";
+    case Architecture::GRU: return "gru";
     case Architecture::EMBEDDING: return "embedding";
     }
   }
@@ -47,6 +48,9 @@ namespace {
     case Component::O: return "o";
     case Component::C: return "c";
     case Component::F: return "f";
+    case Component::Z: return "z";
+    case Component::R: return "r";
+    case Component::H: return "h";
     }
   }
 }
