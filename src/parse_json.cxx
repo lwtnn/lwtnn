@@ -15,8 +15,7 @@ namespace {
   void set_defaults(LayerConfig& lc);
   void add_dense_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_maxout_info(LayerConfig& lc, const ptree::value_type& pt);
-  void add_lstm_info(LayerConfig& lc, const ptree::value_type& pt);
-  void add_gru_info(LayerConfig& lc, const ptree::value_type& pt);
+  void add_component_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_embedding_info(LayerConfig& lc, const ptree::value_type& pt);
 }
 
@@ -46,10 +45,9 @@ namespace lwt {
         add_dense_info(layer, v);
       } else if (arch == Architecture::MAXOUT) {
         add_maxout_info(layer, v);
-      } else if (arch == Architecture::LSTM) {
-        add_lstm_info(layer, v);
-      } else if (arch == Architecture::GRU) {
-        add_gru_info(layer, v);
+      } else if (arch == Architecture::LSTM ||
+                 arch == Architecture::GRU) {
+        add_component_info(layer, v);
       } else if (arch == Architecture::EMBEDDING) {
         add_embedding_info(layer, v);
       } else {
@@ -68,6 +66,13 @@ namespace lwt {
     if (pt.count(dname)) {
       for (const auto& def: pt.get_child(dname)) {
         cfg.defaults.emplace(def.first, def.second.get_value<double>());
+      }
+    }
+    const std::string mname = "miscellaneous";
+    if (pt.count(mname)) {
+      for (const auto& misc: pt.get_child(mname)) {
+        cfg.miscellaneous.emplace(
+          misc.first, misc.second.get_value<std::string>());
       }
     }
     return cfg;
@@ -138,41 +143,23 @@ namespace {
   }
 
 
-  const std::map<std::string, lwt::LSTMComponent> lstm_components {
-    {"i", LSTMComponent::I},
-    {"o", LSTMComponent::O},
-    {"c", LSTMComponent::C},
-    {"f", LSTMComponent::F}
+  const std::map<std::string, lwt::Component> component_map {
+    {"i", Component::I},
+    {"o", Component::O},
+    {"c", Component::C},
+    {"f", Component::F},
+    {"z", Component::Z},
+    {"r", Component::R},
+    {"h", Component::H}
   };
 
-  void add_lstm_info(LayerConfig& layer, const ptree::value_type& v) {
+  void add_component_info(LayerConfig& layer, const ptree::value_type& v) {
     using namespace lwt;
-    for (const auto& comp: v.second.get_child("lstm_components")) {
+    for (const auto& comp: v.second.get_child("components")) {
       LayerConfig cfg;
       set_defaults(cfg);
       add_dense_info(cfg, comp);
-      layer.lstm_components[lstm_components.at(comp.first)] = cfg;
-    }
-    layer.activation = get_activation(
-      v.second.get<std::string>("activation"));
-    layer.inner_activation = get_activation(
-      v.second.get<std::string>("inner_activation"));
-  }
-
-
-  const std::map<std::string, lwt::GRUComponent> gru_components {
-    {"z", GRUComponent::Z},
-    {"r", GRUComponent::R},
-    {"h", GRUComponent::H}
-  };
-
-  void add_gru_info(LayerConfig& layer, const ptree::value_type& v) {
-    using namespace lwt;
-    for (const auto& comp: v.second.get_child("gru_components")) {
-      LayerConfig cfg;
-      set_defaults(cfg);
-      add_dense_info(cfg, comp);
-      layer.gru_components[gru_components.at(comp.first)] = cfg;
+      layer.components[component_map.at(comp.first)] = cfg;
     }
     layer.activation = get_activation(
       v.second.get<std::string>("activation"));
