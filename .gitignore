@@ -9,3 +9,6 @@
 *.json
 *.txt
 *.h5
+
+# except in the tests
+!/tests/data/*

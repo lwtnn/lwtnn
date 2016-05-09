@@ -18,7 +18,9 @@ python:
   - "3.4"
 install:
   - pip install h5py
+  - pip install pyyaml
 
 # TODO: add some regression tests
 script:
   - make
+  - ./tests/test-agilepack.sh

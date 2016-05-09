@@ -60,8 +60,10 @@ namespace {
     lwt::LightweightNeuralNetwork tagger(
       config.inputs, config.layers, config.outputs);
     std::map<std::string, double> in_vals;
+    int in_num = 1;
     for (const auto& input: config.inputs) {
-      in_vals[input.name] = -input.offset;
+      in_vals[input.name] = in_num;
+      in_num++;
     }
     auto out_vals = tagger.compute(in_vals);
     for (const auto& out: out_vals) {
