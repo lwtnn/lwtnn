@@ -28,8 +28,6 @@ The "miscellaneous" object is also optional and can contain (key,
 value) pairs of strings to pass to the application.
 
 """
-_keras_version = '1.0'
-
 
 import argparse
 import warnings
@@ -47,12 +45,12 @@ def _run():
         inputs = json.load(inputs_file)
 
     file_version = inputs.get('keras_version')
-    if  _mvers(file_version) != _mvers(_keras_version):
+    if not file_version.startswith('1.0'):
         warnings.warn(
-            "This converter was developed for Keras version {}. "
+            "This converter was developed for Keras version 1.0.0. "
             "The provided files were generated using version {} and "
             "therefore the conversion might break.".format(
-                _keras_version, file_version))
+                file_version))
 
     with h5py.File(args.hdf5_file, 'r') as h5:
         out_dict = {
@@ -60,12 +58,6 @@ def _run():
         }
         out_dict.update(_parse_inputs(inputs))
     print(json.dumps(out_dict, indent=2))
-
-def _mvers(vstring):
-    """crude versioning, take the first two decimals"""
-    if vstring is None:
-        return 0;
-    return [int(s) for s in vstring.split('.')][:2]
 
 def _get_args():
     parser = argparse.ArgumentParser(
