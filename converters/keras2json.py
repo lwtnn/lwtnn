@@ -126,10 +126,9 @@ def _get_dense_layer_parameters(h5, layer_config, n_in):
         'weights': weights.T.flatten('C').tolist(),
         'bias': bias.flatten('C').tolist(),
         'architecture': 'dense',
-        'activation': layer_config['activation'],
+        'activation': _activation_map[layer_config['activation']],
     }
     return return_dict, weights.shape[1]
-
 
 def _get_maxout_layer_parameters(h5, layer_config, n_in):
     """Get weights, bias, and n-outputs for a maxout layer"""
@@ -159,6 +158,7 @@ def _get_maxout_layer_parameters(h5, layer_config, n_in):
     return {'sublayers': sublayers, 'architecture': 'maxout',
             'activation': 'linear'}, wt_out
 
+# TODO: unify LSTM, highway, and GRU here, they do almost the same thing
 def _lstm_parameters(h5, layer_config, n_in):
     """LSTM parameter converter"""
     layer_group = h5[layer_config['name']]
@@ -173,8 +173,24 @@ def _lstm_parameters(h5, layer_config, n_in):
             'bias': layers['b_' + gate].flatten().tolist(),
         }
     return {'components': submap, 'architecture': 'lstm',
-            'activation': layer_config['activation'],
-            'inner_activation': layer_config['inner_activation']}, n_out
+            'activation': _activation_map[layer_config['activation']],
+            'inner_activation': _activation_map[layer_config['inner_activation']]}, n_out
+
+def _get_highway_layer_parameters(h5, layer_config, n_in):
+    """Get weights, bias, and n-outputs for a highway layer"""
+    layer_group = h5[layer_config['name']]
+    layers = _get_h5_layers(layer_group)
+    n_out = layers['W'].shape[1]
+
+    submap = {}
+    for gate in ['', '_carry']:
+        submap[gate or '_t'] = {
+            'weights': layers['W' + gate].T.flatten().tolist(),
+            'bias': layers['b' + gate].flatten().tolist(),
+        }
+    return {'components': submap, 'architecture': 'highway',
+            'activation': _activation_map[layer_config['activation']],
+            'inner_activation': _activation_map[layer_config['inner_activation']]}, n_out
 
 def _gru_parameters(h5, layer_config, n_in):
     """GRU parameter converter"""
@@ -234,10 +250,11 @@ def _get_merge_layer_parameters(h5, layer_config, n_in):
 def _activation_parameters(h5, layer_config, n_in):
     """Return dummy parameters"""
     return {'weights':[], 'bias':[], 'architecture':'dense',
-            'activation':layer_config['activation']}, n_in
+            'activation':_activation_map[layer_config['activation']]}, n_in
 
 _layer_converters = {
     'dense': _get_dense_layer_parameters,
+    'highway': _get_highway_layer_parameters,
     'maxoutdense': _get_maxout_layer_parameters,
     'lstm': _lstm_parameters,
     'gru': _gru_parameters,

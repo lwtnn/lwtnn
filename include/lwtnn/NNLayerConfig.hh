@@ -17,7 +17,10 @@ namespace lwt {
       HARD_SIGMOID};
   enum class Architecture {NONE, DENSE, MAXOUT, HIGHWAY, LSTM, GRU, EMBEDDING};
   // components (for LSTM, etc)
-  enum class Component {I, O, C, F, Z, R, H};
+  enum class Component {
+    I, O, C, F,                 // LSTM
+      Z, R, H,                  // GRU
+      T, CARRY};                // Highway
 
   // structure for embedding layers
   struct EmbeddingConfig

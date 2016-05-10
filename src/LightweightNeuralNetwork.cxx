@@ -162,6 +162,8 @@ namespace lwt {
   size_t Stack::add_layers(size_t n_inputs, const LayerConfig& layer) {
     if (layer.architecture == Architecture::DENSE) {
       return add_dense_layers(n_inputs, layer);
+    } else if (layer.architecture == Architecture::HIGHWAY){
+      return add_highway_layers(n_inputs, layer);
     } else if (layer.architecture == Architecture::MAXOUT) {
       return add_maxout_layers(n_inputs, layer);
     }
@@ -191,12 +193,26 @@ namespace lwt {
       }
       _layers.push_back(new BiasLayer(layer.bias));
     }
+
     // add activation layer
     if (layer.activation != Activation::LINEAR) {
       _layers.push_back(get_raw_activation_layer(layer.activation));
     }
+
     return n_outputs;
   }
+
+
+  size_t Stack::add_highway_layers(size_t n_inputs, const LayerConfig& layer) {
+    auto& comps = layer.components;
+    const auto& t = get_component(comps.at(Component::T), n_inputs);
+    const auto& c = get_component(comps.at(Component::CARRY), n_inputs);
+
+    _layers.push_back(
+      new HighwayLayer(t.W, t.b, c.W, c.b, layer.activation));
+    return n_inputs;
+  }
+
 
   size_t Stack::add_maxout_layers(size_t n_inputs, const LayerConfig& layer) {
     assert(layer.architecture == Architecture::MAXOUT);
@@ -398,5 +414,27 @@ namespace lwt {
     }
   }
 
+  // component-wise getters (for Highway, lstm, etc)
+  DenseComponents get_component(const lwt::LayerConfig& layer, size_t n_in) {
+    using namespace Eigen;
+    using namespace lwt;
+    MatrixXd weights = build_matrix(layer.weights, n_in);
+    size_t n_out = weights.rows();
+    VectorXd bias = build_vector(layer.bias);
+
+    // the u element is optional
+    size_t u_el = layer.U.size();
+    MatrixXd U = u_el ? build_matrix(layer.U, n_out) : MatrixXd::Zero(0,0);
+
+    size_t u_out = U.rows();
+    size_t b_out = bias.rows();
+    bool u_mismatch = (u_out != n_out) && (u_out > 0);
+    if ( u_mismatch || b_out != n_out) {
+      throw NNConfigurationException(
+        "Output dims mismatch, W: " + std::to_string(n_out) +
+        ", U: " + std::to_string(u_out) + ", b: " + std::to_string(b_out));
+    }
+    return {weights, U, bias};
+  }
 
 }

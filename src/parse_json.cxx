@@ -46,7 +46,8 @@ namespace lwt {
       } else if (arch == Architecture::MAXOUT) {
         add_maxout_info(layer, v);
       } else if (arch == Architecture::LSTM ||
-                 arch == Architecture::GRU) {
+                 arch == Architecture::GRU ||
+                 arch == Architecture::HIGHWAY) {
         add_component_info(layer, v);
       } else if (arch == Architecture::EMBEDDING) {
         add_embedding_info(layer, v);
@@ -98,6 +99,7 @@ namespace {
   lwt::Architecture get_architecture(const std::string& str) {
     using namespace lwt;
     if (str == "dense") return Architecture::DENSE;
+    if (str == "highway") return Architecture::HIGHWAY;
     if (str == "maxout") return Architecture::MAXOUT;
     if (str == "lstm") return Architecture::LSTM;
     if (str == "gru") return Architecture::GRU;
@@ -150,7 +152,9 @@ namespace {
     {"f", Component::F},
     {"z", Component::Z},
     {"r", Component::R},
-    {"h", Component::H}
+    {"h", Component::H},
+    {"t", Component::T},
+    {"carry", Component::CARRY}
   };
 
   void add_component_info(LayerConfig& layer, const ptree::value_type& v) {

@@ -145,6 +145,7 @@ namespace lwt {
     // returns the size of the next layer
     size_t add_layers(size_t n_inputs, const LayerConfig&);
     size_t add_dense_layers(size_t n_inputs, const LayerConfig&);
+    size_t add_highway_layers(size_t n_inputs, const LayerConfig&);
     size_t add_maxout_layers(size_t n_inputs, const LayerConfig&);
     std::vector<ILayer*> _layers;
     size_t _n_outputs;
@@ -217,6 +218,15 @@ namespace lwt {
   // consistency checks
   void throw_if_not_maxout(const LayerConfig& layer);
   void throw_if_not_dense(const LayerConfig& layer);
+
+  // LSTM component for convenience in some layers
+  struct DenseComponents
+  {
+    Eigen::MatrixXd W;
+    Eigen::MatrixXd U;
+    Eigen::VectorXd b;
+  };
+  DenseComponents get_component(const lwt::LayerConfig& layer, size_t n_in);
 
   // ______________________________________________________________________
   // exceptions

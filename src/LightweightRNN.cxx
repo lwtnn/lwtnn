@@ -10,18 +10,6 @@
 
 #include "lwtnn/LightweightRNN.hh"
 
-namespace {
-  // LSTM component for convenience
-  // TODO: consider using this in LSTMLayer
-  struct Component
-  {
-    Eigen::MatrixXd W;
-    Eigen::MatrixXd U;
-    Eigen::VectorXd b;
-  };
-  Component get_component(const lwt::LayerConfig& layer, size_t n_in);
-}
-
 
 namespace lwt {
 
@@ -370,22 +358,3 @@ namespace lwt {
 // ________________________________________________________________________
 // convenience functions
 
-namespace {
-  Component get_component(const lwt::LayerConfig& layer, size_t n_in) {
-    using namespace Eigen;
-    using namespace lwt;
-    MatrixXd weights = build_matrix(layer.weights, n_in);
-    size_t n_out = weights.rows();
-    MatrixXd U = build_matrix(layer.U, n_out);
-    VectorXd bias = build_vector(layer.bias);
-
-    size_t u_out = U.rows();
-    size_t b_out = bias.rows();
-    if (u_out != n_out || b_out != n_out) {
-      throw NNConfigurationException(
-        "Output dims mismatch, W: " + std::to_string(n_out) +
-        ", U: " + std::to_string(u_out) + ", b: " + std::to_string(b_out));
-    }
-    return {weights, U, bias};
-  }
-}
