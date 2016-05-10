@@ -24,3 +24,4 @@ install:
 script:
   - make
   - ./tests/test-agilepack.sh
+  - ./tests/test-highway.sh
