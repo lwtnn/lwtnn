@@ -59,11 +59,13 @@ int main(int argc, char* argv[]) {
   std::string in_file_name(argv[1]);
   std::ifstream in_file(in_file_name);
   auto config = lwt::parse_json(in_file);
-  // std::vector<std::string> in_sorted;
-  // for (const auto& input: config.inputs) {
-  //   in_sorted.push_back(input.name);
-  // }
-  // std::sort(in_sorted.begin(), in_sorted.end());
+
+  if (!config.miscellaneous.count("sort_order")) {
+    std::cout << "no sort order given!" << std::endl;
+  } else {
+    std::cout << "sort order: " << config.miscellaneous.at("sort_order")
+              << std::endl;
+  }
 
   size_t n_inputs = config.inputs.size();
   lwt::RecurrentStack stack(n_inputs, config.layers);

@@ -29,14 +29,6 @@ namespace lwt {
   typedef std::map<std::string, double> ValueMap;
   typedef std::vector<std::pair<std::string, double> > ValueVector;
 
-  // forward declare activation functions
-  // TODO: migrate more of the activation layers to use these
-  double nn_sigmoid( double x );
-  double nn_hard_sigmoid( double x );
-  double nn_tanh( double x );
-  double nn_relu( double x );
-  std::function<double(double)> get_activation(lwt::Activation);
-
   // _______________________________________________________________________
   // layer classes
 
@@ -101,23 +93,32 @@ namespace lwt {
   class DenseLayer: public ILayer
   {
   public:
-    DenseLayer(const MatrixXd& matrix, const VectorXd& bias, Activation activation);
+    DenseLayer(const MatrixXd& matrix,
+               const VectorXd& bias,
+               Activation activation);
     virtual VectorXd compute(const VectorXd&) const;
-  private: 
-    MatrixLayer _matrixlayer;
-    BiasLayer _biaslayer;
-    UnaryActivationLayer _activation; 
+  private:
+    MatrixXd _matrix;
+    VectorXd _bias;
+    std::function<double(double)> _activation;
   };
 
+  //http://arxiv.org/pdf/1505.00387v2.pdf
   class HighwayLayer: public ILayer
   {
   public:
-    HighwayLayer(const MatrixXd& W_carry, const VectorXd& b_carry, 
-      const MatrixXd& W, const VectorXd& b, Activation activation);
+    HighwayLayer(const MatrixXd& W,
+                 const VectorXd& b,
+                 const MatrixXd& W_carry,
+                 const VectorXd& b_carry,
+                 Activation activation);
     virtual VectorXd compute(const VectorXd&) const;
   private:
-    DenseLayer _carrylayer;
-    DenseLayer _transformlayer;
+    MatrixXd _w_t;
+    VectorXd _b_t;
+    MatrixXd _w_c;
+    VectorXd _b_c;
+    std::function<double(double)> _act;
   };
 
   // ______________________________________________________________________
@@ -191,10 +192,23 @@ namespace lwt {
     std::vector<std::string> _outputs;
 
   };
+
   // ______________________________________________________________________
-  // utility functions
+  // Activation functions
+
+  // note that others are supported but are too simple to
+  // require a special function
+  double nn_sigmoid( double x );
+  double nn_hard_sigmoid( double x );
+  double nn_tanh( double x );
+  double nn_relu( double x );
+  std::function<double(double)> get_activation(lwt::Activation);
+
   // WARNING: you own this pointer! Only call when assigning to member data!
   ILayer* get_raw_activation_layer(Activation);
+
+  // ______________________________________________________________________
+  // utility functions
 
   // functions to build up basic units from vectors
   MatrixXd build_matrix(const std::vector<double>& weights, size_t n_inputs);

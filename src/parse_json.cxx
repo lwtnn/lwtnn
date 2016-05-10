@@ -70,6 +70,13 @@ namespace lwt {
         cfg.defaults.emplace(def.first, def.second.get_value<double>());
       }
     }
+    const std::string mname = "miscellaneous";
+    if (pt.count(mname)) {
+      for (const auto& misc: pt.get_child(mname)) {
+        cfg.miscellaneous.emplace(
+          misc.first, misc.second.get_value<std::string>());
+      }
+    }
     return cfg;
   }
 
