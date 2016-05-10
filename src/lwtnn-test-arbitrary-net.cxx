@@ -61,12 +61,18 @@ namespace {
       config.inputs, config.layers, config.outputs);
     std::map<std::string, double> in_vals;
 
+
     double hardcoded_inputs[] {0.97265876,  0.16456929,  1.31921023,  0.35926969,  0.55104127, -0.89336526};
     for(std::size_t i=0; i < config.inputs.size(); ++i) {
       in_vals[config.inputs[i].name] = hardcoded_inputs[i];
       std::cout << config.inputs[i].name << ", " << hardcoded_inputs[i] << std::endl;
     }
 
+    // int in_num = 1;
+    // for (const auto& input: config.inputs) {
+    //   in_vals[input.name] = in_num;
+    //   in_num++;
+    
     // for (const auto& input: config.inputs) {
     //   in_vals[input.name] = -input.offset;
     // }

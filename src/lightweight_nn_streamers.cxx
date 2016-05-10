@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <string>
+#include <stdexcept>
 
 namespace {
   std::ostream& operator<<(std::ostream& out,
@@ -24,6 +25,7 @@ namespace {
     case Activation::SOFTMAX: return "softmax";
     case Activation::TANH: return "tanh";
     case Activation::HARD_SIGMOID: return "hard_sigmoid";
+    default: throw std::logic_error("unknown activation");
     }
   }
   std::string arch_as_string(lwt::Architecture arch) {
@@ -34,7 +36,9 @@ namespace {
     case Architecture::MAXOUT: return "maxout";
     case Architecture::HIGHWAY: return "highway";
     case Architecture::LSTM: return "lstm";
+    case Architecture::GRU: return "gru";
     case Architecture::EMBEDDING: return "embedding";
+    default: throw std::logic_error("unknown architecture");
     }
   }
   std::ostream& operator<<(std::ostream& out, lwt::Architecture ach) {
@@ -48,6 +52,10 @@ namespace {
     case Component::O: return "o";
     case Component::C: return "c";
     case Component::F: return "f";
+    case Component::Z: return "z";
+    case Component::R: return "r";
+    case Component::H: return "h";
+    default: throw std::logic_error("unknown component");
     }
   }
 }

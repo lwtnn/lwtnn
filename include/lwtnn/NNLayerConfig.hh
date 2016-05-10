@@ -15,9 +15,10 @@
 namespace lwt {
   enum class Activation {NONE, LINEAR, SIGMOID, RECTIFIED, SOFTMAX, TANH,
       HARD_SIGMOID};
-  enum class Architecture {NONE, DENSE, MAXOUT, HIGHWAY, LSTM, EMBEDDING};
+  enum class Architecture {NONE, DENSE, MAXOUT, HIGHWAY, LSTM, GRU, EMBEDDING};
+  enum class Architecture {NONE, DENSE, MAXOUT, LSTM, GRU, EMBEDDING};
   // components (for LSTM, etc)
-  enum class Component {I,O,C,F};
+  enum class Component {I, O, C, F, Z, R, H};
 
   // structure for embedding layers
   struct EmbeddingConfig
@@ -37,7 +38,7 @@ namespace lwt {
     std::vector<double> bias_carry; // for Highway
     std::vector<double> U;      // TODO: what is this thing called in LSTMs?
     Activation activation;
-    Activation inner_activation; // for LSTMs
+    Activation inner_activation; // for LSTMs and GRUs
 
     // additional info for sublayers
     std::vector<LayerConfig> sublayers;

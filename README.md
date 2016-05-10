@@ -18,8 +18,8 @@ main design principles are:
 
 We also include converters from several popular formats to the `lwtnn` JSON format. Currently the following formats are supported:
  - [AGILEPack][ap]
- - [Keras][kr] (currently only dense layers, more will be added as
-   needed)
+ - [Keras][kr] (currently supports Dense, LSTM, and GRU, working on
+   Maxout and Highway layers)
  - [Julian's][julian] format, based on Numpy and JSON
 
 The converter scripts can be found in `converters/`. Run them with
@@ -30,14 +30,14 @@ How do I use it?
 
 #### Quick Start ####
 
-After running `make`, just run `./test-nn.sh`. If nothing goes wrong
-you should see something like:
+After running `make`, just run `./tests/test-agilepack.sh`. If nothing
+goes wrong you should see something like:
 
 ```
-out1 4
-out2 3
-out3 2
-out4 1
+Running conversion ./convert/agile2json.py data/agile-in.yml
+Testing with ./bin/lwtnn-test-arbitrary-net
+all outputs within thresholds!
+cleaning up
 ```
 
 There may be some problems if you don't have python 3 or don't have
@@ -47,12 +47,13 @@ with no arguments (which doesn't depend on the converter) should work.
 
 #### Cool, what the hell did that do? ####
 
-Take a look inside `test-nn.sh`, it does two things:
+Take a look inside the test routine, it does a few things:
 
  - Runs `./converters/agile2json.py`. This takes an [AGILEPack][ap]
    output and write a JSON file to standard out.
- - Pipes the output to `./bin/lwtag-test-full`. This will construct a
-   NN from the resulting JSON and run a single test pattern.
+ - Sends the output to `./bin/lwtag-test-arbitrary-net`. This will
+   construct a NN from the resulting JSON and run a single test
+   pattern.
 
 Of course this isn't very useful, to do more you have to understand...
 
@@ -123,6 +124,8 @@ Have problems?
 
 If you find a bug in this code, or have any ideas, criticisms, etc, please email me at `dguest@cern.ch`.
 
+[![Build Status][build-img]][build-link]
+
 To Do List
 ----------
 
@@ -140,3 +143,5 @@ To Do List
 [pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
 [pyy]: http://pyyaml.org/wiki/PyYAML
 [julian]: https://github.com/dguest/lw-client/wiki/Julian-file-format
+[build-img]: https://travis-ci.org/dguest/lwtnn.svg?branch=master
+[build-link]: https://travis-ci.org/dguest/lwtnn
