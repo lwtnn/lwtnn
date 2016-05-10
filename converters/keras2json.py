@@ -184,13 +184,12 @@ def _get_highway_layer_parameters(h5, layer_config, n_in):
 
     submap = {}
     for gate in ['', '_carry']:
-        submap[gate or '_t'] = {
+        submap[gate[1:] or 't'] = {
             'weights': layers['W' + gate].T.flatten().tolist(),
             'bias': layers['b' + gate].flatten().tolist(),
         }
     return {'components': submap, 'architecture': 'highway',
-            'activation': _activation_map[layer_config['activation']],
-            'inner_activation': _activation_map[layer_config['inner_activation']]}, n_out
+            'activation': _activation_map[layer_config['activation']]}, n_out
 
 def _gru_parameters(h5, layer_config, n_in):
     """GRU parameter converter"""

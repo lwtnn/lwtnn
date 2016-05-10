@@ -167,8 +167,10 @@ namespace {
     }
     layer.activation = get_activation(
       v.second.get<std::string>("activation"));
-    layer.inner_activation = get_activation(
-      v.second.get<std::string>("inner_activation"));
+    if (v.second.count("inner_activation") != 0) {
+      layer.inner_activation = get_activation(
+        v.second.get<std::string>("inner_activation"));
+    }
   }
 
 
