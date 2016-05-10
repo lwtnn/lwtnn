@@ -1,6 +1,8 @@
 #include "lwtnn/LightweightNeuralNetwork.hh"
+#include <Eigen/Dense>
 
 #include <set>
+#include <assert.h>
 
 // internal utility functions
 namespace {
@@ -78,6 +80,36 @@ namespace lwt {
     }
     outputs += _bias;
     return outputs.colwise().maxCoeff();
+  }
+
+  // dense layer
+  DenseLayer::DenseLayer(const MatrixXd& matrix,
+                         const VectorXd& bias,
+                         lwt::Activation activation):
+  _matrix(matrix),
+  _bias(bias),
+  _activation(get_activation(activation))
+  {
+  }
+  VectorXd DenseLayer::compute(const VectorXd& in) const {
+    return (_matrix * in + _bias).unaryExpr(_activation);
+  }
+
+  // highway layer
+  HighwayLayer::HighwayLayer(const MatrixXd& W,
+                             const VectorXd& b,
+                             const MatrixXd& W_carry,
+                             const VectorXd& b_carry,
+                             Activation activation):
+    _w_t(W), _b_t(b), _w_c(W_carry), _b_c(b_carry),
+    _act(get_activation(activation))
+  {
+  }
+  VectorXd HighwayLayer::compute(const VectorXd& in) const {
+    const std::function<double(double)> sig(nn_sigmoid);
+    ArrayXd c = (_w_c * in + _b_c).unaryExpr(sig);
+    ArrayXd t = (_w_t * in + _b_t).unaryExpr(_act);
+    return c * t + (1 - c) * in.array();
   }
 
   // ______________________________________________________________________
@@ -214,6 +246,7 @@ namespace lwt {
     case Activation::HARD_SIGMOID: return nn_hard_sigmoid;
     case Activation::TANH: return nn_tanh;
     case Activation::RECTIFIED: return nn_relu;
+    case Activation::LINEAR: return [](double x){return x;};
     default: {
       throw NNConfigurationException("Got undefined activation function");
     }
