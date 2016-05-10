@@ -2,7 +2,6 @@
 #include <Eigen/Dense>
 
 #include <set>
-#include <assert.h>
 
 // internal utility functions
 namespace {

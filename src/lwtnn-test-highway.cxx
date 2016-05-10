@@ -37,7 +37,7 @@ int main(int argc, char* argv[]) {
 	lwt::HighwayLayer hw(W, b, 0.17 * W, -3 * b, lwt::Activation::RECTIFIED);
 	std::cout << "Predictions from lwtnn Highway:" << std::endl;
 	std::cout << hw.compute(x) << std::endl;
-}	
+}
 
 // These predictions are to be compared to the ones obtained with Keras and found here:
 // http://nbviewer.jupyter.org/gist/mickypaganini/e997d21682a24e6e8c474af25760afa0
