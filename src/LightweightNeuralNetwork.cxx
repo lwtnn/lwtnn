@@ -4,6 +4,11 @@
 #include <set>
 #include <assert.h>
 
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <fstream>
+
 // internal utility functions
 namespace {
   using namespace Eigen;
@@ -161,8 +166,10 @@ namespace lwt {
   // top level add_layers method. This delegates to the other methods
   // below
   size_t Stack::add_layers(size_t n_inputs, const LayerConfig& layer) {
-    if (layer.architecture == Architecture::DENSE) {
+    if (layer.architecture == Architecture::DENSE){
       return add_dense_layers(n_inputs, layer);
+    } else if (layer.architecture == Architecture::HIGHWAY){
+      return add_highway_layers(n_inputs, layer);
     } else if (layer.architecture == Architecture::MAXOUT) {
       return add_maxout_layers(n_inputs, layer);
     }
@@ -180,7 +187,7 @@ namespace lwt {
       MatrixXd matrix = build_matrix(layer.weights, n_inputs);
       n_outputs = matrix.rows();
       _layers.push_back(new MatrixLayer(matrix));
-    };
+    }
 
     // add bias layer
     if (layer.bias.size() > 0) {
@@ -192,12 +199,79 @@ namespace lwt {
       }
       _layers.push_back(new BiasLayer(layer.bias));
     }
+
     // add activation layer
     if (layer.activation != Activation::LINEAR) {
       _layers.push_back(get_raw_activation_layer(layer.activation));
     }
+
     return n_outputs;
   }
+
+
+  size_t Stack::add_highway_layers(size_t n_inputs, const LayerConfig& layer) {
+    assert(layer.architecture == Architecture::HIGHWAY);
+
+    size_t n_outputs = n_inputs;
+
+    // add matrix layer
+    MatrixXd W;
+    if (layer.weights.size() > 0) {
+      W = build_matrix(layer.weights, n_inputs);
+    } else {
+      std::string problem = "No weights matrix provided for a highway layer. This is a necessary component.";
+      throw NNConfigurationException(problem);
+    }
+
+    // add bias layer
+    VectorXd b;
+    if (layer.bias.size() > 0) {
+      if (n_outputs != layer.bias.size() ) {
+        std::string problem = "tried to add a bias layer with " +
+          std::to_string(layer.bias.size()) + " entries, previous layer"
+          " had " + std::to_string(n_outputs) + " outputs";
+        throw NNConfigurationException(problem);
+      }
+      b = build_vector(layer.bias);
+    } else {
+      std::string problem = "No bias provided for a highway layer. This is a necessary component.";
+      throw NNConfigurationException(problem);
+    }
+
+    // add carry matrix layer
+    MatrixXd W_carry;
+    if (layer.weights_carry.size() > 0) {
+      W_carry = build_matrix(layer.weights_carry, n_inputs);
+    } else {
+      std::string problem = "No weights_carry matrix provided for a highway layer. This is a necessary component.";
+      throw NNConfigurationException(problem);
+    }
+
+    // add carry bias layer
+    VectorXd b_carry;
+    if (layer.bias_carry.size() > 0) {
+      if (n_outputs != layer.bias_carry.size() ) {
+        std::string problem = "tried to add a bias layer with " +
+          std::to_string(layer.bias_carry.size()) + " entries, previous layer"
+          " had " + std::to_string(n_outputs) + " outputs";
+        throw NNConfigurationException(problem);
+      }
+      b_carry = build_vector(layer.bias_carry);
+    } else {
+      std::string problem = "No bias_carry provided for a highway layer. This is a necessary component.";
+      throw NNConfigurationException(problem);
+    }
+
+    // add activation layer
+    Activation a = Activation::LINEAR;
+    if (layer.activation != Activation::LINEAR) {
+      a = layer.activation;
+    }
+
+    _layers.push_back(new HighwayLayer(W, b, W_carry, b_carry, a));
+    return n_outputs;
+  }
+
 
   size_t Stack::add_maxout_layers(size_t n_inputs, const LayerConfig& layer) {
     assert(layer.architecture == Architecture::MAXOUT);

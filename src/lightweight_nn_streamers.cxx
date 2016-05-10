@@ -57,23 +57,29 @@ std::ostream& operator<<(std::ostream& out, const lwt::LayerConfig& cfg){
   using namespace lwt;
   out << "architecture: " << cfg.architecture << "\n";
   out << "activation: " << activation_as_string(cfg.activation) << "\n";
+
   if (cfg.inner_activation != Activation::NONE) {
     out << "inner activation: "
         << activation_as_string(cfg.inner_activation) << "\n";
   }
+
   out << "weights: [" << cfg.weights << "]\n";
   out << "bias: [" << cfg.bias << "]\n";
+
   if (cfg.weights_carry.size() > 0) { // for highway
     out << "weights_carry: [" << cfg.weights_carry << "]\n";
     out << "bias_carry: [" << cfg.bias_carry << "]\n";
   }
+
   if (cfg.U.size() > 0) {
     out << "U: [" << cfg.U << "]\n";
   }
+
   for (const auto& emb: cfg.embedding) {
     out << "embedding - index: " << emb.index << " n_out: " << emb.n_out
         << "\n";
   }
+
   if (cfg.sublayers.size() > 0) {
     out << "[\n";
     for (const auto& sub: cfg.sublayers) {
@@ -81,6 +87,7 @@ std::ostream& operator<<(std::ostream& out, const lwt::LayerConfig& cfg){
     }
     out << "]\n";
   }
+
   if (cfg.components.size() > 0) {
     out << "{\n";
     for (const auto& comp: cfg.components) {
@@ -89,8 +96,10 @@ std::ostream& operator<<(std::ostream& out, const lwt::LayerConfig& cfg){
     }
     out << "}\n";
   }
+
   return out;
 }
+
 std::ostream& operator<<(std::ostream& out, const lwt::Input& input) {
   out << input.name << " -- offset: " << input.offset << " scale: "
       << input.scale;

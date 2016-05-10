@@ -45,7 +45,7 @@ namespace lwt {
       if (arch == Architecture::DENSE) {
         add_dense_info(layer, v);
       } else if (arch == Architecture::HIGHWAY) {
-        add_dense_info(layer, v);
+        add_highway_info(layer, v);
       } else if (arch == Architecture::MAXOUT) {
         add_maxout_info(layer, v);
       } else if (arch == Architecture::LSTM) {

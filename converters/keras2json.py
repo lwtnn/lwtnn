@@ -123,7 +123,7 @@ def _get_dense_layer_parameters(h5, layer_config, n_in):
         'weights': weights.T.flatten('C').tolist(),
         'bias': bias.flatten('C').tolist(),
         'architecture': 'dense',
-        'activation': layer_config['activation'],
+        'activation': _activation_map[layer_config['activation']],
     }
     return return_dict, weights.shape[1]
 
@@ -149,8 +149,8 @@ def _get_highway_layer_parameters(h5, layer_config, n_in):
         'bias': bias.flatten('C').tolist(),
         'weights_carry': weights_carry.T.flatten('C').tolist(),
         'bias_carry': bias_carry.flatten('C').tolist(),
-        'architecture': 'dense',
-        'activation': layer_config['activation'],
+        'architecture': 'highway',
+        'activation': _activation_map[layer_config['activation']],
     }
     return return_dict, weights.shape[1]
 
@@ -198,8 +198,8 @@ def _lstm_parameters(h5, layer_config, n_in):
         }
         # TODO: add activation function for some of these gates
     return {'components': submap, 'architecture': 'lstm',
-            'activation': layer_config['activation'],
-            'inner_activation': layer_config['inner_activation']}, n_out
+            'activation': _activation_map[layer_config['activation']],
+            'inner_activation': _activation_map[layer_config['inner_activation']]}, n_out
 
 def _get_merge_layer_parameters(h5, layer_config, n_in):
     """
@@ -242,7 +242,7 @@ def _get_merge_layer_parameters(h5, layer_config, n_in):
 def _activation_parameters(h5, layer_config, n_in):
     """Return dummy parameters"""
     return {'weights':[], 'bias':[], 'architecture':'dense',
-            'activation':layer_config['activation']}, n_in
+            'activation':_activation_map[layer_config['activation']]}, n_in
 
 _layer_converters = {
     'dense': _get_dense_layer_parameters,
@@ -283,9 +283,18 @@ def _parse_inputs(keras_dict):
         default = val.get("default")
         if default is not None:
             defaults[val['name']] = default
+
+    # -- this is ugly and can/should probably be prettified
+    # -- it's a hack to avoid problems when we have binary classification
+    # -- in that case, we only have 1 output but 2 classes
+    if len(keras_dict['class_labels']) == 2:
+        classes = [keras_dict['class_labels'][1]]
+    else:
+        classes = keras_dict['class_labels']
+
     out = {
         'inputs': inputs,
-        'outputs': keras_dict['class_labels'],
+        'outputs': classes,
         'defaults': defaults,
     }
     if 'miscellaneous' in keras_dict:
