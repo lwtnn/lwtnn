@@ -24,7 +24,7 @@ def _run():
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('saved_variables', nargs='?')
-    parser.add_argument('-t', '--tolerance', type=float, default=0.001)
+    parser.add_argument('-t', '--tolerance', type=float, default=0.0001)
     args = parser.parse_args()
 
     if sys.stdin.isatty():
@@ -55,20 +55,24 @@ def _get_dict(infile):
 def _compare_equal(old, new, tolerance, warn_threshold=0.000001):
     if set(old) != set(new):
         raise ValueError('variables aren\'t the same')
-    # first do warnings
+
+    fails = set()
     for var in old:
         diff = old[var] - new[var]
-        if abs(diff) > warn_threshold:
+        avg = (old[var] + new[var]) / 2
+        rel = abs(diff) / abs(avg)
+        # first do warnings
+        if rel > warn_threshold:
             sys.stderr.write(
                 'WARNING: {} is off in new version by {}\n'.format(
                     var, diff))
-    for var in old:
-        diff = old[var] - new[var]
-        if abs(diff) > tolerance:
+        if rel > tolerance:
             sys.stderr.write(
                 'ERROR: change in {} is over threshold {}\n'.format(
                     var, tolerance))
-            return False
+            fails.add(var)
+    if fails:
+        return False
     return True
 
 if __name__ == '__main__':
