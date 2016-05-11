@@ -13,6 +13,9 @@ namespace {
   int run_on_files(const lwt::JSONConfig& config,
                    const std::string& vars,
                    const std::string& vals);
+  // ramp function so that the inputs _after_ normalization fall on the
+  // [-1,1] range, i.e. `np.linspace(-1, 1, n_entries)`
+  double ramp(const lwt::Input& in, size_t pos, size_t n_entries);
   int run_on_generated(const lwt::JSONConfig& config);
 }
 
@@ -60,10 +63,12 @@ namespace {
     lwt::LightweightNeuralNetwork tagger(
       config.inputs, config.layers, config.outputs);
     std::map<std::string, double> in_vals;
-    int in_num = 1;
-    for (const auto& input: config.inputs) {
-      in_vals[input.name] = in_num;
-      in_num++;
+
+    const size_t total_inputs = config.inputs.size();
+    for (size_t nnn = 0; nnn < total_inputs; nnn++) {
+      const auto& input = config.inputs.at(nnn);
+      double ramp_val = ramp(input, nnn, total_inputs);
+      in_vals[input.name] = ramp_val;
     }
     auto out_vals = tagger.compute(in_vals);
     for (const auto& out: out_vals) {
@@ -112,4 +117,11 @@ namespace {
 
     return 0;
   }
+
+  double ramp(const lwt::Input& in, size_t pos, size_t n_entries) {
+    double step = 2.0 / (n_entries - 1);
+    double x = ( (n_entries == 1) ? 0 : (-1 + pos * step) );
+    return x / in.scale - in.offset;
+  }
+
 }

@@ -53,22 +53,29 @@ def _get_dict(infile):
     return odict
 
 def _compare_equal(old, new, tolerance, warn_threshold=0.000001):
+    """
+    For values of x where abs(x) < 1, the threshold is absolute.
+    For larger values, use a relative threshold.
+    """
     if set(old) != set(new):
-        raise ValueError('variables aren\'t the same')
+        sys.stderr.write(
+            'ERROR: variable mismatch. Targets: "{}", given "{}"\n'.format(
+                ', '.join(old), ', '.join(new)))
+        return False
 
     fails = set()
     for var in old:
         diff = old[var] - new[var]
         avg = (old[var] + new[var]) / 2
-        rel = abs(diff) / abs(avg)
+        rel = abs(diff) / abs(avg) if abs(avg) > 1 else abs(diff)
         # first do warnings
         if rel > warn_threshold:
             sys.stderr.write(
-                'WARNING: {} is off in new version by {}\n'.format(
+                'WARNING: "{}" is off in new version by {}\n'.format(
                     var, diff))
         if rel > tolerance:
             sys.stderr.write(
-                'ERROR: change in {} is over threshold {}\n'.format(
+                'ERROR: change in "{}" is over threshold {}\n'.format(
                     var, tolerance))
             fails.add(var)
     if fails:
