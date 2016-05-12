@@ -25,3 +25,4 @@ script:
   - make
   - ./tests/test-agilepack.sh
   - ./tests/test-highway.sh
+  - ./tests/test-ipmp.sh
