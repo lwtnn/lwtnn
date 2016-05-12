@@ -260,7 +260,7 @@ _layer_converters = {
     'merge': _get_merge_layer_parameters,
     'activation': _activation_parameters,
     }
-_skip_layers = {'flatten', 'dropout'}
+_skip_layers = {'flatten', 'dropout', 'masking'}
 
 # __________________________________________________________________________
 # master layer converter / inputs function

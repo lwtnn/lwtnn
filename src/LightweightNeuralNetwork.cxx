@@ -404,8 +404,9 @@ namespace lwt {
     bool wt_ok = layer.weights.size() == 0;
     bool bias_ok = layer.bias.size() == 0;
     bool maxout_ok = layer.sublayers.size() > 0;
-    bool act_ok = layer.activation == Activation::LINEAR;
-    if (wt_ok && bias_ok && maxout_ok && act_ok) return;
+    //bool act_ok = layer.activation == Activation::LINEAR;
+    //if (wt_ok && bias_ok && maxout_ok && act_ok) return;
+    if (wt_ok && bias_ok && maxout_ok) return;
     throw NNConfigurationException("layer has wrong info for maxout");
   }
   void throw_if_not_dense(const LayerConfig& layer) {
