@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <fstream>
+#include <cassert>
 
 void usage(const std::string& name) {
   std::cout << "usage: " << name << " <nn config>\n"
@@ -17,7 +18,10 @@ void usage(const std::string& name) {
 }
 
 namespace {
-  double ramp(const lwt::Input& in, size_t pos, size_t n_entries);
+  // 2d ramp function, corners are (1, -1, -1, 1), linear
+  // interpolation in the grid between
+  double ramp(const lwt::Input& in, size_t x, size_t y,
+              size_t n_x, size_t n_y);
 }
 
 lwt::VectorMap get_values_vec(const std::vector<lwt::Input>& inputs,
@@ -25,16 +29,12 @@ lwt::VectorMap get_values_vec(const std::vector<lwt::Input>& inputs,
   lwt::VectorMap out;
 
   // ramp through the input multiplier
-  const double step = 2.0 / (n_patterns - 1);
   const size_t total_inputs = inputs.size();
   for (size_t jjj = 0; jjj < n_patterns; jjj++) {
-    const double vmult = (-1 + jjj * step);
     for (size_t nnn = 0; nnn < total_inputs; nnn++) {
       const auto& input = inputs.at(nnn);
-      double ramp_val = ramp(input, nnn, total_inputs);
-      // record the product of the two ramps
-      double final_val = vmult * ramp_val;
-      out[input.name].push_back(final_val);
+      double ramp_val = ramp(input, nnn, jjj, total_inputs, n_patterns);
+      out[input.name].push_back(ramp_val);
     }
   }
   return out;
@@ -60,9 +60,15 @@ int main(int argc, char* argv[]) {
 }
 
 namespace {
-  double ramp(const lwt::Input& in, size_t pos, size_t n_entries) {
-    double step = 2.0 / (n_entries - 1);
-    double x = ( (n_entries == 1) ? 0 : (-1 + pos * step) );
-    return x / in.scale - in.offset;
+  // 2d ramp function, see declaration above
+  double ramp(const lwt::Input& in, size_t x, size_t y,
+              size_t n_x, size_t n_y) {
+    assert(x < n_x);
+    assert(y < n_y);
+    double s_x = 2.0 / (n_x - 1);
+    double s_y = 2.0 / (n_y - 1);
+    double x_m = ( (n_x == 1) ? 0 : (-1.0 + x * s_x) );
+    double y_m = ( (n_y == 1) ? 0 : (-1.0 + y * s_y) );
+    return x_m * y_m / in.scale - in.offset;
   }
 }
