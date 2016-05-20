@@ -299,6 +299,9 @@ namespace lwt {
         throw NNEvaluationException("can't find input: " + in_name);
       }
       const auto& invec = in.at(in_name);
+      if (invec.size() == 0) {
+        throw NNEvaluationException("Input vector of zero length");
+      }
       if (invec.size() != n_cols) {
         throw NNEvaluationException("Input vector size mismatch");
       }
