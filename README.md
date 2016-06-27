@@ -124,7 +124,7 @@ Have problems?
 
 If you find a bug in this code, or have any ideas, criticisms, etc, please email me at `dguest@cern.ch`.
 
-[![Build Status][build-img]][build-link]
+[![Build Status][build-img]][build-link] [![Scan Status][scan-img]][scan-link]
 
 To Do List
 ----------
@@ -145,3 +145,5 @@ To Do List
 [julian]: https://github.com/dguest/lw-client/wiki/Julian-file-format
 [build-img]: https://travis-ci.org/dguest/lwtnn.svg?branch=master
 [build-link]: https://travis-ci.org/dguest/lwtnn
+[scan-img]: https://scan.coverity.com/projects/9285/badge.svg
+[scan-link]: https://scan.coverity.com/projects/dguest-lwtnn
