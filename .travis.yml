@@ -5,6 +5,24 @@ language: python
 notifications:
   email: on_failure
 
+# coverity stuff
+env:
+  global:
+   # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
+   #   via the "travis encrypt" command using the project repo's public key
+   - secure: "LD/ZtSogRRgr7J2F6KtBt0PUzD5Zzw5qPH/td7iKAJus9L/MRyIuRw2j1dGaTWQaSTwvItcI4sEMMTVAO77y9Nu8tNjJO18qPL35TaMrLITHPAO6YCtQ8v5PgkpMw3JJWM8EgXJ+DOXwcvUzVs1csblGJJHD8QfEkqlIL/yIwj2ScsOl0ENttY+7ZZ6e0TmhfksAgQGQ1EeyF+pzQtkncGqWT4NeOHrUMOkhbKkg6fxarGxz5qc0KbQ2p6xDR27INEhUaIKCwlLuQhSsmVPuNzG+a2tlWlGIe4Xv4lu74t43BvlZ8lVsAcuXigHmrdLs+z3w01mqg3Pv84zPa9BFniai+6XMchbeVMumV1kmvysm39ZuQu+G+g5Ka+mpKjf5XDW3yeBqbuUTckNjPIMjh2Y4PvZALeALJJwtSw1SOJ2XdBnMes6gc5bo4hVO9UussVsq5Dr9aQu2wrrJS47+D9yLEKn4N+JZGCIU+8oak0nChjA1NgaGf4DW1tKAX8jCXB0kmmuED8sfYPVuxnOK3F30xZd+iFLpIwsY3tZgFZomYxMunz26mt5aRJqY4X2GQjKAM4tnBvGzRFJbhUQK6m+B8W9+ahnfcxBbj2moxlt4QjHNRqfMICaZIxJThPGXsj3FJ3/e0kOA2li4MWAtzYjd3Z2Hk7gf5fbnVPaOIZ0="
+
+addons:
+  coverity_scan:
+    project:
+      name: "dguest/lwtnn"
+      description: "lightweight neural network for C++"
+    notification_email: dhguest@gmail.com
+    build_command_prepend: ""
+    build_command:   "make"
+    branch_pattern: coverity_scan
+
+
 # Add dependencies
 addons:
   apt:
