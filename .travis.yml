@@ -6,6 +6,10 @@ notifications:
   email: on_failure
 
 # coverity stuff
+before_install:
+  # this ugly mess is a workaround from https://github.com/travis-ci/travis-ci/issues/6142
+  - echo -n | openssl s_client -connect scan.coverity.com:443 | sed -ne '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' | sudo tee -a /etc/ssl/certs/ca-certificates.crt
+
 env:
   global:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
@@ -24,7 +28,8 @@ addons:
       name: "dguest/lwtnn"
       description: "lightweight neural network for C++"
     notification_email: dhguest@gmail.com
-    build_command:   "make"
+    build_command_prepend: "make clean"
+    build_command: "make"
     branch_pattern: coverity_scan
 
 # python dependencies
