@@ -126,6 +126,7 @@ namespace lwt {
       0, 1, 0, 0,
       1, 0, 0, 0;
     _layers.push_back(new MatrixLayer(mat));
+    _n_outputs = 4;
   }
 
   // construct from LayerConfig
