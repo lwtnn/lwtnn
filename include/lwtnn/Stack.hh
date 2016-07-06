@@ -17,10 +17,15 @@ namespace lwt {
   using Eigen::VectorXd;
   using Eigen::MatrixXd;
 
+  class ILayer;
+  class IRecurrentLayer;
+
   // use a normal map externally, since these are more common in user
   // code.  TODO: is it worth changing to unordered_map?
   typedef std::map<std::string, double> ValueMap;
   typedef std::vector<std::pair<std::string, double> > ValueVector;
+  typedef std::map<std::string, std::vector<double> > VectorMap;
+
 
   // ______________________________________________________________________
   // the NN class
@@ -270,6 +275,34 @@ namespace lwt {
 
   // WARNING: you own this pointer! Only call when assigning to member data!
   ILayer* get_raw_activation_layer(Activation);
+
+  // ______________________________________________________________________
+  // input preprocessor (handles normalization and packing into Eigen)
+
+  class InputPreprocessor
+  {
+  public:
+    InputPreprocessor(const std::vector<Input>& inputs);
+    VectorXd operator()(const ValueMap&) const;
+  private:
+    // input transformations
+    VectorXd _offsets;
+    VectorXd _scales;
+    std::vector<std::string> _names;
+  };
+
+  class InputVectorPreprocessor
+  {
+  public:
+    InputVectorPreprocessor(const std::vector<Input>& inputs);
+    MatrixXd operator()(const VectorMap&) const;
+  private:
+    // input transformations
+    VectorXd _offsets;
+    VectorXd _scales;
+    std::vector<std::string> _names;
+  };
+
 
   // ______________________________________________________________________
   // utility functions

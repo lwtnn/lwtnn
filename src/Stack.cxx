@@ -208,19 +208,6 @@ namespace lwt {
     return outputs.colwise().maxCoeff();
   }
 
-  // dense layer
-  DenseLayer::DenseLayer(const MatrixXd& matrix,
-                         const VectorXd& bias,
-                         lwt::Activation activation):
-  _matrix(matrix),
-  _bias(bias),
-  _activation(get_activation(activation))
-  {
-  }
-  VectorXd DenseLayer::compute(const VectorXd& in) const {
-    return (_matrix * in + _bias).unaryExpr(_activation);
-  }
-
   // highway layer
   HighwayLayer::HighwayLayer(const MatrixXd& W,
                              const VectorXd& b,
@@ -488,6 +475,80 @@ namespace lwt {
 
     return _return_sequences ? _h_t : _h_t.col(_h_t.cols() - 1);
   }
+
+  // ______________________________________________________________________
+  // Input preprocessor
+  InputPreprocessor::InputPreprocessor(const std::vector<Input>& inputs):
+    _offsets(inputs.size()),
+    _scales(inputs.size())
+  {
+    size_t in_num = 0;
+    for (const auto& input: inputs) {
+      _offsets(in_num) = input.offset;
+      _scales(in_num) = input.scale;
+      _names.push_back(input.name);
+      in_num++;
+    }
+  }
+  VectorXd InputPreprocessor::operator()(const ValueMap& in) const {
+    VectorXd invec(_names.size());
+    size_t input_number = 0;
+    for (const auto& in_name: _names) {
+      if (!in.count(in_name)) {
+        throw NNEvaluationException("can't find input: " + in_name);
+      }
+      invec(input_number) = in.at(in_name);
+      input_number++;
+    }
+    return (invec + _offsets).cwiseProduct(_scales);
+  }
+
+
+  // ______________________________________________________________________
+  // Input vector preprocessor
+  InputVectorPreprocessor::InputVectorPreprocessor(
+    const std::vector<Input>& inputs):
+    _offsets(inputs.size()),
+    _scales(inputs.size())
+  {
+    size_t in_num = 0;
+    for (const auto& input: inputs) {
+      _offsets(in_num) = input.offset;
+      _scales(in_num) = input.scale;
+      _names.push_back(input.name);
+      in_num++;
+    }
+    // require at least one input at configuration, since we require
+    // at least one for evaluation
+    if (in_num == 0) {
+      throw NNConfigurationException("need at least one input");
+    }
+  }
+  MatrixXd InputVectorPreprocessor::operator()(const VectorMap& in) const {
+    using namespace Eigen;
+    if (in.size() == 0) {
+      throw NNEvaluationException("Empty input map");
+    }
+    size_t n_cols = in.begin()->second.size();
+    MatrixXd inmat(_names.size(), n_cols);
+    size_t in_num = 0;
+    for (const auto& in_name: _names) {
+      if (!in.count(in_name)) {
+        throw NNEvaluationException("can't find input: " + in_name);
+      }
+      const auto& invec = in.at(in_name);
+      if (invec.size() == 0) {
+        throw NNEvaluationException("Input vector of zero length");
+      }
+      if (invec.size() != n_cols) {
+        throw NNEvaluationException("Input vector size mismatch");
+      }
+      inmat.row(in_num) = Map<const VectorXd>(invec.data(), invec.size());
+      in_num++;
+    }
+    return _scales.asDiagonal() * (inmat.colwise() + _offsets);
+  }
+
 
   // _____________________________________________________________________
   // Activation functions
