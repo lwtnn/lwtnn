@@ -1,12 +1,16 @@
 #ifndef LIGHTWEIGHT_NEURAL_NETWORK_HH
 #define LIGHTWEIGHT_NEURAL_NETWORK_HH
 
-// Lightweight Tagger
+// Lightweight Neural Networks
 //
 // This is a simple NN implementation, designed to be lightweight in
 // terms of both size and dependencies. For sanity we use Eigen, but
 // otherwise this aims to be a minimal NN class which is fully
 // configurable at runtime.
+//
+// The classes defined here are the high level wrappers: they don't
+// directly include any Eigen code (to speed compliation of algorithms
+// that use them), and they store data in STL objects.
 //
 // Authors: Dan Guest <dguest@cern.ch>
 //          Michael Kagan <mkagan@cern.ch>
@@ -22,14 +26,16 @@ namespace lwt {
   class InputVectorPreprocessor;
 
   // use a normal map externally, since these are more common in user
-  // code.  TODO: is it worth changing to unordered_map?
+  // code.
+  // TODO: is it worth changing to unordered_map?
   typedef std::map<std::string, double> ValueMap;
   typedef std::vector<std::pair<std::string, double> > ValueVector;
   typedef std::map<std::string, std::vector<double> > VectorMap;
 
   // ______________________________________________________________________
-  // high-level wrapper
+  // high-level wrappers
 
+  // feed-forward variant
   class LightweightNeuralNetwork
   {
   public:
@@ -56,6 +62,7 @@ namespace lwt {
 
   };
 
+  // recurrent version
   class LightweightRNN
   {
   public:

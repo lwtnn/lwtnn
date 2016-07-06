@@ -11,7 +11,7 @@ namespace {
 namespace lwt {
 
   // ______________________________________________________________________
-  // Stack class
+  // Feed forward Stack class
 
   // dummy construction routine
   Stack::Stack() {
@@ -54,9 +54,9 @@ namespace lwt {
     return _n_outputs;
   }
 
-  // _______________________________________________________________________
-  // Private Stack methods to add various types of layers
 
+  // Private Stack methods to add various types of layers
+  //
   // top level add_layers method. This delegates to the other methods
   // below
   size_t Stack::add_layers(size_t n_inputs, const LayerConfig& layer) {
@@ -136,9 +136,8 @@ namespace lwt {
   }
 
 
-
   // _______________________________________________________________________
-  // layer implementation
+  // Feed-forward layers
 
   VectorXd DummyLayer::compute(const VectorXd& in) const {
     return in;
@@ -312,6 +311,9 @@ namespace lwt {
     return n_inputs;
   }
 
+  // __________________________________________________________________
+  // Recurrent layers
+
   EmbeddingLayer::EmbeddingLayer(int var_row_index, MatrixXd W):
     _var_row_index(var_row_index),
     _W(W)
@@ -350,6 +352,8 @@ namespace lwt {
     return out;
   }
 
+
+  // LSTM layer
   LSTMLayer::LSTMLayer(Activation activation, Activation inner_activation,
            MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
            MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
@@ -419,6 +423,7 @@ namespace lwt {
   }
 
 
+  // GRU layer
   GRULayer::GRULayer(Activation activation, Activation inner_activation,
            MatrixXd W_z, MatrixXd U_z, VectorXd b_z,
            MatrixXd W_r, MatrixXd U_r, VectorXd b_r,
@@ -475,80 +480,6 @@ namespace lwt {
 
     return _return_sequences ? _h_t : _h_t.col(_h_t.cols() - 1);
   }
-
-  // ______________________________________________________________________
-  // Input preprocessor
-  InputPreprocessor::InputPreprocessor(const std::vector<Input>& inputs):
-    _offsets(inputs.size()),
-    _scales(inputs.size())
-  {
-    size_t in_num = 0;
-    for (const auto& input: inputs) {
-      _offsets(in_num) = input.offset;
-      _scales(in_num) = input.scale;
-      _names.push_back(input.name);
-      in_num++;
-    }
-  }
-  VectorXd InputPreprocessor::operator()(const ValueMap& in) const {
-    VectorXd invec(_names.size());
-    size_t input_number = 0;
-    for (const auto& in_name: _names) {
-      if (!in.count(in_name)) {
-        throw NNEvaluationException("can't find input: " + in_name);
-      }
-      invec(input_number) = in.at(in_name);
-      input_number++;
-    }
-    return (invec + _offsets).cwiseProduct(_scales);
-  }
-
-
-  // ______________________________________________________________________
-  // Input vector preprocessor
-  InputVectorPreprocessor::InputVectorPreprocessor(
-    const std::vector<Input>& inputs):
-    _offsets(inputs.size()),
-    _scales(inputs.size())
-  {
-    size_t in_num = 0;
-    for (const auto& input: inputs) {
-      _offsets(in_num) = input.offset;
-      _scales(in_num) = input.scale;
-      _names.push_back(input.name);
-      in_num++;
-    }
-    // require at least one input at configuration, since we require
-    // at least one for evaluation
-    if (in_num == 0) {
-      throw NNConfigurationException("need at least one input");
-    }
-  }
-  MatrixXd InputVectorPreprocessor::operator()(const VectorMap& in) const {
-    using namespace Eigen;
-    if (in.size() == 0) {
-      throw NNEvaluationException("Empty input map");
-    }
-    size_t n_cols = in.begin()->second.size();
-    MatrixXd inmat(_names.size(), n_cols);
-    size_t in_num = 0;
-    for (const auto& in_name: _names) {
-      if (!in.count(in_name)) {
-        throw NNEvaluationException("can't find input: " + in_name);
-      }
-      const auto& invec = in.at(in_name);
-      if (invec.size() == 0) {
-        throw NNEvaluationException("Input vector of zero length");
-      }
-      if (invec.size() != n_cols) {
-        throw NNEvaluationException("Input vector size mismatch");
-      }
-      inmat.row(in_num) = Map<const VectorXd>(invec.data(), invec.size());
-      in_num++;
-    }
-    return _scales.asDiagonal() * (inmat.colwise() + _offsets);
-  }
-
 
   // _____________________________________________________________________
   // Activation functions
@@ -677,6 +608,82 @@ namespace lwt {
     }
     return {weights, U, bias};
   }
+
+
+  // ______________________________________________________________________
+  // Input preprocessors
+
+  // simple feed-forwared version
+  InputPreprocessor::InputPreprocessor(const std::vector<Input>& inputs):
+    _offsets(inputs.size()),
+    _scales(inputs.size())
+  {
+    size_t in_num = 0;
+    for (const auto& input: inputs) {
+      _offsets(in_num) = input.offset;
+      _scales(in_num) = input.scale;
+      _names.push_back(input.name);
+      in_num++;
+    }
+  }
+  VectorXd InputPreprocessor::operator()(const ValueMap& in) const {
+    VectorXd invec(_names.size());
+    size_t input_number = 0;
+    for (const auto& in_name: _names) {
+      if (!in.count(in_name)) {
+        throw NNEvaluationException("can't find input: " + in_name);
+      }
+      invec(input_number) = in.at(in_name);
+      input_number++;
+    }
+    return (invec + _offsets).cwiseProduct(_scales);
+  }
+
+
+  // Input vector preprocessor
+  InputVectorPreprocessor::InputVectorPreprocessor(
+    const std::vector<Input>& inputs):
+    _offsets(inputs.size()),
+    _scales(inputs.size())
+  {
+    size_t in_num = 0;
+    for (const auto& input: inputs) {
+      _offsets(in_num) = input.offset;
+      _scales(in_num) = input.scale;
+      _names.push_back(input.name);
+      in_num++;
+    }
+    // require at least one input at configuration, since we require
+    // at least one for evaluation
+    if (in_num == 0) {
+      throw NNConfigurationException("need at least one input");
+    }
+  }
+  MatrixXd InputVectorPreprocessor::operator()(const VectorMap& in) const {
+    using namespace Eigen;
+    if (in.size() == 0) {
+      throw NNEvaluationException("Empty input map");
+    }
+    size_t n_cols = in.begin()->second.size();
+    MatrixXd inmat(_names.size(), n_cols);
+    size_t in_num = 0;
+    for (const auto& in_name: _names) {
+      if (!in.count(in_name)) {
+        throw NNEvaluationException("can't find input: " + in_name);
+      }
+      const auto& invec = in.at(in_name);
+      if (invec.size() == 0) {
+        throw NNEvaluationException("Input vector of zero length");
+      }
+      if (invec.size() != n_cols) {
+        throw NNEvaluationException("Input vector size mismatch");
+      }
+      inmat.row(in_num) = Map<const VectorXd>(invec.data(), invec.size());
+      in_num++;
+    }
+    return _scales.asDiagonal() * (inmat.colwise() + _offsets);
+  }
+
 
   // ______________________________________________________________________
   // excpetions

@@ -1,7 +1,25 @@
 #ifndef STACK_HH
 #define STACK_HH
 
-// TODO: add more explanation
+// Stack classes
+//
+// These are the low-level classes that implement feed-forward and
+// recurrent neural networks. All the Eigen-dependant code in this
+// library should live in this file.
+//
+// To keep the Eigen code out of the high-level interface, the STL ->
+// Eigen ``preprocessor'' classes are also defined here.
+//
+// The ordering of classes is as follows:
+//  - Feed-forward Stack class
+//  - Feed-forward Layer classes
+//  - RecurrentStack class
+//  - Recurrent layers
+//  - Activation functions
+//  - Various utility functions
+//  - Preprocessor classes
+//  - Exception classes
+
 
 #include "NNLayerConfig.hh"
 
@@ -28,7 +46,7 @@ namespace lwt {
 
 
   // ______________________________________________________________________
-  // the NN class
+  // Feed forward Stack class
 
   class Stack
   {
@@ -58,7 +76,7 @@ namespace lwt {
   };
 
   // _______________________________________________________________________
-  // layer classes
+  // Feed-forward layers
 
   class ILayer
   {
@@ -137,7 +155,7 @@ namespace lwt {
   };
 
   // ______________________________________________________________________
-  // Recurrent stuff
+  // Recurrent Stack
 
   class RecurrentStack
   {
@@ -158,7 +176,8 @@ namespace lwt {
 
 
   // __________________________________________________________________
-  // recurrent layers
+  // Recurrent layers
+
   class IRecurrentLayer
   {
   public:
@@ -277,6 +296,26 @@ namespace lwt {
   ILayer* get_raw_activation_layer(Activation);
 
   // ______________________________________________________________________
+  // utility functions
+
+  // functions to build up basic units from vectors
+  MatrixXd build_matrix(const std::vector<double>& weights, size_t n_inputs);
+  VectorXd build_vector(const std::vector<double>& bias);
+
+  // consistency checks
+  void throw_if_not_maxout(const LayerConfig& layer);
+  void throw_if_not_dense(const LayerConfig& layer);
+
+  // LSTM component for convenience in some layers
+  struct DenseComponents
+  {
+    Eigen::MatrixXd W;
+    Eigen::MatrixXd U;
+    Eigen::VectorXd b;
+  };
+  DenseComponents get_component(const lwt::LayerConfig& layer, size_t n_in);
+
+  // ______________________________________________________________________
   // input preprocessor (handles normalization and packing into Eigen)
 
   class InputPreprocessor
@@ -303,26 +342,6 @@ namespace lwt {
     std::vector<std::string> _names;
   };
 
-
-  // ______________________________________________________________________
-  // utility functions
-
-  // functions to build up basic units from vectors
-  MatrixXd build_matrix(const std::vector<double>& weights, size_t n_inputs);
-  VectorXd build_vector(const std::vector<double>& bias);
-
-  // consistency checks
-  void throw_if_not_maxout(const LayerConfig& layer);
-  void throw_if_not_dense(const LayerConfig& layer);
-
-  // LSTM component for convenience in some layers
-  struct DenseComponents
-  {
-    Eigen::MatrixXd W;
-    Eigen::MatrixXd U;
-    Eigen::VectorXd b;
-  };
-  DenseComponents get_component(const lwt::LayerConfig& layer, size_t n_in);
 
   // ______________________________________________________________________
   // exceptions
