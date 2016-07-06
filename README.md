@@ -57,6 +57,25 @@ Take a look inside the test routine, it does a few things:
 
 Of course this isn't very useful, to do more you have to understand...
 
+Code Organization
+-----------------
+
+Code is intentionally organized into only a few files to make it
+easier to copy into existing packages. The main files are:
+
+ - `Stack` files: contain the low level NN classes, and any code
+   that relies on Eigen.
+ - `LightweightNeuralNetwork` files: contain the high-level wrappers,
+   which implement STL (rather than Eigen) interfaces. To speed up
+   compilation the header file can be included without including
+   Eigen.
+ - `NNLayerConfig` header: defines the structures to initialize networks.
+ - `parse_json` files: contain functions to build the config
+   structures from JSON.
+
+There are a few other less important files that contain debugging code
+and utilities.
+
 #### The High Level Interface ####
 
 Open `include/LightweightNeuralNetwork.hh` and find the class
