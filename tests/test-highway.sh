@@ -16,7 +16,7 @@
 # If to add another test you'll probably have to edit this
 
 # Trained network to convert and test
-INPUT=dguest.web.cern.ch/dguest/nn-tests/highway-net.zip
+INPUT=https://github.com/dguest/lwtnn-test-data/raw/v2/highway-net.tgz
 ARCH=highway_test.json
 VARIABLES=highway_variables.json
 HDF5=highway_test.h5
@@ -75,7 +75,7 @@ fi
     # for example:
     echo " -- downloading and unpacking data --"
     wget -nv $INPUT
-    unzip -q ${INPUT##*/}
+    tar xf ${INPUT##*/}
     if [[ ! -f $ARCH || ! -f $VARIABLES || ! -f $HDF5 ]] ; then
         echo "missing some inputs to the keras -> json converter" >&2
         exit 1
