@@ -63,6 +63,7 @@ namespace {
   // 2d ramp function, see declaration above
   double ramp(const lwt::Input& in, size_t x, size_t y,
               size_t n_x, size_t n_y) {
+    if (x == n_x - 1) return 1;
     assert(x < n_x);
     assert(y < n_y);
     double s_x = 2.0 / (n_x - 1);
