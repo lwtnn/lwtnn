@@ -79,6 +79,7 @@ _activation_map = {
     'linear': 'linear',
     'softmax': 'softmax',
     'tanh': 'tanh',
+    'hard_sigmoid': 'hard_sigmoid',
 }
 
 # utility function to handle keras layer naming
@@ -235,6 +236,10 @@ def _get_merge_layer_parameters(h5, layer_config, n_in):
         elif class_name == 'activation':
             if subcfg['activation'] != 'linear':
                 raise ValueError('we only support linear activation here')
+            dims = subcfg['batch_input_shape'][2]
+            sum_inputs += dims
+            sum_outputs += dims
+        elif class_name == 'masking':
             dims = subcfg['batch_input_shape'][2]
             sum_inputs += dims
             sum_outputs += dims
