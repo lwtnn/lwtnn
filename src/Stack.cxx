@@ -335,7 +335,7 @@ namespace lwt {
 
     for(int icol=0; icol<x.cols(); icol++) {
       double vector_idx = x(_var_row_index, icol);
-      bool is_int = static_cast<int>(vector_idx) == vector_idx;
+      bool is_int = std::floor(vector_idx) == vector_idx;
       bool is_valid = (vector_idx >= 0) && (vector_idx < _W.cols());
       if (!is_int || !is_valid) throw NNEvaluationException(
         "Invalid embedded index: " + std::to_string(vector_idx));
