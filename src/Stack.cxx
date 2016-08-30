@@ -333,8 +333,14 @@ namespace lwt {
 
     MatrixXd embedded(_W.rows(), x.cols());
 
-    for(int icol=0; icol<x.cols(); icol++)
-      embedded.col(icol) = _W.col( x(_var_row_index, icol) );
+    for(int icol=0; icol<x.cols(); icol++) {
+      double vector_idx = x(_var_row_index, icol);
+      bool is_int = static_cast<int>(vector_idx) == vector_idx;
+      bool is_valid = (vector_idx >= 0) && (vector_idx < _W.cols());
+      if (!is_int || !is_valid) throw NNEvaluationException(
+        "Invalid embedded index: " + std::to_string(vector_idx));
+      embedded.col(icol) = _W.col( vector_idx );
+    }
 
     //only embed 1 variable at a time, so this should be correct size
     MatrixXd out(_W.rows() + (x.rows() - 1), x.cols());
