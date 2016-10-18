@@ -57,7 +57,7 @@ def _run():
             'layers': _get_layers(arch, inputs, h5),
         }
         out_dict.update(_parse_inputs(inputs))
-    print(json.dumps(out_dict, indent=2))
+    print(json.dumps(out_dict, indent=2, sort_keys=True))
 
 def _get_args():
     parser = argparse.ArgumentParser(
