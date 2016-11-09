@@ -44,14 +44,37 @@ standards:
    piped into a file. This means that their only output should be a
    valid JSON NN (no "logging" info).
 
-### C++ ###
+### C++ Classes ###
 
- - **Indentation:** Generally follow K&R style (OTBS)
- - **No print statements** from central NN classes. Executables can
-   print as needed
- - **Errors throw exceptions** inheriting from `LightweightNNException`
+The code can be broken into several groups. The "core" classes are
+divided into a high-level and low-level interface.
+
+ - **Low-level core classes** in `Stack` supply bare Eigen interfaces
+   and handles the implementation of the various layers.
+ - **High-level interfaces** are in `LightweightNeuralNetwork`. These
+   headers should _not_ include Eigen headers, and support interfaces
+   via `std::map` and `std::vector`.
+
+In addition there are several files for "peripheral" code:
+
+ - **Configuration Handling** code includes that in `NNLayerConfig`
+   and `parse_json`. It should only be necessary to build the NN
+   objects and thus isn't performance critical.
  - **Test executables** must begin with `lwtnn-` (this is enforced by
    the makefile), and should be lower-case with `-`'s separating words
+
+For consistency the **indentation should follow K&R style**
+(OTBS). Also keep in mind the following guidelines:
+
+ - **No print statements** outside test executables. Logging is
+   potentially disastrous for execution times, adds useless noise, and
+   is less effective for debugging than a set of unit tests
+ - **Errors in core classes throw exceptions** and all exceptions
+   should inherit from `LightweightNNException`. Please report any
+   code that can segfault, produce undefined behavior, or throw
+   standard library exceptions, we consider this a bug.
+
+
 
 Reporting Bugs
 --------------
