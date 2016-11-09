@@ -4,10 +4,9 @@ How to contribute
 First of all, thanks for your interest! We can use a lot of help with
 this package and while writing code is awesome we also like to spend
 some time applying it to our particle smasher data. Anything you can
-do to help us find bugs, develop this code, or just provide feedback
-is extremely helpful to us.
+do to provide feedback is extremely helpful to us.
 
-For common questions and (limited) documentation, please look at our
+For common questions and documentation, please look at our
 [github wiki][1]. If you find this inadequate we encourage you to
 [create an issue][2]. And of course if you if you have any questions
 at all, feel free to email the package maintainer at `dguest@cern.ch`.
@@ -17,29 +16,42 @@ Coding Standards
 
 As a rule of thumb, no new dependencies are allowed in the C++ code.
 
-### Version Control ###
+### Submitting Pull Requests ###
 
- - Don't submit pull requests that add binary files or data
  - We follow a forking workflow: if you want to contribute fork the
    repository and submit a pull request
+ - Don't submit pull requests that add binary files or data
+ - Write [meaningful commit messages][6]
 
 ### General Syntax ###
 
- - Break lines at 80 characters
- - Never use tabs
+ - **Break lines at 80 characters.** It's easier to read and allows
+   you to view two files side-by-side.
+ - **Never use tabs.** Text editors always screw them up. Instead
+   indent with multiple spaces.
  - Avoid trailing whitespace
 
 ### Python Converters ###
 
- - We use python 3
+There are several scripts which convert common NN formats into JSON
+which lwtnn can use to build networks. We're happy to add more formats
+and extend the current converters, provided that you follow a few
+standards:
+
+ - Code should be written in python 3
  - Follow [PEP 8][3]
- - Output should be a valid JSON NN (no "logging" info allowed)
+ - The converters should write JSON to stdout such that it can be
+   piped into a file. This means that their only output should be a
+   valid JSON NN (no "logging" info).
 
 ### C++ ###
 
- - Generally follow K&R style (OTBS)
- - No print statements from central NN code
- - Errors throw exceptions inheriting from `LightweightNNException`
+ - **Indentation:** Generally follow K&R style (OTBS)
+ - **No print statements** from central NN classes. Executables can
+   print as needed
+ - **Errors throw exceptions** inheriting from `LightweightNNException`
+ - **Test executables** must begin with `lwtnn-` (this is enforced by
+   the makefile), and should be lower-case with `-`'s separating words
 
 Reporting Bugs
 --------------
@@ -72,3 +84,4 @@ the `script:` section of `.travis.yml`.
 [3]: https://www.python.org/dev/peps/pep-0008/
 [4]: https://github.com/dguest/lwtnn-test-data
 [5]: https://github.com/dguest/lwtnn/wiki/Testing-Your-NN
+[6]: http://chris.beams.io/posts/git-commit/#seven-rules
