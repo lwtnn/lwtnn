@@ -131,6 +131,25 @@ def _get_dense_layer_parameters(h5, layer_config, n_in):
     }
     return return_dict, weights.shape[1]
 
+############### new layer
+def _normalization_parameters(h5, layer_config, n_in):
+    """Get weights (gamma), bias (beta), for normalization layer"""
+    layer_group = h5[layer_config['name']]
+    layers = _get_h5_layers(layer_group)
+    weights = layers['gamma']
+    bias = layers['beta']
+    # Do some checks
+    assert weights.shape[0] == bias.shape[0]
+    assert weights.shape[0] == n_in
+    return_dict = {
+        'weights': weights.T.flatten('C').tolist(),
+        'bias': bias.flatten('C').tolist(),
+        'architecture': 'normalization',
+    }
+    return return_dict, weights.shape[0]
+
+###########################
+
 def _get_maxout_layer_parameters(h5, layer_config, n_in):
     """Get weights, bias, and n-outputs for a maxout layer"""
     layer_group = h5[layer_config['name']]
@@ -258,6 +277,7 @@ def _activation_parameters(h5, layer_config, n_in):
 
 _layer_converters = {
     'dense': _get_dense_layer_parameters,
+    'batchnormalization': _normalization_parameters,
     'highway': _get_highway_layer_parameters,
     'maxoutdense': _get_maxout_layer_parameters,
     'lstm': _lstm_parameters,
