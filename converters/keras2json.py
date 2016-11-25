@@ -131,7 +131,6 @@ def _get_dense_layer_parameters(h5, layer_config, n_in):
     }
     return return_dict, weights.shape[1]
 
-############### new layer
 def _normalization_parameters(h5, layer_config, n_in):
     """Get weights (gamma), bias (beta), for normalization layer"""
     layer_group = h5[layer_config['name']]
@@ -147,8 +146,6 @@ def _normalization_parameters(h5, layer_config, n_in):
         'architecture': 'normalization',
     }
     return return_dict, weights.shape[0]
-
-###########################
 
 def _get_maxout_layer_parameters(h5, layer_config, n_in):
     """Get weights, bias, and n-outputs for a maxout layer"""
