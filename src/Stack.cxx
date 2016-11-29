@@ -1,5 +1,6 @@
 #include "lwtnn/Stack.hh"
 #include <Eigen/Dense>
+#include <iostream>
 
 #include <set>
 
@@ -62,6 +63,8 @@ namespace lwt {
   size_t Stack::add_layers(size_t n_inputs, const LayerConfig& layer) {
     if (layer.architecture == Architecture::DENSE) {
       return add_dense_layers(n_inputs, layer);
+    } else if (layer.architecture == Architecture::NORMALIZATION){
+      return add_normalization_layers(n_inputs, layer);
     } else if (layer.architecture == Architecture::HIGHWAY){
       return add_highway_layers(n_inputs, layer);
     } else if (layer.architecture == Architecture::MAXOUT) {
@@ -100,6 +103,27 @@ namespace lwt {
     }
 
     return n_outputs;
+  }
+
+  size_t Stack::add_normalization_layers(size_t n_inputs, const LayerConfig& layer) {
+    assert(layer.architecture == Architecture::NORMALIZATION);
+    throw_if_not_normalization(layer);
+
+    // Do some checks
+    if ( layer.weights.size() < 1 || layer.bias.size() < 1 ) {
+      std::string problem = "Either weights or bias layer size is < 1";
+      throw NNConfigurationException(problem);
+    };
+    if ( layer.weights.size() != layer.bias.size() ) {
+      std::string problem = "weights and bias layer are not equal in size!";
+      throw NNConfigurationException(problem);
+    };
+    MatrixXd m_weights = build_matrix(layer.weights, n_inputs);
+    VectorXd v_bias = build_vector(layer.bias);
+
+    _layers.push_back(
+      new NormalizationLayer(m_weights, v_bias));
+    return n_inputs;
   }
 
 
@@ -205,6 +229,18 @@ namespace lwt {
     }
     outputs += _bias;
     return outputs.colwise().maxCoeff();
+  }
+
+   // Normalization layer
+   NormalizationLayer::NormalizationLayer(const MatrixXd& W,
+                                          const VectorXd& b):
+    _W(W), _b(b)
+  {
+  }
+  VectorXd NormalizationLayer::compute(const VectorXd& in) const {
+    VectorXd shift = in + _b ;
+    MatrixXd _W_t = _W.transpose();
+    return _W_t.cwiseProduct(shift);
   }
 
   // highway layer
@@ -589,6 +625,12 @@ namespace lwt {
   void throw_if_not_dense(const LayerConfig& layer) {
     if (layer.sublayers.size() > 0) {
       throw NNConfigurationException("sublayers in dense layer");
+    }
+  }
+
+  void throw_if_not_normalization(const LayerConfig& layer) {
+    if (layer.sublayers.size() > 0) {
+      throw NNConfigurationException("sublayers in normalization layer");
     }
   }
 
