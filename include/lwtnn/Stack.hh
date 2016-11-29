@@ -144,11 +144,11 @@ namespace lwt {
   {
 
   public:
-    NormalizationLayer(const MatrixXd& W,const VectorXd& b);
+    NormalizationLayer(const VectorXd& W,const VectorXd& b);
     virtual VectorXd compute(const VectorXd&) const;
 
   private:
-    MatrixXd _W;
+    VectorXd _W;
     VectorXd _b;
 
   };

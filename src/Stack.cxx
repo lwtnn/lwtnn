@@ -1,6 +1,5 @@
 #include "lwtnn/Stack.hh"
 #include <Eigen/Dense>
-#include <iostream>
 
 #include <set>
 
@@ -118,11 +117,11 @@ namespace lwt {
       std::string problem = "weights and bias layer are not equal in size!";
       throw NNConfigurationException(problem);
     };
-    MatrixXd m_weights = build_matrix(layer.weights, n_inputs);
+    VectorXd v_weights = build_vector(layer.weights);
     VectorXd v_bias = build_vector(layer.bias);
 
     _layers.push_back(
-      new NormalizationLayer(m_weights, v_bias));
+      new NormalizationLayer(v_weights, v_bias));
     return n_inputs;
   }
 
@@ -232,15 +231,14 @@ namespace lwt {
   }
 
    // Normalization layer
-   NormalizationLayer::NormalizationLayer(const MatrixXd& W,
+   NormalizationLayer::NormalizationLayer(const VectorXd& W,
                                           const VectorXd& b):
     _W(W), _b(b)
   {
   }
   VectorXd NormalizationLayer::compute(const VectorXd& in) const {
     VectorXd shift = in + _b ;
-    MatrixXd _W_t = _W.transpose();
-    return _W_t.cwiseProduct(shift);
+    return _W.cwiseProduct(shift);
   }
 
   // highway layer
