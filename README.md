@@ -162,7 +162,7 @@ To Do List
 [pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
 [pyy]: http://pyyaml.org/wiki/PyYAML
 [julian]: https://github.com/dguest/lw-client/wiki/Julian-file-format
-[build-img]: https://travis-ci.org/dguest/lwtnn.svg?branch=master
-[build-link]: https://travis-ci.org/dguest/lwtnn
+[build-img]: https://travis-ci.org/lwtnn/lwtnn.svg?branch=master
+[build-link]: https://travis-ci.org/lwtnn/lwtnn
 [scan-img]: https://scan.coverity.com/projects/9285/badge.svg
 [scan-link]: https://scan.coverity.com/projects/dguest-lwtnn
