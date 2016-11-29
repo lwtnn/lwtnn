@@ -151,10 +151,6 @@ namespace lwt {
     MatrixXd _W;
     VectorXd _b;
 
-    int _n_outputs;
-
-    bool _return_sequences;
-
   };
 
   //http://arxiv.org/pdf/1505.00387v2.pdf

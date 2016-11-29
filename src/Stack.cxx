@@ -1,5 +1,6 @@
 #include "lwtnn/Stack.hh"
 #include <Eigen/Dense>
+#include <iostream>
 
 #include <set>
 
@@ -237,7 +238,9 @@ namespace lwt {
   {
   }
   VectorXd NormalizationLayer::compute(const VectorXd& in) const {
-    return ( in * _W.cols() ) + _b ;
+    VectorXd shift = in + _b ;
+    MatrixXd _W_t = _W.transpose();
+    return _W_t.cwiseProduct(shift);
   }
 
   // highway layer
