@@ -43,6 +43,8 @@ namespace lwt {
 
       if (arch == Architecture::DENSE) {
         add_dense_info(layer, v);
+      } else if (arch == Architecture::NORMALIZATION) {
+        add_dense_info(layer, v); // re-use dense layer
       } else if (arch == Architecture::MAXOUT) {
         add_maxout_info(layer, v);
       } else if (arch == Architecture::LSTM ||
@@ -99,6 +101,7 @@ namespace {
   lwt::Architecture get_architecture(const std::string& str) {
     using namespace lwt;
     if (str == "dense") return Architecture::DENSE;
+    if (str == "normalization") return Architecture::NORMALIZATION;
     if (str == "highway") return Architecture::HIGHWAY;
     if (str == "maxout") return Architecture::MAXOUT;
     if (str == "lstm") return Architecture::LSTM;

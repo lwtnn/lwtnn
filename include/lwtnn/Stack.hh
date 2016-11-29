@@ -69,6 +69,7 @@ namespace lwt {
     // returns the size of the next layer
     size_t add_layers(size_t n_inputs, const LayerConfig&);
     size_t add_dense_layers(size_t n_inputs, const LayerConfig&);
+    size_t add_normalization_layers(size_t n_inputs, const LayerConfig&);
     size_t add_highway_layers(size_t n_inputs, const LayerConfig&);
     size_t add_maxout_layers(size_t n_inputs, const LayerConfig&);
     std::vector<ILayer*> _layers;
@@ -134,6 +135,22 @@ namespace lwt {
   private:
     std::vector<MatrixXd> _matrices;
     MatrixXd _bias;
+  };
+
+
+  /// Normalization layer ///
+  /// https://arxiv.org/abs/1502.03167 ///
+  class NormalizationLayer : public ILayer
+  {
+
+  public:
+    NormalizationLayer(const VectorXd& W,const VectorXd& b);
+    virtual VectorXd compute(const VectorXd&) const;
+
+  private:
+    VectorXd _W;
+    VectorXd _b;
+
   };
 
   //http://arxiv.org/pdf/1505.00387v2.pdf
@@ -305,6 +322,7 @@ namespace lwt {
   // consistency checks
   void throw_if_not_maxout(const LayerConfig& layer);
   void throw_if_not_dense(const LayerConfig& layer);
+  void throw_if_not_normalization(const LayerConfig& layer);
 
   // LSTM component for convenience in some layers
   struct DenseComponents
