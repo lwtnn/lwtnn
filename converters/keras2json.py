@@ -144,7 +144,7 @@ def _normalization_parameters(h5, layer_config, n_in):
     assert mean.shape[0] == stddev.shape[0]
     assert gamma.shape[0] == n_in
     assert 'activation' not in layer_config
-    epsilon = 1e-05
+    epsilon = layer_config['epsilon']
     scale = gamma / np.sqrt(stddev + epsilon)
     offset = -mean+(beta*np.sqrt(stddev + epsilon)/(gamma))
     return_dict = {
