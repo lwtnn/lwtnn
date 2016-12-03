@@ -102,17 +102,11 @@ namespace {
         nn_in[labels.at(iii)] = std::stof(val_strings.at(iii));
       }
       auto cleaned_inputs = replacer.replace(nn_in);
-      for (const auto& pair: cleaned_inputs) {
-        std::cout << pair.first << " " << pair.second << std::endl;
-      }
-      auto out = tagger.compute(cleaned_inputs);
+      auto out_vals = tagger.compute(cleaned_inputs);
       // look at the outputs
-      double sum = 0;
-      for (const auto& okey: config.outputs) {
-        std::cout << out.at(okey) << " ";
-        sum += out.at(okey);
+      for (const auto& out: out_vals) {
+        std::cout << out.first << " " << out.second << std::endl;
       }
-      std::cout << ": " << sum << std::endl;
     }
 
     return 0;
