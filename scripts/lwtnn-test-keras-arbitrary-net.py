@@ -14,6 +14,7 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from numpy import linspace
 import numpy as np
 import json
+from math import isnan
 
 def _get_args():
     parser = ArgumentParser(
@@ -73,7 +74,10 @@ def _get_test_pattern(labels, values, input_dict):
 
     raw_values = np.zeros((n_inputs,))
     for key, value in zip(field_keys, field_values):
-        raw_values[pos_dict[key]] = value
+        input_pos = pos_dict[key]
+        if isnan(value):
+            value = input_dict['inputs'][input_pos]['default']
+        raw_values[input_pos] = value
 
     normed_values = (raw_values + offset) * scale
     return normed_values[None,:]
