@@ -54,11 +54,11 @@ namespace lwt {
 
   private:
     // use the Stack class above as the computational core
-    Stack* _stack;
-    InputPreprocessor* _preproc;
+    Stack* m_stack;
+    InputPreprocessor* m_preproc;
 
     // output labels
-    std::vector<std::string> _outputs;
+    std::vector<std::string> m_outputs;
 
   };
 
@@ -76,11 +76,11 @@ namespace lwt {
     ValueMap reduce(const std::vector<ValueMap>&) const;
     ValueMap reduce(const VectorMap&) const;
   private:
-    RecurrentStack* _stack;
-    InputPreprocessor* _preproc;
-    InputVectorPreprocessor* _vec_preproc;
-    std::vector<std::string> _outputs;
-    size_t _n_inputs;
+    RecurrentStack* m_stack;
+    InputPreprocessor* m_preproc;
+    InputVectorPreprocessor* m_vec_preproc;
+    std::vector<std::string> m_outputs;
+    size_t m_n_inputs;
   };
 
 }

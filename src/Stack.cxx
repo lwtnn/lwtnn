@@ -15,17 +15,17 @@ namespace lwt {
 
   // dummy construction routine
   Stack::Stack() {
-    _layers.push_back(new DummyLayer);
-    _layers.push_back(new UnaryActivationLayer(Activation::SIGMOID));
-    _layers.push_back(new BiasLayer(std::vector<double>{1, 1, 1, 1}));
+    m_layers.push_back(new DummyLayer);
+    m_layers.push_back(new UnaryActivationLayer(Activation::SIGMOID));
+    m_layers.push_back(new BiasLayer(std::vector<double>{1, 1, 1, 1}));
     MatrixXd mat(4, 4);
     mat <<
       0, 0, 0, 1,
       0, 0, 1, 0,
       0, 1, 0, 0,
       1, 0, 0, 0;
-    _layers.push_back(new MatrixLayer(mat));
-    _n_outputs = 4;
+    m_layers.push_back(new MatrixLayer(mat));
+    m_n_outputs = 4;
   }
 
   // construct from LayerConfig
@@ -35,23 +35,23 @@ namespace lwt {
       n_inputs = add_layers(n_inputs, layers.at(nnn));
     }
     // the final assigned n_inputs is the number of output nodes
-    _n_outputs = n_inputs;
+    m_n_outputs = n_inputs;
   }
 
   Stack::~Stack() {
-    for (auto& layer: _layers) {
+    for (auto& layer: m_layers) {
       delete layer;
       layer = 0;
     }
   }
   VectorXd Stack::compute(VectorXd in) const {
-    for (const auto& layer: _layers) {
+    for (const auto& layer: m_layers) {
       in = layer->compute(in);
     }
     return in;
   }
   size_t Stack::n_outputs() const {
-    return _n_outputs;
+    return m_n_outputs;
   }
 
 
@@ -82,7 +82,7 @@ namespace lwt {
     if (layer.weights.size() > 0) {
       MatrixXd matrix = build_matrix(layer.weights, n_inputs);
       n_outputs = matrix.rows();
-      _layers.push_back(new MatrixLayer(matrix));
+      m_layers.push_back(new MatrixLayer(matrix));
     };
 
     // add bias layer
@@ -93,12 +93,12 @@ namespace lwt {
           " had " + std::to_string(n_outputs) + " outputs";
         throw NNConfigurationException(problem);
       }
-      _layers.push_back(new BiasLayer(layer.bias));
+      m_layers.push_back(new BiasLayer(layer.bias));
     }
 
     // add activation layer
     if (layer.activation != Activation::LINEAR) {
-      _layers.push_back(get_raw_activation_layer(layer.activation));
+      m_layers.push_back(get_raw_activation_layer(layer.activation));
     }
 
     return n_outputs;
@@ -120,7 +120,7 @@ namespace lwt {
     VectorXd v_weights = build_vector(layer.weights);
     VectorXd v_bias = build_vector(layer.bias);
 
-    _layers.push_back(
+    m_layers.push_back(
       new NormalizationLayer(v_weights, v_bias));
     return n_inputs;
   }
@@ -131,7 +131,7 @@ namespace lwt {
     const auto& t = get_component(comps.at(Component::T), n_inputs);
     const auto& c = get_component(comps.at(Component::CARRY), n_inputs);
 
-    _layers.push_back(
+    m_layers.push_back(
       new HighwayLayer(t.W, t.b, c.W, c.b, layer.activation));
     return n_inputs;
   }
@@ -154,7 +154,7 @@ namespace lwt {
     else if (n_outputs.size() != 1) {
       throw NNConfigurationException("uneven matrices for maxout");
     }
-    _layers.push_back(new MaxoutLayer(matrices));
+    m_layers.push_back(new MaxoutLayer(matrices));
     return *n_outputs.begin();
   }
 
@@ -168,11 +168,11 @@ namespace lwt {
 
   // activation functions
   UnaryActivationLayer::UnaryActivationLayer(Activation act):
-    _func(get_activation(act))
+    m_func(get_activation(act))
   {
   }
   VectorXd UnaryActivationLayer::compute(const VectorXd& in) const {
-    return in.unaryExpr(_func);
+    return in.unaryExpr(m_func);
   }
 
   VectorXd SoftmaxLayer::compute(const VectorXd& in) const {
@@ -186,47 +186,47 @@ namespace lwt {
   }
 
   // bias layer
-  BiasLayer::BiasLayer(const VectorXd& bias): _bias(bias)
+  BiasLayer::BiasLayer(const VectorXd& bias): m_bias(bias)
   {
   }
   BiasLayer::BiasLayer(const std::vector<double>& bias):
-    _bias(build_vector(bias))
+    m_bias(build_vector(bias))
   {
   }
   VectorXd BiasLayer::compute(const VectorXd& in) const {
-    return in + _bias;
+    return in + m_bias;
   }
 
   // basic dense matrix layer
   MatrixLayer::MatrixLayer(const MatrixXd& matrix):
-    _matrix(matrix)
+    m_matrix(matrix)
   {
   }
   VectorXd MatrixLayer::compute(const VectorXd& in) const {
-    return _matrix * in;
+    return m_matrix * in;
   }
 
   // maxout layer
   MaxoutLayer::MaxoutLayer(const std::vector<MaxoutLayer::InitUnit>& units):
-    _bias(units.size(), units.front().first.rows())
+    m_bias(units.size(), units.front().first.rows())
   {
     int out_pos = 0;
     for (const auto& unit: units) {
-      _matrices.push_back(unit.first);
-      _bias.row(out_pos) = unit.second;
+      m_matrices.push_back(unit.first);
+      m_bias.row(out_pos) = unit.second;
       out_pos++;
     }
   }
   VectorXd MaxoutLayer::compute(const VectorXd& in) const {
     // eigen supports tensors, but only in the experimental component
     // for now just stick to matrix and vector classes
-    const size_t n_mat = _matrices.size();
-    const size_t out_dim = _matrices.front().rows();
+    const size_t n_mat = m_matrices.size();
+    const size_t out_dim = m_matrices.front().rows();
     MatrixXd outputs(n_mat, out_dim);
     for (size_t mat_n = 0; mat_n < n_mat; mat_n++) {
-      outputs.row(mat_n) = _matrices.at(mat_n) * in;
+      outputs.row(mat_n) = m_matrices.at(mat_n) * in;
     }
-    outputs += _bias;
+    outputs += m_bias;
     return outputs.colwise().maxCoeff();
   }
 
@@ -247,14 +247,14 @@ namespace lwt {
                              const MatrixXd& W_carry,
                              const VectorXd& b_carry,
                              Activation activation):
-    _w_t(W), _b_t(b), _w_c(W_carry), _b_c(b_carry),
-    _act(get_activation(activation))
+    m_w_t(W), m_b_t(b), m_w_c(W_carry), m_b_c(b_carry),
+    m_act(get_activation(activation))
   {
   }
   VectorXd HighwayLayer::compute(const VectorXd& in) const {
     const std::function<double(double)> sig(nn_sigmoid);
-    ArrayXd c = (_w_c * in + _b_c).unaryExpr(sig);
-    ArrayXd t = (_w_t * in + _b_t).unaryExpr(_act);
+    ArrayXd c = (m_w_c * in + m_b_c).unaryExpr(sig);
+    ArrayXd t = (m_w_t * in + m_b_t).unaryExpr(m_act);
     return c * t + (1 - c) * in.array();
   }
 
@@ -283,24 +283,24 @@ namespace lwt {
       }
     }
     // fill the remaining dense layers
-    _stack = new Stack(n_inputs, layers, layer_n);
+    m_stack = new Stack(n_inputs, layers, layer_n);
   }
   RecurrentStack::~RecurrentStack() {
-    for (auto& layer: _layers) {
+    for (auto& layer: m_layers) {
       delete layer;
       layer = 0;
     }
-    delete _stack;
-    _stack = 0;
+    delete m_stack;
+    m_stack = 0;
   }
   VectorXd RecurrentStack::reduce(MatrixXd in) const {
-    for (auto* layer: _layers) {
+    for (auto* layer: m_layers) {
       in = layer->scan(in);
     }
-    return _stack->compute(in.col(in.cols() - 1));
+    return m_stack->compute(in.col(in.cols() - 1));
   }
   size_t RecurrentStack::n_outputs() const {
-    return _stack->n_outputs();
+    return m_stack->n_outputs();
   }
 
   size_t RecurrentStack::add_lstm_layers(size_t n_inputs,
@@ -310,7 +310,7 @@ namespace lwt {
     const auto& o = get_component(comps.at(Component::O), n_inputs);
     const auto& f = get_component(comps.at(Component::F), n_inputs);
     const auto& c = get_component(comps.at(Component::C), n_inputs);
-    _layers.push_back(
+    m_layers.push_back(
       new LSTMLayer(layer.activation, layer.inner_activation,
                     i.W, i.U, i.b,
                     f.W, f.U, f.b,
@@ -325,7 +325,7 @@ namespace lwt {
     const auto& z = get_component(comps.at(Component::Z), n_inputs);
     const auto& r = get_component(comps.at(Component::R), n_inputs);
     const auto& h = get_component(comps.at(Component::H), n_inputs);
-    _layers.push_back(
+    m_layers.push_back(
       new GRULayer(layer.activation, layer.inner_activation,
                     z.W, z.U, z.b,
                     r.W, r.U, r.b,
@@ -339,7 +339,7 @@ namespace lwt {
       size_t n_wt = emb.weights.size();
       size_t n_cats = n_wt / emb.n_out;
       MatrixXd mat = build_matrix(emb.weights, n_cats);
-      _layers.push_back(new EmbeddingLayer(emb.index, mat));
+      m_layers.push_back(new EmbeddingLayer(emb.index, mat));
       n_inputs += emb.n_out - 1;
     }
     return n_inputs;
@@ -349,8 +349,8 @@ namespace lwt {
   // Recurrent layers
 
   EmbeddingLayer::EmbeddingLayer(int var_row_index, MatrixXd W):
-    _var_row_index(var_row_index),
-    _W(W)
+    m_var_row_index(var_row_index),
+    m_W(W)
   {
     if(var_row_index < 0)
       throw NNConfigurationException(
@@ -360,34 +360,34 @@ namespace lwt {
 
   MatrixXd EmbeddingLayer::scan( const MatrixXd& x) {
 
-    if( _var_row_index >= x.rows() )
+    if( m_var_row_index >= x.rows() )
       throw NNEvaluationException(
         "EmbeddingLayer::scan - var_row_index is larger than input matrix"
         " number of rows!");
 
-    MatrixXd embedded(_W.rows(), x.cols());
+    MatrixXd embedded(m_W.rows(), x.cols());
 
     for(int icol=0; icol<x.cols(); icol++) {
-      double vector_idx = x(_var_row_index, icol);
+      double vector_idx = x(m_var_row_index, icol);
       bool is_int = std::floor(vector_idx) == vector_idx;
-      bool is_valid = (vector_idx >= 0) && (vector_idx < _W.cols());
+      bool is_valid = (vector_idx >= 0) && (vector_idx < m_W.cols());
       if (!is_int || !is_valid) throw NNEvaluationException(
         "Invalid embedded index: " + std::to_string(vector_idx));
-      embedded.col(icol) = _W.col( vector_idx );
+      embedded.col(icol) = m_W.col( vector_idx );
     }
 
     //only embed 1 variable at a time, so this should be correct size
-    MatrixXd out(_W.rows() + (x.rows() - 1), x.cols());
+    MatrixXd out(m_W.rows() + (x.rows() - 1), x.cols());
 
-    //assuming _var_row_index is an index with first possible value of 0
-    if(_var_row_index > 0)
-      out.topRows(_var_row_index) = x.topRows(_var_row_index);
+    //assuming m_var_row_index is an index with first possible value of 0
+    if(m_var_row_index > 0)
+      out.topRows(m_var_row_index) = x.topRows(m_var_row_index);
 
-    out.block(_var_row_index, 0, embedded.rows(), embedded.cols()) = embedded;
+    out.block(m_var_row_index, 0, embedded.rows(), embedded.cols()) = embedded;
 
-    if( _var_row_index < (x.rows()-1) )
-      out.bottomRows( x.cols() - 1 - _var_row_index)
-        = x.bottomRows( x.cols() - 1 - _var_row_index);
+    if( m_var_row_index < (x.rows()-1) )
+      out.bottomRows( x.cols() - 1 - m_var_row_index)
+        = x.bottomRows( x.cols() - 1 - m_var_row_index);
 
     return out;
   }
@@ -400,66 +400,66 @@ namespace lwt {
            MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
            MatrixXd W_c, MatrixXd U_c, VectorXd b_c,
            bool return_sequences):
-    _W_i(W_i),
-    _U_i(U_i),
-    _b_i(b_i),
-    _W_f(W_f),
-    _U_f(U_f),
-    _b_f(b_f),
-    _W_o(W_o),
-    _U_o(U_o),
-    _b_o(b_o),
-    _W_c(W_c),
-    _U_c(U_c),
-    _b_c(b_c),
-    _time(-1),
-    _return_sequences(return_sequences)
+    m_W_i(W_i),
+    m_U_i(U_i),
+    m_b_i(b_i),
+    m_W_f(W_f),
+    m_U_f(U_f),
+    m_b_f(b_f),
+    m_W_o(W_o),
+    m_U_o(U_o),
+    m_b_o(b_o),
+    m_W_c(W_c),
+    m_U_c(U_c),
+    m_b_c(b_c),
+    m_time(-1),
+    m_return_sequences(return_sequences)
   {
-    _n_outputs = _W_o.rows();
+    m_n_outputs = m_W_o.rows();
 
-    _activation_fun = get_activation(activation);
-    _inner_activation_fun = get_activation(inner_activation);
+    m_activation_fun = get_activation(activation);
+    m_inner_activation_fun = get_activation(inner_activation);
   }
 
   VectorXd LSTMLayer::step( const VectorXd& x_t ) {
     // https://github.com/fchollet/keras/blob/master/keras/layers/recurrent.py#L740
 
-    if(_time < 0)
+    if(m_time < 0)
       throw NNEvaluationException(
         "LSTMLayer::compute - time is less than zero!");
 
-    const auto& act_fun = _activation_fun;
-    const auto& in_act_fun = _inner_activation_fun;
+    const auto& act_fun = m_activation_fun;
+    const auto& in_act_fun = m_inner_activation_fun;
 
-    int tm1 = std::max(0, _time - 1);
-    VectorXd h_tm1 = _h_t.col(tm1);
-    VectorXd C_tm1 = _C_t.col(tm1);
+    int tm1 = std::max(0, m_time - 1);
+    VectorXd h_tm1 = m_h_t.col(tm1);
+    VectorXd C_tm1 = m_C_t.col(tm1);
 
-    VectorXd i  =  (_W_i*x_t + _b_i + _U_i*h_tm1).unaryExpr(in_act_fun);
-    VectorXd f  =  (_W_f*x_t + _b_f + _U_f*h_tm1).unaryExpr(in_act_fun);
-    VectorXd o  =  (_W_o*x_t + _b_o + _U_o*h_tm1).unaryExpr(in_act_fun);
-    VectorXd ct =  (_W_c*x_t + _b_c + _U_c*h_tm1).unaryExpr(act_fun);
+    VectorXd i  =  (m_W_i*x_t + m_b_i + m_U_i*h_tm1).unaryExpr(in_act_fun);
+    VectorXd f  =  (m_W_f*x_t + m_b_f + m_U_f*h_tm1).unaryExpr(in_act_fun);
+    VectorXd o  =  (m_W_o*x_t + m_b_o + m_U_o*h_tm1).unaryExpr(in_act_fun);
+    VectorXd ct =  (m_W_c*x_t + m_b_c + m_U_c*h_tm1).unaryExpr(act_fun);
 
-    _C_t.col(_time) = f.cwiseProduct(C_tm1) + i.cwiseProduct(ct);
-    _h_t.col(_time) = o.cwiseProduct( _C_t.col(_time).unaryExpr(act_fun) );
+    m_C_t.col(m_time) = f.cwiseProduct(C_tm1) + i.cwiseProduct(ct);
+    m_h_t.col(m_time) = o.cwiseProduct( m_C_t.col(m_time).unaryExpr(act_fun) );
 
-    return VectorXd( _h_t.col(_time) );
+    return VectorXd( m_h_t.col(m_time) );
   }
 
   MatrixXd LSTMLayer::scan( const MatrixXd& x ){
 
-    _C_t.resize(_n_outputs, x.cols());
-    _C_t.setZero();
-    _h_t.resize(_n_outputs, x.cols());
-    _h_t.setZero();
-    _time = -1;
+    m_C_t.resize(m_n_outputs, x.cols());
+    m_C_t.setZero();
+    m_h_t.resize(m_n_outputs, x.cols());
+    m_h_t.setZero();
+    m_time = -1;
 
 
-    for(_time=0; _time < x.cols(); _time++) {
-      this->step( x.col( _time ) );
+    for(m_time=0; m_time < x.cols(); m_time++) {
+      this->step( x.col( m_time ) );
     }
 
-    return _return_sequences ? _h_t : _h_t.col(_h_t.cols() - 1);
+    return m_return_sequences ? m_h_t : m_h_t.col(m_h_t.cols() - 1);
   }
 
 
@@ -469,56 +469,56 @@ namespace lwt {
            MatrixXd W_r, MatrixXd U_r, VectorXd b_r,
            MatrixXd W_h, MatrixXd U_h, VectorXd b_h,
            bool return_sequences):
-    _W_z(W_z),
-    _U_z(U_z),
-    _b_z(b_z),
-    _W_r(W_r),
-    _U_r(U_r),
-    _b_r(b_r),
-    _W_h(W_h),
-    _U_h(U_h),
-    _b_h(b_h),
-    _time(-1),
-    _return_sequences(return_sequences)
+    m_W_z(W_z),
+    m_U_z(U_z),
+    m_b_z(b_z),
+    m_W_r(W_r),
+    m_U_r(U_r),
+    m_b_r(b_r),
+    m_W_h(W_h),
+    m_U_h(U_h),
+    m_b_h(b_h),
+    m_time(-1),
+    m_return_sequences(return_sequences)
   {
-    _n_outputs = _W_h.rows();
+    m_n_outputs = m_W_h.rows();
 
-    _activation_fun = get_activation(activation);
-    _inner_activation_fun = get_activation(inner_activation);
+    m_activation_fun = get_activation(activation);
+    m_inner_activation_fun = get_activation(inner_activation);
   }
 
   VectorXd GRULayer::step( const VectorXd& x_t ) {
     // https://github.com/fchollet/keras/blob/master/keras/layers/recurrent.py#L547
 
-    if(_time < 0)
+    if(m_time < 0)
       throw NNEvaluationException(
         "LSTMLayer::compute - time is less than zero!");
 
-    const auto& act_fun = _activation_fun;
-    const auto& in_act_fun = _inner_activation_fun;
+    const auto& act_fun = m_activation_fun;
+    const auto& in_act_fun = m_inner_activation_fun;
 
-    int tm1 = std::max(0, _time - 1);
-    VectorXd h_tm1 = _h_t.col(tm1);
-    //VectorXd C_tm1 = _C_t.col(tm1);
-    VectorXd z  = (_W_z*x_t + _b_z + _U_z*h_tm1).unaryExpr(in_act_fun);
-    VectorXd r  = (_W_r*x_t + _b_r + _U_r*h_tm1).unaryExpr(in_act_fun);
-    VectorXd hh = (_W_h*x_t + _b_h + _U_h*(r.cwiseProduct(h_tm1))).unaryExpr(act_fun); 
-    _h_t.col(_time)  = z.cwiseProduct(h_tm1) + (VectorXd::Ones(z.size()) - z).cwiseProduct(hh);
+    int tm1 = std::max(0, m_time - 1);
+    VectorXd h_tm1 = m_h_t.col(tm1);
+    //VectorXd C_tm1 = m_C_t.col(tm1);
+    VectorXd z  = (m_W_z*x_t + m_b_z + m_U_z*h_tm1).unaryExpr(in_act_fun);
+    VectorXd r  = (m_W_r*x_t + m_b_r + m_U_r*h_tm1).unaryExpr(in_act_fun);
+    VectorXd hh = (m_W_h*x_t + m_b_h + m_U_h*(r.cwiseProduct(h_tm1))).unaryExpr(act_fun); 
+    m_h_t.col(m_time)  = z.cwiseProduct(h_tm1) + (VectorXd::Ones(z.size()) - z).cwiseProduct(hh);
 
-    return VectorXd( _h_t.col(_time) );
+    return VectorXd( m_h_t.col(m_time) );
   }
 
   MatrixXd GRULayer::scan( const MatrixXd& x ){
 
-    _h_t.resize(_n_outputs, x.cols());
-    _h_t.setZero();
-    _time = -1;
+    m_h_t.resize(m_n_outputs, x.cols());
+    m_h_t.setZero();
+    m_time = -1;
 
-    for(_time=0; _time < x.cols(); _time++){
-  this->step( x.col( _time ) );
+    for(m_time=0; m_time < x.cols(); m_time++){
+  this->step( x.col( m_time ) );
       }
 
-    return _return_sequences ? _h_t : _h_t.col(_h_t.cols() - 1);
+    return m_return_sequences ? m_h_t : m_h_t.col(m_h_t.cols() - 1);
   }
 
   // _____________________________________________________________________
@@ -661,42 +661,42 @@ namespace lwt {
 
   // simple feed-forwared version
   InputPreprocessor::InputPreprocessor(const std::vector<Input>& inputs):
-    _offsets(inputs.size()),
-    _scales(inputs.size())
+    m_offsets(inputs.size()),
+    m_scales(inputs.size())
   {
     size_t in_num = 0;
     for (const auto& input: inputs) {
-      _offsets(in_num) = input.offset;
-      _scales(in_num) = input.scale;
-      _names.push_back(input.name);
+      m_offsets(in_num) = input.offset;
+      m_scales(in_num) = input.scale;
+      m_names.push_back(input.name);
       in_num++;
     }
   }
   VectorXd InputPreprocessor::operator()(const ValueMap& in) const {
-    VectorXd invec(_names.size());
+    VectorXd invec(m_names.size());
     size_t input_number = 0;
-    for (const auto& in_name: _names) {
+    for (const auto& in_name: m_names) {
       if (!in.count(in_name)) {
         throw NNEvaluationException("can't find input: " + in_name);
       }
       invec(input_number) = in.at(in_name);
       input_number++;
     }
-    return (invec + _offsets).cwiseProduct(_scales);
+    return (invec + m_offsets).cwiseProduct(m_scales);
   }
 
 
   // Input vector preprocessor
   InputVectorPreprocessor::InputVectorPreprocessor(
     const std::vector<Input>& inputs):
-    _offsets(inputs.size()),
-    _scales(inputs.size())
+    m_offsets(inputs.size()),
+    m_scales(inputs.size())
   {
     size_t in_num = 0;
     for (const auto& input: inputs) {
-      _offsets(in_num) = input.offset;
-      _scales(in_num) = input.scale;
-      _names.push_back(input.name);
+      m_offsets(in_num) = input.offset;
+      m_scales(in_num) = input.scale;
+      m_names.push_back(input.name);
       in_num++;
     }
     // require at least one input at configuration, since we require
@@ -711,9 +711,9 @@ namespace lwt {
       throw NNEvaluationException("Empty input map");
     }
     size_t n_cols = in.begin()->second.size();
-    MatrixXd inmat(_names.size(), n_cols);
+    MatrixXd inmat(m_names.size(), n_cols);
     size_t in_num = 0;
-    for (const auto& in_name: _names) {
+    for (const auto& in_name: m_names) {
       if (!in.count(in_name)) {
         throw NNEvaluationException("can't find input: " + in_name);
       }
@@ -727,7 +727,7 @@ namespace lwt {
       inmat.row(in_num) = Map<const VectorXd>(invec.data(), invec.size());
       in_num++;
     }
-    return _scales.asDiagonal() * (inmat.colwise() + _offsets);
+    return m_scales.asDiagonal() * (inmat.colwise() + m_offsets);
   }
 
 

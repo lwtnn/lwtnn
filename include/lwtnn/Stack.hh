@@ -72,8 +72,8 @@ namespace lwt {
     size_t add_normalization_layers(size_t n_inputs, const LayerConfig&);
     size_t add_highway_layers(size_t n_inputs, const LayerConfig&);
     size_t add_maxout_layers(size_t n_inputs, const LayerConfig&);
-    std::vector<ILayer*> _layers;
-    size_t _n_outputs;
+    std::vector<ILayer*> m_layers;
+    size_t m_n_outputs;
   };
 
   // _______________________________________________________________________
@@ -98,7 +98,7 @@ namespace lwt {
     UnaryActivationLayer(Activation);
     virtual VectorXd compute(const VectorXd&) const;
   private:
-    std::function<double(double)> _func;
+    std::function<double(double)> m_func;
   };
 
   class SoftmaxLayer: public ILayer
@@ -114,7 +114,7 @@ namespace lwt {
     BiasLayer(const std::vector<double>& bias);
     virtual VectorXd compute(const VectorXd&) const;
   private:
-    VectorXd _bias;
+    VectorXd m_bias;
   };
 
   class MatrixLayer: public ILayer
@@ -123,7 +123,7 @@ namespace lwt {
     MatrixLayer(const MatrixXd& matrix);
     virtual VectorXd compute(const VectorXd&) const;
   private:
-    MatrixXd _matrix;
+    MatrixXd m_matrix;
   };
 
   class MaxoutLayer: public ILayer
@@ -133,8 +133,8 @@ namespace lwt {
     MaxoutLayer(const std::vector<InitUnit>& maxout_tensor);
     virtual VectorXd compute(const VectorXd&) const;
   private:
-    std::vector<MatrixXd> _matrices;
-    MatrixXd _bias;
+    std::vector<MatrixXd> m_matrices;
+    MatrixXd m_bias;
   };
 
 
@@ -164,11 +164,11 @@ namespace lwt {
                  Activation activation);
     virtual VectorXd compute(const VectorXd&) const;
   private:
-    MatrixXd _w_t;
-    VectorXd _b_t;
-    MatrixXd _w_c;
-    VectorXd _b_c;
-    std::function<double(double)> _act;
+    MatrixXd m_w_t;
+    VectorXd m_b_t;
+    MatrixXd m_w_c;
+    VectorXd m_b_c;
+    std::function<double(double)> m_act;
   };
 
   // ______________________________________________________________________
@@ -184,11 +184,11 @@ namespace lwt {
     VectorXd reduce(MatrixXd inputs) const;
     size_t n_outputs() const;
   private:
-    std::vector<IRecurrentLayer*> _layers;
+    std::vector<IRecurrentLayer*> m_layers;
     size_t add_lstm_layers(size_t n_inputs, const LayerConfig&);
     size_t add_gru_layers(size_t n_inputs, const LayerConfig&);
     size_t add_embedding_layers(size_t n_inputs, const LayerConfig&);
-    Stack* _stack;
+    Stack* m_stack;
   };
 
 
@@ -210,8 +210,8 @@ namespace lwt {
     virtual MatrixXd scan( const MatrixXd&);
 
   private:
-    int _var_row_index;
-    MatrixXd _W;
+    int m_var_row_index;
+    MatrixXd m_W;
   };
 
   /// long short term memory ///
@@ -230,33 +230,33 @@ namespace lwt {
     virtual MatrixXd scan( const MatrixXd&);
 
   private:
-    std::function<double(double)> _activation_fun;
-    std::function<double(double)> _inner_activation_fun;
+    std::function<double(double)> m_activation_fun;
+    std::function<double(double)> m_inner_activation_fun;
 
-    MatrixXd _W_i;
-    MatrixXd _U_i;
-    VectorXd _b_i;
+    MatrixXd m_W_i;
+    MatrixXd m_U_i;
+    VectorXd m_b_i;
 
-    MatrixXd _W_f;
-    MatrixXd _U_f;
-    VectorXd _b_f;
+    MatrixXd m_W_f;
+    MatrixXd m_U_f;
+    VectorXd m_b_f;
 
-    MatrixXd _W_o;
-    MatrixXd _U_o;
-    VectorXd _b_o;
+    MatrixXd m_W_o;
+    MatrixXd m_U_o;
+    VectorXd m_b_o;
 
-    MatrixXd _W_c;
-    MatrixXd _U_c;
-    VectorXd _b_c;
+    MatrixXd m_W_c;
+    MatrixXd m_U_c;
+    VectorXd m_b_c;
 
     //states
-    MatrixXd _C_t;
-    MatrixXd _h_t;
-    int _time;
+    MatrixXd m_C_t;
+    MatrixXd m_h_t;
+    int m_time;
 
-    int _n_outputs;
+    int m_n_outputs;
 
-    bool _return_sequences;
+    bool m_return_sequences;
   };
 
   /// gated recurrent unit ///
@@ -274,28 +274,28 @@ namespace lwt {
     virtual MatrixXd scan( const MatrixXd&);
 
   private:
-    std::function<double(double)> _activation_fun;
-    std::function<double(double)> _inner_activation_fun;
+    std::function<double(double)> m_activation_fun;
+    std::function<double(double)> m_inner_activation_fun;
 
-    MatrixXd _W_z;
-    MatrixXd _U_z;
-    VectorXd _b_z;
+    MatrixXd m_W_z;
+    MatrixXd m_U_z;
+    VectorXd m_b_z;
 
-    MatrixXd _W_r;
-    MatrixXd _U_r;
-    VectorXd _b_r;
+    MatrixXd m_W_r;
+    MatrixXd m_U_r;
+    VectorXd m_b_r;
 
-    MatrixXd _W_h;
-    MatrixXd _U_h;
-    VectorXd _b_h;
+    MatrixXd m_W_h;
+    MatrixXd m_U_h;
+    VectorXd m_b_h;
 
     //states
-    MatrixXd _h_t;
-    int _time;
+    MatrixXd m_h_t;
+    int m_time;
 
-    int _n_outputs;
+    int m_n_outputs;
 
-    bool _return_sequences;
+    bool m_return_sequences;
   };
 
   // ______________________________________________________________________
@@ -343,9 +343,9 @@ namespace lwt {
     VectorXd operator()(const ValueMap&) const;
   private:
     // input transformations
-    VectorXd _offsets;
-    VectorXd _scales;
-    std::vector<std::string> _names;
+    VectorXd m_offsets;
+    VectorXd m_scales;
+    std::vector<std::string> m_names;
   };
 
   class InputVectorPreprocessor
@@ -355,9 +355,9 @@ namespace lwt {
     MatrixXd operator()(const VectorMap&) const;
   private:
     // input transformations
-    VectorXd _offsets;
-    VectorXd _scales;
-    std::vector<std::string> _names;
+    VectorXd m_offsets;
+    VectorXd m_scales;
+    std::vector<std::string> m_names;
   };
 
 
