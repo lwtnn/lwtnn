@@ -16,8 +16,7 @@
 # If to add another test you'll probably have to edit this
 
 # Trained network to convert and test
-#INPUT=https://github.com/dguest/lwtnn-test-data/raw/v2/ipmp.tgz
-INPUT=https://github.com/jwsmithers/lwtnn-test-data/raw/master/DL1.tgz
+INPUT=https://github.com/lwtnn/lwtnn-test-data/raw/master/DL1.tgz
 ARCH=ftag-arch.json
 VARIABLES=ftag-variables.json
 HDF5=weights/ftag-weights.h5
