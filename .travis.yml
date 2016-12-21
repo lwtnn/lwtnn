@@ -41,3 +41,4 @@ script:
   - ./tests/test-agilepack.sh
   - ./tests/test-highway.sh
   - ./tests/test-ipmp.sh
+  - ./tests/test-DL1.sh
