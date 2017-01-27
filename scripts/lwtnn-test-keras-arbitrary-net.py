@@ -9,6 +9,9 @@ are given, expect two files:
  - The second should be a single line, one column for each input value
 
 """
+_help_arch_file = "NN archetecture file from Keras"
+_help_vars_file = "Variable description file"
+_help_hdf5_file = "NN weights file from Keras"
 
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from numpy import linspace
@@ -20,9 +23,9 @@ def _get_args():
     parser = ArgumentParser(
         description=__doc__,
         formatter_class=RawDescriptionHelpFormatter)
-    parser.add_argument('archetecture_file')
-    parser.add_argument('variables_file')
-    parser.add_argument('hdf5_file')
+    parser.add_argument('archetecture_file', help=_help_arch_file)
+    parser.add_argument('variables_file', help=_help_vars_file)
+    parser.add_argument('hdf5_file', help=_help_hdf5_file)
     parser.add_argument('-i','--test-inputs', nargs=2,
                         metavar=('NAMES', 'VALUES'))
     return parser.parse_args()
