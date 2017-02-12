@@ -29,7 +29,9 @@ CXXFLAGS     += -Wsign-compare
 LIBS         := # blank, more will be added below
 LDFLAGS      := # blank, more will be added below
 # add eigen
-CXXFLAGS     += $(shell pkg-config eigen3 --cflags)
+ifeq ($(shell pkg-config eigen3; echo $$?),0)
+  CXXFLAGS += $(shell pkg-config eigen3 --cflags)
+endif
 
 # ---- define objects from files in the SRC directory
 GEN_OBJ_SRC   := $(wildcard $(SRC)/*.cxx)
