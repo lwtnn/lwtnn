@@ -25,9 +25,10 @@ vpath %Dict.cxx $(DICT)
 # --- set compiler and flags (roll c options and include paths together)
 CXX          ?= g++
 CXXFLAGS     := -O2 -Wall -fPIC -I$(INC) -g -std=c++11 -pedantic
-CXXFLAGS     += -Wsign-compare
-LIBS         := # blank, more will be added below
-LDFLAGS      := # blank, more will be added below
+# add user flags
+CXXFLAGS     += $(LWTNN_CXX_FLAGS)
+LIBS         := $(LWTNN_LIBS)
+LDFLAGS      := $(LWTNN_LDFLAGS)
 # add eigen
 ifeq ($(shell pkg-config eigen3; echo $$?),0)
   CXXFLAGS += $(shell pkg-config eigen3 --cflags)
