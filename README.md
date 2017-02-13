@@ -149,7 +149,8 @@ Have problems?
 
 If you find a bug in this code, or have any ideas, criticisms, etc, please email me at `dguest@cern.ch`.
 
-[![Build Status][build-img]][build-link] [![Scan Status][scan-img]][scan-link]
+[![Build Status][build-img]][build-link] [![Scan Status][scan-img]][scan-link] 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.290682.svg)](https://doi.org/10.5281/zenodo.290682)
 
 
 [ap]: https://github.com/lukedeo/AGILEPack
