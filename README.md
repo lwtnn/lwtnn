@@ -131,12 +131,18 @@ The `lwtnn-test-arbitrary-net` executable takes in a JSON file along
 with two text files, one to specify the variable names and another to
 give the input values. Run with no arguments to get help.
 
+You can also use `lwtnn-test-keras-arbitrary-net.py` to test the
+corresponding model saved in the Keras format.
+
 Recurrent Networks
 ------------------
 
-Currently we support LSTMs in sequential models. The low level
-interface is implemented as `RecurrentStack`. See `lwtnn-test-rnn` for
-a working example.
+Currently we support LSTMs and GRUs in sequential models. The low
+level interface is implemented as `RecurrentStack`. See
+`lwtnn-test-rnn` for a working example.
+
+Again, the corresponding model in Keras can be tested with
+`lwtnn-test-keras-rnn.py`.
 
 Have problems?
 --------------
@@ -145,24 +151,14 @@ If you find a bug in this code, or have any ideas, criticisms, etc, please email
 
 [![Build Status][build-img]][build-link] [![Scan Status][scan-img]][scan-link]
 
-To Do List
-----------
-
- - The copy and assignment constructors for `LightweightNeuralNetwork`
-   and `Stack` are currently deleted, because the defaults would cause
-   all kinds of problems and I'm too lazy to write custom
-   versions. It's not clear that we'll need them anyway, but if
-   someone ends up wanting something like a `std::map<XXX,
-   LightweightNeuralNetwork>` I could add them.
-
 
 [ap]: https://github.com/lukedeo/AGILEPack
 [kr]: http://keras.io/
 [eg]: http://eigen.tuxfamily.org
 [pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
 [pyy]: http://pyyaml.org/wiki/PyYAML
-[julian]: https://github.com/dguest/lw-client/wiki/Julian-file-format
+[julian]: https://github.com/lwtnn/lwtnn/wiki/Julian-file-format
 [build-img]: https://travis-ci.org/lwtnn/lwtnn.svg?branch=master
 [build-link]: https://travis-ci.org/lwtnn/lwtnn
 [scan-img]: https://scan.coverity.com/projects/9285/badge.svg
-[scan-link]: https://scan.coverity.com/projects/dguest-lwtnn
+[scan-link]: https://scan.coverity.com/projects/lwtnn-lwtnn

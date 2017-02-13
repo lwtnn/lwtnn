@@ -1,10 +1,8 @@
 How to contribute
 =================
 
-First of all, thanks for your interest! We can use a lot of help with
-this package and while writing code is awesome we also like to spend
-some time applying it to our particle smasher data. Anything you can
-do to provide feedback is extremely helpful to us.
+First of all, thanks for your interest! Anything you can do to provide
+feedback is extremely helpful to us.
 
 For common questions and documentation, please look at our
 [github wiki][1]. If you find this inadequate we encourage you to
@@ -102,9 +100,9 @@ exit code.
 The unit tests are run automatically by Travis CI, and are listed in
 the `script:` section of `.travis.yml`.
 
-[1]: https://github.com/dguest/lwtnn/wiki
-[2]: https://github.com/dguest/lwtnn/issues
+[1]: https://github.com/lwtnn/lwtnn/wiki
+[2]: https://github.com/lwtnn/lwtnn/issues
 [3]: https://www.python.org/dev/peps/pep-0008/
-[4]: https://github.com/dguest/lwtnn-test-data
-[5]: https://github.com/dguest/lwtnn/wiki/Testing-Your-NN
+[4]: https://github.com/lwtnn/lwtnn-test-data
+[5]: https://github.com/lwtnn/lwtnn/wiki/Testing-Your-NN
 [6]: http://chris.beams.io/posts/git-commit/#seven-rules
