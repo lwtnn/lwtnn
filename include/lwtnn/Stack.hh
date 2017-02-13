@@ -18,15 +18,14 @@
 //  - Activation functions
 //  - Various utility functions
 //  - Preprocessor classes
-//  - Exception classes
 
 
+#include "Exceptions.hh"
 #include "NNLayerConfig.hh"
 
 #include <Eigen/Dense>
 
 #include <vector>
-#include <stdexcept>
 #include <map>
 #include <functional>
 
@@ -358,28 +357,6 @@ namespace lwt {
     VectorXd m_offsets;
     VectorXd m_scales;
     std::vector<std::string> m_names;
-  };
-
-
-  // ______________________________________________________________________
-  // exceptions
-
-  // base exception
-  class LightweightNNException: public std::logic_error {
-  public:
-    LightweightNNException(std::string problem);
-  };
-
-  // thrown by the constructor if something goes wrong
-  class NNConfigurationException: public LightweightNNException {
-  public:
-    NNConfigurationException(std::string problem);
-  };
-
-  // thrown by `compute`
-  class NNEvaluationException: public LightweightNNException {
-  public:
-    NNEvaluationException(std::string problem);
   };
 
 }
