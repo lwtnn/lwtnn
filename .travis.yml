@@ -21,7 +21,7 @@ addons:
 
   coverity_scan:
     project:
-      name: "dguest/lwtnn"
+      name: "lwtnn/lwtnn"
       description: "lightweight neural network for C++"
     notification_email: dguest@cern.ch
     build_command_prepend: "make clean"
