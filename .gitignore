@@ -9,6 +9,8 @@
 *.json
 *.txt
 *.h5
+*.tgz
+*.gz
 
 # except in the tests
 !/tests/data/*
