@@ -358,7 +358,7 @@ namespace lwt {
         " it is an index for a matrix row!");
   }
 
-  MatrixXd EmbeddingLayer::scan( const MatrixXd& x) {
+  MatrixXd EmbeddingLayer::scan( const MatrixXd& x) const {
 
     if( m_var_row_index >= x.rows() )
       throw NNEvaluationException(
@@ -398,8 +398,7 @@ namespace lwt {
            MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
            MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
            MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
-           MatrixXd W_c, MatrixXd U_c, VectorXd b_c,
-           bool return_sequences):
+           MatrixXd W_c, MatrixXd U_c, VectorXd b_c):
     m_W_i(W_i),
     m_U_i(U_i),
     m_b_i(b_i),
@@ -411,9 +410,7 @@ namespace lwt {
     m_b_o(b_o),
     m_W_c(W_c),
     m_U_c(U_c),
-    m_b_c(b_c),
-    m_time(-1),
-    m_return_sequences(return_sequences)
+    m_b_c(b_c)
   {
     m_n_outputs = m_W_o.rows();
 
@@ -421,45 +418,48 @@ namespace lwt {
     m_inner_activation_fun = get_activation(inner_activation);
   }
 
-  VectorXd LSTMLayer::step( const VectorXd& x_t ) {
-    // https://github.com/fchollet/keras/blob/master/keras/layers/recurrent.py#L740
+  // internal structure created on each scan call
+  struct LSTMState {
+    LSTMState(size_t n_input, size_t n_outputs);
+    MatrixXd C_t;
+    MatrixXd h_t;
+    int time;
+  };
+  LSTMState::LSTMState(size_t n_input, size_t n_output):
+    C_t(MatrixXd::Zero(n_output, n_input)),
+    h_t(MatrixXd::Zero(n_output, n_input)),
+    time(0)
+  {
+  }
 
-    if(m_time < 0)
-      throw NNEvaluationException(
-        "LSTMLayer::compute - time is less than zero!");
+  void LSTMLayer::step(const VectorXd& x_t, LSTMState& s) const {
+    // https://github.com/fchollet/keras/blob/master/keras/layers/recurrent.py#L740
 
     const auto& act_fun = m_activation_fun;
     const auto& in_act_fun = m_inner_activation_fun;
 
-    int tm1 = std::max(0, m_time - 1);
-    VectorXd h_tm1 = m_h_t.col(tm1);
-    VectorXd C_tm1 = m_C_t.col(tm1);
+    int tm1 = s.time == 0 ? 0 : s.time - 1;
+    VectorXd h_tm1 = s.h_t.col(tm1);
+    VectorXd C_tm1 = s.C_t.col(tm1);
 
     VectorXd i  =  (m_W_i*x_t + m_b_i + m_U_i*h_tm1).unaryExpr(in_act_fun);
     VectorXd f  =  (m_W_f*x_t + m_b_f + m_U_f*h_tm1).unaryExpr(in_act_fun);
     VectorXd o  =  (m_W_o*x_t + m_b_o + m_U_o*h_tm1).unaryExpr(in_act_fun);
     VectorXd ct =  (m_W_c*x_t + m_b_c + m_U_c*h_tm1).unaryExpr(act_fun);
 
-    m_C_t.col(m_time) = f.cwiseProduct(C_tm1) + i.cwiseProduct(ct);
-    m_h_t.col(m_time) = o.cwiseProduct( m_C_t.col(m_time).unaryExpr(act_fun) );
-
-    return VectorXd( m_h_t.col(m_time) );
+    s.C_t.col(s.time) = f.cwiseProduct(C_tm1) + i.cwiseProduct(ct);
+    s.h_t.col(s.time) = o.cwiseProduct(s.C_t.col(s.time).unaryExpr(act_fun));
   }
 
-  MatrixXd LSTMLayer::scan( const MatrixXd& x ){
+  MatrixXd LSTMLayer::scan( const MatrixXd& x ) const {
 
-    m_C_t.resize(m_n_outputs, x.cols());
-    m_C_t.setZero();
-    m_h_t.resize(m_n_outputs, x.cols());
-    m_h_t.setZero();
-    m_time = -1;
+    LSTMState state(x.cols(), m_n_outputs);
 
-
-    for(m_time=0; m_time < x.cols(); m_time++) {
-      this->step( x.col( m_time ) );
+    for(state.time = 0; state.time < x.cols(); state.time++) {
+      step( x.col( state.time ), state );
     }
 
-    return m_return_sequences ? m_h_t : m_h_t.col(m_h_t.cols() - 1);
+    return state.h_t;
   }
 
 
@@ -467,8 +467,7 @@ namespace lwt {
   GRULayer::GRULayer(Activation activation, Activation inner_activation,
            MatrixXd W_z, MatrixXd U_z, VectorXd b_z,
            MatrixXd W_r, MatrixXd U_r, VectorXd b_r,
-           MatrixXd W_h, MatrixXd U_h, VectorXd b_h,
-           bool return_sequences):
+           MatrixXd W_h, MatrixXd U_h, VectorXd b_h):
     m_W_z(W_z),
     m_U_z(U_z),
     m_b_z(b_z),
@@ -477,48 +476,50 @@ namespace lwt {
     m_b_r(b_r),
     m_W_h(W_h),
     m_U_h(U_h),
-    m_b_h(b_h),
-    m_time(-1),
-    m_return_sequences(return_sequences)
+    m_b_h(b_h)
   {
     m_n_outputs = m_W_h.rows();
 
     m_activation_fun = get_activation(activation);
     m_inner_activation_fun = get_activation(inner_activation);
   }
+  // internal structure created on each scan call
+  struct GRUState {
+    GRUState(size_t n_input, size_t n_outputs);
+    MatrixXd h_t;
+    int time;
+  };
+  GRUState::GRUState(size_t n_input, size_t n_output):
+    h_t(MatrixXd::Zero(n_output, n_input)),
+    time(0)
+  {
+  }
 
-  VectorXd GRULayer::step( const VectorXd& x_t ) {
+  void GRULayer::step( const VectorXd& x_t, GRUState& s) const {
     // https://github.com/fchollet/keras/blob/master/keras/layers/recurrent.py#L547
-
-    if(m_time < 0)
-      throw NNEvaluationException(
-        "LSTMLayer::compute - time is less than zero!");
 
     const auto& act_fun = m_activation_fun;
     const auto& in_act_fun = m_inner_activation_fun;
 
-    int tm1 = std::max(0, m_time - 1);
-    VectorXd h_tm1 = m_h_t.col(tm1);
-    //VectorXd C_tm1 = m_C_t.col(tm1);
+    int tm1 = s.time == 0 ? 0 : s.time - 1;
+    VectorXd h_tm1 = s.h_t.col(tm1);
     VectorXd z  = (m_W_z*x_t + m_b_z + m_U_z*h_tm1).unaryExpr(in_act_fun);
     VectorXd r  = (m_W_r*x_t + m_b_r + m_U_r*h_tm1).unaryExpr(in_act_fun);
-    VectorXd hh = (m_W_h*x_t + m_b_h + m_U_h*(r.cwiseProduct(h_tm1))).unaryExpr(act_fun); 
-    m_h_t.col(m_time)  = z.cwiseProduct(h_tm1) + (VectorXd::Ones(z.size()) - z).cwiseProduct(hh);
-
-    return VectorXd( m_h_t.col(m_time) );
+    VectorXd rh = r.cwiseProduct(h_tm1);
+    VectorXd hh = (m_W_h*x_t + m_b_h + m_U_h*rh).unaryExpr(act_fun);
+    VectorXd one = VectorXd::Ones(z.size());
+    s.h_t.col(s.time)  = z.cwiseProduct(h_tm1) + (one - z).cwiseProduct(hh);
   }
 
-  MatrixXd GRULayer::scan( const MatrixXd& x ){
+  MatrixXd GRULayer::scan( const MatrixXd& x ) const {
 
-    m_h_t.resize(m_n_outputs, x.cols());
-    m_h_t.setZero();
-    m_time = -1;
+    GRUState state(x.cols(), m_n_outputs);
 
-    for(m_time=0; m_time < x.cols(); m_time++){
-  this->step( x.col( m_time ) );
-      }
+    for(state.time = 0; state.time < x.cols(); state.time++) {
+      step( x.col( state.time ), state );
+    }
 
-    return m_return_sequences ? m_h_t : m_h_t.col(m_h_t.cols() - 1);
+    return state.h_t;
   }
 
   // _____________________________________________________________________

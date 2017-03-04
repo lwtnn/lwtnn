@@ -198,7 +198,7 @@ namespace lwt {
   {
   public:
     virtual ~IRecurrentLayer() {}
-    virtual MatrixXd scan( const MatrixXd&) = 0;
+    virtual MatrixXd scan( const MatrixXd&) const = 0;
   };
 
   class EmbeddingLayer : public IRecurrentLayer
@@ -206,7 +206,7 @@ namespace lwt {
   public:
     EmbeddingLayer(int var_row_index, MatrixXd W);
     virtual ~EmbeddingLayer() {};
-    virtual MatrixXd scan( const MatrixXd&);
+    virtual MatrixXd scan( const MatrixXd&) const;
 
   private:
     int m_var_row_index;
@@ -214,19 +214,19 @@ namespace lwt {
   };
 
   /// long short term memory ///
+  struct LSTMState;
   class LSTMLayer : public IRecurrentLayer
   {
   public:
     LSTMLayer(Activation activation, Activation inner_activation,
-        MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
-        MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
-        MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
-        MatrixXd W_c, MatrixXd U_c, VectorXd b_c,
-        bool return_sequences = true);
+              MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
+              MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
+              MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
+              MatrixXd W_c, MatrixXd U_c, VectorXd b_c);
 
     virtual ~LSTMLayer() {};
-    virtual VectorXd step( const VectorXd&);
-    virtual MatrixXd scan( const MatrixXd&);
+    virtual MatrixXd scan( const MatrixXd&) const;
+    void step( const VectorXd& input, LSTMState& ) const;
 
   private:
     std::function<double(double)> m_activation_fun;
@@ -248,29 +248,22 @@ namespace lwt {
     MatrixXd m_U_c;
     VectorXd m_b_c;
 
-    //states
-    MatrixXd m_C_t;
-    MatrixXd m_h_t;
-    int m_time;
-
     int m_n_outputs;
-
-    bool m_return_sequences;
   };
 
   /// gated recurrent unit ///
+  struct GRUState;
   class GRULayer : public IRecurrentLayer
   {
   public:
     GRULayer(Activation activation, Activation inner_activation,
-        MatrixXd W_z, MatrixXd U_z, VectorXd b_z,
-        MatrixXd W_r, MatrixXd U_r, VectorXd b_r,
-        MatrixXd W_h, MatrixXd U_h, VectorXd b_h,
-        bool return_sequences = true);
+             MatrixXd W_z, MatrixXd U_z, VectorXd b_z,
+             MatrixXd W_r, MatrixXd U_r, VectorXd b_r,
+             MatrixXd W_h, MatrixXd U_h, VectorXd b_h);
 
     virtual ~GRULayer() {};
-    virtual VectorXd step( const VectorXd&);
-    virtual MatrixXd scan( const MatrixXd&);
+    virtual MatrixXd scan( const MatrixXd&) const;
+    void step( const VectorXd& input, GRUState& ) const;
 
   private:
     std::function<double(double)> m_activation_fun;
@@ -288,13 +281,7 @@ namespace lwt {
     MatrixXd m_U_h;
     VectorXd m_b_h;
 
-    //states
-    MatrixXd m_h_t;
-    int m_time;
-
     int m_n_outputs;
-
-    bool m_return_sequences;
   };
 
   // ______________________________________________________________________
