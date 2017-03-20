@@ -18,8 +18,7 @@ main design principles are:
 
 We also include converters from several popular formats to the `lwtnn` JSON format. Currently the following formats are supported:
  - [AGILEPack][ap]
- - [Keras][kr] (currently supports Dense, LSTM, and GRU, working on
-   Maxout and Highway layers)
+ - [Keras][kr] (most popular, see [supported layers][supported])
  - [Julian's][julian] format, based on Numpy and JSON
 
 The converter scripts can be found in `converters/`. Run them with
@@ -152,7 +151,7 @@ If you find a bug in this code, or have any ideas, criticisms, etc, please email
 [![Build Status][build-img]][build-link] [![Scan Status][scan-img]][scan-link] 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.290682.svg)](https://doi.org/10.5281/zenodo.290682)
 
-
+[supported]: https://github.com/lwtnn/lwtnn/wiki/Supported-Layers
 [ap]: https://github.com/lukedeo/AGILEPack
 [kr]: http://keras.io/
 [eg]: http://eigen.tuxfamily.org
