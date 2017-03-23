@@ -44,15 +44,18 @@ namespace lwt {
   public:
     virtual ~INode() {}
     virtual VectorXd compute(const ISource&) const = 0;
+    virtual size_t n_outputs() const = 0;
   };
 
   class InputNode: public INode
   {
   public:
-    InputNode(size_t index);
+    InputNode(size_t index, size_t n_outputs);
     virtual VectorXd compute(const ISource&) const;
+    virtual size_t n_outputs() const;
   private:
     size_t m_index;
+    size_t m_n_outputs;
   };
 
   class FeedForwardNode: public INode
@@ -60,9 +63,21 @@ namespace lwt {
   public:
     FeedForwardNode(const Stack*, const INode* source);
     virtual VectorXd compute(const ISource&) const;
+    virtual size_t n_outputs() const;
   private:
     const Stack* m_stack;
     const INode* m_source;
+  };
+
+  class ConcatenateNode: public INode
+  {
+  public:
+    ConcatenateNode(const std::vector<const INode*>&);
+    virtual VectorXd compute(const ISource&) const;
+    virtual size_t n_outputs() const;
+  private:
+    std::vector<const INode*> m_sources;
+    size_t m_n_outputs;
   };
 
 
@@ -75,6 +90,7 @@ namespace lwt {
     Graph& operator=(Graph&) = delete;
     ~Graph();
     VectorXd compute(const ISource&, size_t node_number) const;
+    VectorXd compute(const ISource&) const;
   private:
     std::vector<INode*> m_nodes;
     std::vector<Stack*> m_stacks;
