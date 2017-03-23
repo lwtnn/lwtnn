@@ -1,6 +1,8 @@
 #ifndef GRAPH_HH
 #define GRAPH_HH
 
+#include "NNLayerConfig.hh"
+
 #include <Eigen/Dense>
 
 #include <vector>
@@ -86,6 +88,8 @@ namespace lwt {
   {
   public:
     Graph();                    // dummy constructor
+    Graph(const std::vector<Node>& nodes,
+          const std::vector<LayerConfig>& layers);
     Graph(Graph&) = delete;
     Graph& operator=(Graph&) = delete;
     ~Graph();

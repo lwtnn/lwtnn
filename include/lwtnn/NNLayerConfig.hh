@@ -56,6 +56,17 @@ namespace lwt {
     double offset;
     double scale;
   };
+
+
+  // graph node configuration
+  struct Node
+  {
+    enum class Type { INPUT, FEED_FORWARD, CONCATENATE};
+    Type type;
+    std::vector<size_t> in_node_indices;
+    size_t index;
+    size_t size;
+  };
 }
 
 #endif
