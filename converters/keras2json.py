@@ -30,11 +30,11 @@ value) pairs of strings to pass to the application.
 """
 
 import argparse
-import warnings
 import json
 import h5py
 import numpy as np
 from collections import Counter
+import sys
 
 def _run():
     """Top level routine"""
@@ -44,13 +44,7 @@ def _run():
     with open(args.variables_file, 'r') as inputs_file:
         inputs = json.load(inputs_file)
 
-    file_version = inputs.get('keras_version')
-    if not file_version.startswith('1.0'):
-        warnings.warn(
-            "This converter was developed for Keras version 1.0.0. "
-            "The provided files were generated using version {} and "
-            "therefore the conversion might break.".format(
-                file_version))
+    _check_version(arch)
 
     with h5py.File(args.hdf5_file, 'r') as h5:
         out_dict = {
@@ -58,6 +52,18 @@ def _run():
         }
         out_dict.update(_parse_inputs(inputs))
     print(json.dumps(out_dict, indent=2, sort_keys=True))
+
+def _check_version(arch):
+    if 'keras_version' not in arch:
+        sys.stderr.write(
+            'WARNING: no version number found for this archetecture!\n')
+        return
+    major, minor, *bugfix = arch['keras_version'].split('.')
+    if major != '1' or minor < '2':
+        warn_tmp = (
+            "WARNNING: This converter was developed for Keras version 1.2. "
+            "Your version (v{}.{}) may be incompatible.\n")
+        sys.stderr.write(warn_tmp.format(major, minor))
 
 def _get_args():
     parser = argparse.ArgumentParser(
