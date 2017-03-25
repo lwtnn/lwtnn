@@ -2,6 +2,8 @@
 #include "lwtnn/Exceptions.hh"
 #include "lwtnn/Stack.hh"
 
+#include <set>
+
 namespace lwt {
 
   // Sources
@@ -105,7 +107,8 @@ namespace {
                   std::vector<INode*>& m_nodes,
                   std::vector<Stack*>& m_stacks,
                   std::map<size_t, INode*>& node_map,
-                  std::map<size_t, Stack*>& stack_map) {
+                  std::map<size_t, Stack*>& stack_map,
+                  std::set<size_t> cycle_check = {}) {
     if (node_map.count(iii)) return;
     if (iii >= nodes.size()) throw_cfg("no node index", iii);
 
@@ -119,9 +122,13 @@ namespace {
     }
 
     // otherwise build all the inputs first
+    if (cycle_check.count(iii)) {
+      throw NNConfigurationException("found cycle in graph");
+    }
+    cycle_check.insert(iii);
     for (size_t source_node: node.in_node_indices) {
       build_node(source_node, nodes, layers,
-                 m_nodes, m_stacks, node_map, stack_map);
+                 m_nodes, m_stacks, node_map, stack_map, cycle_check);
     }
 
     // build feed forward layer
