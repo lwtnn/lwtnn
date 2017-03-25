@@ -48,10 +48,13 @@ def _run():
         sys.exit("this is not a graph, try using keras2json")
 
     with h5py.File(args.hdf5_file, 'r') as h5:
-        out_dict = {
-            'layers': _get_layers(arch, h5),
-        }
-        out_dict.update(_parse_inputs(inputs))
+        layers, node_dict = _get_layers_and_nodes(arch, h5)
+    nodes = _build_output_node_list(node_dict, arch['config']['input_layers'])
+
+    out_dict = {
+        'layers': layers, 'nodes': nodes
+    }
+    # out_dict.update(_parse_inputs(inputs))
     print(json.dumps(out_dict, indent=2, sort_keys=True))
 
 def _check_version(arch):
@@ -87,12 +90,14 @@ NODES = 'nodes'
 _merge_layers = set(['concat'])
 
 class Node:
+    # TODO: make the node object a wrapper on the Keras layer dictionary
     def __init__(self, layer, idx):
         self.layer_type = layer['class_name'].lower()
         self.name = layer['name']
         self.idx = idx
         self.sources = []
         self.number = None
+        self.layer_number = None
         self.n_outputs = None
         inbound = layer['inbound_nodes']
         if self.layer_type != "inputlayer":
@@ -101,14 +106,18 @@ class Node:
                 self.sources.append( (sname, sidx) )
         else:
             self.n_outputs = layer['config']['batch_input_shape'][1]
+        self.keras_layer = layer
+
     def __str__(self):
         parents = ', '.join(( str(x) for x in self.sources))
         tmp = '{} <- [{}]'
         if self.number is not None:
             tmp = '{}{{{n}}} <- [{}]'
         return tmp.format( (self.name, self.idx), parents, n=self.number)
+
     def get_key(self):
         return (self.name, self.idx)
+
     def __lt__(self, other):
         return self.get_key() < other.get_key()
 
@@ -141,13 +150,14 @@ def _number_nodes(node_dict):
     for number, node in enumerate(sorted(node_dict.values())):
         node.number = number
 
-def _build_layer(layer_dict, node_name, h5, node_dict):
-    node = node_dict[node_name]
+def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
+    node = node_dict[node_key]
     if node.n_outputs is not None:
         return
 
     for source in node.sources:
-        _build_layer(layer_dict, source.get_key(), h5, node_dict)
+        _build_layer(output_layers, source.get_key(), h5,
+                     node_dict, layer_dict)
 
     # special cases for merge layers
     if node.layer_type == 'merge':
@@ -155,27 +165,67 @@ def _build_layer(layer_dict, node_name, h5, node_dict):
         for source in node.sources:
             node.n_outputs += source.n_outputs
         return
-    
 
-def _get_layers(network, h5):
+    assert len(node.sources) == 1
+
+    # if this layer is already defined, just add the node count and
+    # continue
+    if node.name in layer_dict:
+        node.n_outputs = layer_dict[node.name]['n_outputs']
+        node.layer_number = layer_dict[node.name]['pos']
+        return
+
+    layer_type = node.layer_type
+    if layer_type in skip_layers:
+        return
+    convert = layer_converters[layer_type]
+
+    # build the out layer
+    n_inputs = sum(s.n_outputs for s in node.sources)
+    layer_config = node.keras_layer['config']
+    out_layer, node.n_outputs = convert(h5, layer_config, n_inputs)
+    layer_number = len(output_layers)
+    layer_dict[node.name] = {
+        'n_outputs': node.n_outputs,
+        'pos': layer_number}
+    node.layer_number = layer_number
+    output_layers.append(out_layer)
+
+_node_type_map = {
+    'merge': 'concatenate',
+    'inputlayer': 'input',
+    'dense': 'feed_forward',
+}
+
+def _build_output_node_list(node_dict, input_layer_arch):
+    node_list = []
+    input_map = {n[0]:i for i, n in enumerate(input_layer_arch)}
+    for node in sorted(node_dict.values()):
+        node_type = _node_type_map[node.layer_type]
+        out_node = {'type': node_type}
+        if node.sources:
+            out_node['in_node_indices'] = [n.number for n in node.sources]
+
+        if node_type == 'input':
+            out_node['index'] = input_map[node.name]
+            out_node['size'] = node.n_outputs
+        elif node_type == 'feed_forward':
+            out_node['index'] = node.layer_number
+        node_list.append(out_node)
+    return node_list
+
+def _get_layers_and_nodes(network, h5):
     node_dict = _build_node_dict(network)
     _number_nodes(node_dict)
     for node in node_dict.values():
         print(str(node))
 
-    layer_dict = {}
-    for node_name in set(node_dict):
-        _build_layer(layer_dict, node_name, h5, node_dict)
-        # get converter for this layer
-        # TODO: move this into the build_layer function
-        layer_type = layer_arch['class_name'].lower()
-        if layer_type in skip_layers: continue
-        convert = layer_converters[layer_type]
+    output_layers = []
+    layer_meta = {}
+    for node_key in node_dict:
+        _build_layer(output_layers, node_key, h5, node_dict, layer_meta)
 
-        # build the out layer
-        out_layer, n_out = convert(h5, layer_arch['config'], n_out)
-        layers.append(out_layer)
-    return layers
+    return output_layers, node_dict
 
 def _parse_inputs(keras_dict):
     inputs = []
