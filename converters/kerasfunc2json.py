@@ -40,8 +40,8 @@ def _run():
     args = _get_args()
     with open(args.arch_file, 'r') as arch_file:
         arch = json.load(arch_file)
-    with open(args.variables_file, 'r') as inputs_file:
-        inputs = json.load(inputs_file)
+    with open(args.variables_file, 'r') as variables_file:
+        variables = json.load(variables_file)
 
     _check_version(arch)
     if arch["class_name"] != "Model":
@@ -49,12 +49,19 @@ def _run():
 
     with h5py.File(args.hdf5_file, 'r') as h5:
         layers, node_dict = _get_layers_and_nodes(arch, h5)
-    nodes = _build_output_node_list(node_dict, arch['config']['input_layers'])
+    input_layer_arch = arch['config']['input_layers']
+    nodes = _build_output_node_list(node_dict, input_layer_arch)
 
     out_dict = {
-        'layers': layers, 'nodes': nodes
+        'layers': layers, 'nodes': nodes,
+        'inputs': _parse_inputs(
+            variables['inputs'],
+            _get_vars_per_input(input_layer_arch, node_dict)),
+        'outputs': _parse_outputs(
+            variables['outputs'],
+            arch['config']['output_layers'],
+            node_dict),
     }
-    # out_dict.update(_parse_inputs(inputs))
     print(json.dumps(out_dict, indent=2, sort_keys=True))
 
 def _check_version(arch):
@@ -198,6 +205,10 @@ _node_type_map = {
 }
 
 def _build_output_node_list(node_dict, input_layer_arch):
+    """
+    no effort is made to sort this list in any way, but the ordering
+    is important because each node contains indices for other nodes
+    """
     node_list = []
     input_map = {n[0]:i for i, n in enumerate(input_layer_arch)}
     for node in sorted(node_dict.values()):
@@ -207,18 +218,16 @@ def _build_output_node_list(node_dict, input_layer_arch):
             out_node['in_node_indices'] = [n.number for n in node.sources]
 
         if node_type == 'input':
-            out_node['index'] = input_map[node.name]
+            out_node['input_index'] = input_map[node.name]
             out_node['size'] = node.n_outputs
         elif node_type == 'feed_forward':
-            out_node['index'] = node.layer_number
+            out_node['layer_index'] = node.layer_number
         node_list.append(out_node)
     return node_list
 
 def _get_layers_and_nodes(network, h5):
     node_dict = _build_node_dict(network)
     _number_nodes(node_dict)
-    for node in node_dict.values():
-        print(str(node))
 
     output_layers = []
     layer_meta = {}
@@ -227,24 +236,50 @@ def _get_layers_and_nodes(network, h5):
 
     return output_layers, node_dict
 
-def _parse_inputs(keras_dict):
-    inputs = []
-    defaults = {}
-    for val in keras_dict['inputs']:
-        inputs.append({x: val[x] for x in ['offset', 'scale', 'name']})
+def _get_vars_per_input(input_layer_arch, node_dict):
+    vars_per_input = {}
+    for nodenum, (lname, lidx, something) in enumerate(input_layer_arch):
+        assert lidx == 0 and something == 0
+        vars_per_input[nodenum] = node_dict[(lname, lidx)].n_outputs
+    return vars_per_input
 
-        # maybe fill default
-        default = val.get("default")
-        if default is not None:
-            defaults[val['name']] = default
-    out = {
-        'inputs': inputs,
-        'outputs': keras_dict['class_labels'],
-        'defaults': defaults,
-    }
-    if 'miscellaneous' in keras_dict:
+def _parse_inputs(input_list, vars_per_input):
+    nodes = []
+    for input_number, node in enumerate(input_list):
+        inputs = []
+        node_name = node['name']
+        for val in node['variables']:
+            var_info = {x: val[x] for x in ['offset', 'scale', 'name']}
+            default = val.get("default")
+            if default is not None:
+                var_info['default'] = default
+            inputs.append(var_info)
+
+        assert vars_per_input[input_number] == len(inputs)
+
+        nodes.append(inputs)
+    return nodes
+
+def _parse_outputs(user_outputs, output_layers, node_dict):
+    outputs = {}
+    assert len(user_outputs) == len(output_layers)
+    for num, (usr, ker) in enumerate(zip(user_outputs, output_layers)):
+        kname, kid, ks = ker
+        assert kid == 0 and ks == 0
+        node = node_dict[(kname, kid)]
+        assert node.n_outputs == len(usr['labels'])
+        assert usr['name'] not in outputs
+        output = {
+            'node_index': node.number,
+            'labels': usr['labels']
+        }
+        outputs[usr['name']] = output
+    return outputs
+
+def _parse_miscellaneous(variables):
+    if 'miscellaneous' in variables:
         misc_dict = {}
-        for key, val in keras_dict['miscellaneous'].items():
+        for key, val in variables['miscellaneous'].items():
             misc_dict[str(key)] = str(val)
         out['miscellaneous'] = misc_dict
     return out
