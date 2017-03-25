@@ -10,6 +10,8 @@
 namespace {
   using namespace boost::property_tree;
   using namespace lwt;
+  lwt::LayerConfig get_layer(const ptree::value_type& pt);
+  lwt::Input get_input(const ptree::value_type& pt);
   lwt::Activation get_activation(const std::string&);
   lwt::Architecture get_architecture(const std::string&);
   void set_defaults(LayerConfig& lc);
@@ -17,6 +19,8 @@ namespace {
   void add_maxout_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_component_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_embedding_info(LayerConfig& lc, const ptree::value_type& pt);
+
+  std::map<std::string, double> get_defaults(const ptree& ptree);
 }
 
 
@@ -29,48 +33,17 @@ namespace lwt {
 
     JSONConfig cfg;
     for (const auto& v: pt.get_child("inputs")) {
-      std::string name = v.second.get<std::string>("name");
-      auto offset = v.second.get<double>("offset");
-      auto scale = v.second.get<double>("scale");
-      Input input{name, offset, scale};
-      cfg.inputs.push_back(input);
+      cfg.inputs.push_back(get_input(v));
     }
     for (const auto& v: pt.get_child("layers")) {
-      LayerConfig layer;
-      set_defaults(layer);
-      Architecture arch = get_architecture(
-        v.second.get<std::string>("architecture"));
-
-      if (arch == Architecture::DENSE) {
-        add_dense_info(layer, v);
-      } else if (arch == Architecture::NORMALIZATION) {
-        add_dense_info(layer, v); // re-use dense layer
-      } else if (arch == Architecture::MAXOUT) {
-        add_maxout_info(layer, v);
-      } else if (arch == Architecture::LSTM ||
-                 arch == Architecture::GRU ||
-                 arch == Architecture::HIGHWAY) {
-        add_component_info(layer, v);
-      } else if (arch == Architecture::EMBEDDING) {
-        add_embedding_info(layer, v);
-      } else {
-        throw std::logic_error("architecture not implemented");
-      }
-      layer.architecture = arch;
-
-      cfg.layers.push_back(layer);
+      cfg.layers.push_back(get_layer(v));
     }
     for (const auto& v: pt.get_child("outputs"))
     {
       assert(v.first.empty()); // array elements have no names
       cfg.outputs.push_back(v.second.data());
     }
-    const std::string dname = "defaults";
-    if (pt.count(dname)) {
-      for (const auto& def: pt.get_child(dname)) {
-        cfg.defaults.emplace(def.first, def.second.get_value<double>());
-      }
-    }
+    cfg.defaults = get_defaults(pt);
     const std::string mname = "miscellaneous";
     if (pt.count(mname)) {
       for (const auto& misc: pt.get_child(mname)) {
@@ -84,6 +57,39 @@ namespace lwt {
 }
 
 namespace {
+
+  lwt::Input get_input(const ptree::value_type& v) {
+    std::string name = v.second.get<std::string>("name");
+    auto offset = v.second.get<double>("offset");
+    auto scale = v.second.get<double>("scale");
+    return {name, offset, scale};
+  }
+
+  LayerConfig get_layer(const ptree::value_type& v) {
+    using namespace lwt;
+    LayerConfig layer;
+    set_defaults(layer);
+    Architecture arch = get_architecture(
+      v.second.get<std::string>("architecture"));
+
+    if (arch == Architecture::DENSE) {
+      add_dense_info(layer, v);
+    } else if (arch == Architecture::NORMALIZATION) {
+      add_dense_info(layer, v); // re-use dense layer
+    } else if (arch == Architecture::MAXOUT) {
+      add_maxout_info(layer, v);
+    } else if (arch == Architecture::LSTM ||
+               arch == Architecture::GRU ||
+               arch == Architecture::HIGHWAY) {
+      add_component_info(layer, v);
+    } else if (arch == Architecture::EMBEDDING) {
+      add_embedding_info(layer, v);
+    } else {
+      throw std::logic_error("architecture not implemented");
+    }
+    layer.architecture = arch;
+    return layer;
+  }
 
   lwt::Activation get_activation(const std::string& str) {
     using namespace lwt;
@@ -188,6 +194,27 @@ namespace {
       emb.n_out = sub.second.get<int>("n_out");
       layer.embedding.push_back(emb);
     }
+  }
+
+  std::map<std::string, double> get_defaults(const ptree& pt) {
+    const std::string dname = "defaults";
+    std::map<std::string, double> defaults;
+    // NOTE: at some point we may deprecate this first way of storing
+    // default values.
+    if (pt.count(dname)) {
+      for (const auto& def: pt.get_child(dname)) {
+        defaults.emplace(def.first, def.second.get_value<double>());
+      }
+    } else {
+      const std::string dkey = "default";
+      for (const auto& v: pt.get_child("inputs")) {
+        if (v.second.count(dkey)) {
+          std::string key = v.second.get<std::string>("name");
+          defaults.emplace(key, v.second.get<double>(dkey));
+        }
+      }
+    }
+    return defaults;
   }
 
 }
