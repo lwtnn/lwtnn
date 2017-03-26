@@ -7,13 +7,14 @@ int main(int argc, char* argv[]) {
   size_t node_number = 1;
   if (argc > 1) node_number = atoi(argv[1]);
   using namespace lwt;
+  typedef NodeConfig::Type Type;
   DummySource source({2,2});
-  std::vector<Node> nodes;
-  nodes.push_back({Node::Type::INPUT, {}, 0, 2});
-  nodes.push_back({Node::Type::INPUT, {}, 1, 2});
-  nodes.push_back({Node::Type::CONCATENATE, {0, 1}});
-  nodes.push_back({Node::Type::FEED_FORWARD, {2}, 0});
-  nodes.push_back({Node::Type::FEED_FORWARD, {3}, 0});
+  std::vector<NodeConfig> nodes;
+  nodes.push_back({Type::INPUT, {0}, 2});
+  nodes.push_back({Type::INPUT, {1}, 2});
+  nodes.push_back({Type::CONCATENATE, {0, 1}});
+  nodes.push_back({Type::FEED_FORWARD, {2}, 0});
+  nodes.push_back({Type::FEED_FORWARD, {3}, 0});
 
   LayerConfig dense {
     {0, 0, 0, 1,  0, 0, 1, 0,  0, 1, 0, 0,  1, 0, 0, 0}};

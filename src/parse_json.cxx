@@ -5,15 +5,17 @@
 #include <cassert>
 #include <string>
 
-#include <iostream>
-
 namespace {
   using namespace boost::property_tree;
   using namespace lwt;
-  lwt::LayerConfig get_layer(const ptree::value_type& pt);
-  lwt::Input get_input(const ptree::value_type& pt);
-  lwt::Activation get_activation(const std::string&);
-  lwt::Architecture get_architecture(const std::string&);
+  LayerConfig get_layer(const ptree::value_type& pt);
+  Input get_input(const ptree::value_type& pt);
+  InputNodeConfig get_input_node(const ptree::value_type& pt);
+  NodeConfig get_node(const ptree::value_type& pt);
+  OutputNodeConfig get_output_node(const ptree::value_type& v);
+  NodeConfig::Type get_node_type(const std::string&);
+  Activation get_activation(const std::string&);
+  Architecture get_architecture(const std::string&);
   void set_defaults(LayerConfig& lc);
   void add_dense_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_maxout_info(LayerConfig& lc, const ptree::value_type& pt);
@@ -54,6 +56,27 @@ namespace lwt {
     return cfg;
   }
 
+
+  GraphConfig parse_json_graph(std::istream& json) {
+    boost::property_tree::ptree pt;
+    boost::property_tree::read_json(json, pt);
+
+    GraphConfig cfg;
+    for (const auto& v: pt.get_child("inputs")) {
+      cfg.inputs.push_back(get_input_node(v));
+    }
+    for (const auto& v: pt.get_child("nodes")) {
+      cfg.nodes.push_back(get_node(v));
+    }
+    for (const auto& v: pt.get_child("layers")) {
+      cfg.layers.push_back(get_layer(v));
+    }
+    for (const auto& v: pt.get_child("outputs")) {
+      cfg.outputs.emplace(v.first, get_output_node(v));
+    }
+    return cfg;
+  }
+
 }
 
 namespace {
@@ -63,6 +86,63 @@ namespace {
     auto offset = v.second.get<double>("offset");
     auto scale = v.second.get<double>("scale");
     return {name, offset, scale};
+  }
+
+  lwt::InputNodeConfig get_input_node(const ptree::value_type& v) {
+    InputNodeConfig cfg;
+    cfg.name = v.second.get<std::string>("name");
+    for (const auto& var: v.second.get_child("variables")) {
+      cfg.variables.push_back(get_input(var));
+      if (var.second.count("default")) {
+        std::string name = var.second.get<std::string>("name");
+        cfg.defaults.emplace(name, var.second.get<double>("default"));
+      }
+    }
+    return cfg;
+  }
+
+  NodeConfig get_node(const ptree::value_type& v) {
+    NodeConfig cfg;
+
+    for (const auto& source: v.second.get_child("sources")) {
+      int source_number = source.second.get_value<int>();
+      if (source_number < 0) {
+        throw std::logic_error("node source number must be positive");
+      }
+      cfg.sources.push_back(source_number);
+    }
+
+    cfg.type = get_node_type(v.second.get<std::string>("type"));
+    typedef NodeConfig::Type Type;
+    if (cfg.type == Type::INPUT) {
+      cfg.index = v.second.get<int>("size");
+    } else if (cfg.type == Type::FEED_FORWARD) {
+      cfg.index = v.second.get<int>("layer_index");
+    } else if (cfg.type == Type::CONCATENATE){
+      cfg.index = -1;
+    } else {
+      throw std::logic_error("unknown node type");
+    }
+    return cfg;
+  }
+
+  OutputNodeConfig get_output_node(const ptree::value_type& v) {
+    OutputNodeConfig cfg;
+    for (const auto& lab: v.second.get_child("labels")) {
+      cfg.labels.push_back(lab.second.get_value<std::string>());
+    }
+    int idx = v.second.get<int>("node_index");
+    if (idx < 0) throw std::logic_error("output node index is negative");
+    cfg.node_index = idx;
+    return cfg;
+  }
+
+  NodeConfig::Type get_node_type(const std::string& type) {
+    typedef NodeConfig::Type Type;
+    if (type == "feed_forward") return Type::FEED_FORWARD;
+    if (type == "input") return Type::INPUT;
+    if (type == "concatenate") return Type::CONCATENATE;
+    throw std::logic_error("no node type '" + type + "'");
   }
 
   LayerConfig get_layer(const ptree::value_type& v) {
@@ -216,5 +296,4 @@ namespace {
     }
     return defaults;
   }
-
 }

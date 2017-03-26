@@ -16,6 +16,28 @@ namespace lwt {
     std::map<std::string, std::string> miscellaneous;
   };
   JSONConfig parse_json(std::istream& json);
+
+  // graph structures
+  struct InputNodeConfig
+  {
+    std::string name;
+    std::vector<Input> variables;
+    std::map<std::string, std::string> miscellaneous;
+    std::map<std::string, double> defaults;
+  };
+  struct OutputNodeConfig
+  {
+    std::vector<std::string> labels;
+    size_t node_index;
+  };
+  struct GraphConfig
+  {
+    std::vector<InputNodeConfig> inputs;
+    std::vector<NodeConfig> nodes;
+    std::map<std::string, OutputNodeConfig> outputs;
+    std::vector<LayerConfig> layers;
+  };
+  GraphConfig parse_json_graph(std::istream& json);
 }
 
 

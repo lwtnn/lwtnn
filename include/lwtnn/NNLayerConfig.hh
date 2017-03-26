@@ -59,13 +59,12 @@ namespace lwt {
 
 
   // graph node configuration
-  struct Node
+  struct NodeConfig
   {
     enum class Type { INPUT, FEED_FORWARD, CONCATENATE};
     Type type;
-    std::vector<size_t> in_node_indices;
-    size_t index;
-    size_t size;
+    std::vector<size_t> sources;
+    int index;                  // input node size, or layer number
   };
 }
 

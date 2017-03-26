@@ -215,10 +215,10 @@ def _build_output_node_list(node_dict, input_layer_arch):
         node_type = _node_type_map[node.layer_type]
         out_node = {'type': node_type}
         if node.sources:
-            out_node['in_node_indices'] = [n.number for n in node.sources]
+            out_node['sources'] = [n.number for n in node.sources]
 
         if node_type == 'input':
-            out_node['input_index'] = input_map[node.name]
+            out_node['sources'] = [input_map[node.name]]
             out_node['size'] = node.n_outputs
         elif node_type == 'feed_forward':
             out_node['layer_index'] = node.layer_number
@@ -257,7 +257,7 @@ def _parse_inputs(input_list, vars_per_input):
 
         assert vars_per_input[input_number] == len(inputs)
 
-        nodes.append(inputs)
+        nodes.append({'name': node_name, 'variables': inputs})
     return nodes
 
 def _parse_outputs(user_outputs, output_layers, node_dict):

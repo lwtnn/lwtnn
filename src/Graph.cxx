@@ -101,8 +101,30 @@ namespace {
   void throw_cfg(std::string msg, size_t index) {
     throw NNConfigurationException(msg + " " + std::to_string(index));
   }
+  // NOTE: you own this pointer!
+  INode* get_feedforward_node(const NodeConfig& node,
+                              const std::vector<LayerConfig>& layers,
+                              const std::map<size_t, INode*>& node_map,
+                              std::map<size_t, Stack*>& stack_map,
+                              std::vector<Stack*>& m_stacks) {
+
+    size_t n_source = node.sources.size();
+    if (n_source != 1) throw_cfg("need one source, found", n_source);
+    INode* source = node_map.at(node.sources.at(0));
+
+    int layer_n = node.index;
+    if (layer_n < 0) throw_cfg("negative layer number", layer_n);
+    if (layer_n >= layers.size()) throw_cfg("no layer number", layer_n);
+    if (!stack_map.count(layer_n)) {
+      m_stacks.push_back(
+        new Stack(source->n_outputs(), {layers.at(layer_n)}));
+      stack_map[layer_n] = m_stacks.back();
+    }
+    return new FeedForwardNode(stack_map.at(layer_n), source);
+  }
+
   void build_node(size_t iii,
-                  const std::vector<Node>& nodes,
+                  const std::vector<NodeConfig>& nodes,
                   const std::vector<LayerConfig>& layers,
                   std::vector<INode*>& m_nodes,
                   std::vector<Stack*>& m_stacks,
@@ -112,11 +134,16 @@ namespace {
     if (node_map.count(iii)) return;
     if (iii >= nodes.size()) throw_cfg("no node index", iii);
 
-    const Node& node = nodes.at(iii);
+    const NodeConfig& node = nodes.at(iii);
 
     // if it's an input, build and return
-    if (node.type == Node::Type::INPUT) {
-      m_nodes.push_back(new InputNode(node.index, node.size));
+    if (node.type == NodeConfig::Type::INPUT) {
+      size_t n_inputs = node.sources.size();
+      if (n_inputs != 1) throw_cfg(
+        "input node needs need one source, got", n_inputs);
+      if (node.index < 0) throw_cfg(
+        "input node needs positive index, got", node.index);
+      m_nodes.push_back(new InputNode(node.sources.at(0), node.index));
       node_map[iii] = m_nodes.back();
       return;
     }
@@ -126,32 +153,23 @@ namespace {
       throw NNConfigurationException("found cycle in graph");
     }
     cycle_check.insert(iii);
-    for (size_t source_node: node.in_node_indices) {
+    for (size_t source_node: node.sources) {
       build_node(source_node, nodes, layers,
                  m_nodes, m_stacks, node_map, stack_map, cycle_check);
     }
 
     // build feed forward layer
-    if (node.type == Node::Type::FEED_FORWARD) {
-      size_t layer_n = node.index;
-      if (layer_n >= layers.size()) throw_cfg("no layer number", layer_n);
-      size_t n_source = node.in_node_indices.size();
-      if (n_source != 1) throw_cfg("need one source, found", n_source);
-      INode* source = node_map.at(node.in_node_indices.at(0));
-      if (!stack_map.count(layer_n)) {
-        m_stacks.push_back(
-          new Stack(source->n_outputs(), {layers.at(layer_n)}));
-        stack_map[layer_n] = m_stacks.back();
-      }
-      m_nodes.push_back(new FeedForwardNode(stack_map.at(layer_n), source));
+    if (node.type == NodeConfig::Type::FEED_FORWARD) {
+      m_nodes.push_back(
+        get_feedforward_node(node, layers, node_map, stack_map, m_stacks));
       node_map[iii] = m_nodes.back();
       return;
     }
 
     // build concatenate layer
-    if (node.type == Node::Type::CONCATENATE) {
+    if (node.type == NodeConfig::Type::CONCATENATE) {
       std::vector<const INode*> in_nodes;
-      for (size_t source_node: node.in_node_indices) {
+      for (size_t source_node: node.sources) {
         in_nodes.push_back(node_map.at(source_node));
       }
       m_nodes.push_back(new ConcatenateNode(in_nodes));
@@ -175,7 +193,7 @@ namespace lwt {
     INode* cat = m_nodes.back();
     m_nodes.push_back(new FeedForwardNode(stack, cat));
   }
-  Graph::Graph(const std::vector<Node>& nodes,
+  Graph::Graph(const std::vector<NodeConfig>& nodes,
                const std::vector<LayerConfig>& layers) {
     std::map<size_t, INode*> node_map;
     std::map<size_t, Stack*> stack_map;

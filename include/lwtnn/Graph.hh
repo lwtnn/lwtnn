@@ -88,7 +88,7 @@ namespace lwt {
   {
   public:
     Graph();                    // dummy constructor
-    Graph(const std::vector<Node>& nodes,
+    Graph(const std::vector<NodeConfig>& nodes,
           const std::vector<LayerConfig>& layers);
     Graph(Graph&) = delete;
     Graph& operator=(Graph&) = delete;
