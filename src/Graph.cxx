@@ -17,7 +17,7 @@ namespace lwt {
         "VectorSource: no source vector defined at " + std::to_string(index));
     }
     return m_inputs.at(index);
-  };
+  }
 
   DummySource::DummySource(const std::vector<size_t>& input_sizes):
     m_sizes(input_sizes)
@@ -30,7 +30,7 @@ namespace lwt {
     }
     size_t n_entries = m_sizes.at(index);
     VectorXd vec(n_entries);
-    for (int iii = 0; iii < n_entries; iii++) {
+    for (size_t iii = 0; iii < n_entries; iii++) {
       vec(iii) = iii;
     }
     return vec;
@@ -45,7 +45,8 @@ namespace lwt {
   }
   VectorXd InputNode::compute(const ISource& source) const {
     VectorXd output = source.at(m_index);
-    if (output.rows() != m_n_outputs) {
+    assert(output.rows() > 0);
+    if (static_cast<size_t>(output.rows()) != m_n_outputs) {
       std::string len = std::to_string(output.rows());
       std::string found = std::to_string(m_n_outputs);
       throw NNEvaluationException(
@@ -114,7 +115,9 @@ namespace {
 
     int layer_n = node.index;
     if (layer_n < 0) throw_cfg("negative layer number", layer_n);
-    if (layer_n >= layers.size()) throw_cfg("no layer number", layer_n);
+    if (static_cast<size_t>(layer_n) >= layers.size()) {
+      throw_cfg("no layer number", layer_n);
+    }
     if (!stack_map.count(layer_n)) {
       m_stacks.push_back(
         new Stack(source->n_outputs(), {layers.at(layer_n)}));
