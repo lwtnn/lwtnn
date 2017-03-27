@@ -9,7 +9,6 @@
 // Author: Dan Guest <dguest@cern.ch>
 
 #include <vector>
-#include <string>
 #include <map>
 
 namespace lwt {
@@ -48,13 +47,6 @@ namespace lwt {
 
     // arch flag
     Architecture architecture;
-  };
-
-  struct Input
-  {
-    std::string name;
-    double offset;
-    double scale;
   };
 
 

@@ -16,7 +16,7 @@
 //          Michael Kagan <mkagan@cern.ch>
 //          Michela Paganini <micky.91@hotmail.com>
 
-#include "NNLayerConfig.hh"
+#include "lightweight_network_config.hh"
 
 namespace lwt {
 

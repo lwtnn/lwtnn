@@ -1,4 +1,5 @@
 #include "lwtnn/LightweightNeuralNetwork.hh"
+#include "lwtnn/InputPreprocessor.hh"
 #include "lwtnn/Stack.hh"
 #include <Eigen/Dense>
 

@@ -17,7 +17,6 @@
 //  - Recurrent layers
 //  - Activation functions
 //  - Various utility functions
-//  - Preprocessor classes
 
 
 #include "Exceptions.hh"
@@ -26,7 +25,6 @@
 #include <Eigen/Dense>
 
 #include <vector>
-#include <map>
 #include <functional>
 
 namespace lwt {
@@ -36,12 +34,6 @@ namespace lwt {
 
   class ILayer;
   class IRecurrentLayer;
-
-  // use a normal map externally, since these are more common in user
-  // code.  TODO: is it worth changing to unordered_map?
-  typedef std::map<std::string, double> ValueMap;
-  typedef std::vector<std::pair<std::string, double> > ValueVector;
-  typedef std::map<std::string, std::vector<double> > VectorMap;
 
 
   // ______________________________________________________________________
@@ -319,32 +311,6 @@ namespace lwt {
   };
   DenseComponents get_component(const lwt::LayerConfig& layer, size_t n_in);
 
-  // ______________________________________________________________________
-  // input preprocessor (handles normalization and packing into Eigen)
-
-  class InputPreprocessor
-  {
-  public:
-    InputPreprocessor(const std::vector<Input>& inputs);
-    VectorXd operator()(const ValueMap&) const;
-  private:
-    // input transformations
-    VectorXd m_offsets;
-    VectorXd m_scales;
-    std::vector<std::string> m_names;
-  };
-
-  class InputVectorPreprocessor
-  {
-  public:
-    InputVectorPreprocessor(const std::vector<Input>& inputs);
-    MatrixXd operator()(const VectorMap&) const;
-  private:
-    // input transformations
-    VectorXd m_offsets;
-    VectorXd m_scales;
-    std::vector<std::string> m_names;
-  };
 
 }
 
