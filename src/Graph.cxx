@@ -7,7 +7,7 @@
 namespace lwt {
 
   // Sources
-  VectorSource::VectorSource(const std::vector<VectorXd>&& vv):
+  VectorSource::VectorSource(std::vector<VectorXd>&& vv):
     m_inputs(std::move(vv))
   {
   }

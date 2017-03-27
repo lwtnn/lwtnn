@@ -8,8 +8,8 @@
 
 // The code below is to configure the "high level" interface.
 
-#include <istream>
 #include <map>
+#include <string>
 
 namespace lwt {
 

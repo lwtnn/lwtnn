@@ -24,7 +24,7 @@ namespace lwt {
   class VectorSource: public ISource
   {
   public:
-    VectorSource(const std::vector<VectorXd>&&);
+    VectorSource(std::vector<VectorXd>&&);
     virtual VectorXd at(size_t index) const;
   private:
     std::vector<VectorXd> m_inputs;
@@ -98,6 +98,14 @@ namespace lwt {
   private:
     std::vector<INode*> m_nodes;
     std::vector<Stack*> m_stacks;
+    // TODO: add sequence and reduction nodes: sequences for RNN and
+    // time-distributed (i.e. embedding) layers and reduction to
+    // collapse MatrixXd into VectorXd. Reduction nodes could be
+    // inserted while the graph is being constructed by checking for
+    // node dimension mismatches.
+    //
+    // At some point maybe also convolutional nodes, but we'd have to
+    // have a use case for that first.
   };
 }
 
