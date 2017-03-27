@@ -16,10 +16,26 @@ main design principles are:
    consistency. To prevent bugs with incorrectly ordered variables,
    all inputs and outputs are stored in `std::map`s.
 
-We also include converters from several popular formats to the `lwtnn` JSON format. Currently the following formats are supported:
+We also include converters from several popular formats to the `lwtnn` 
+JSON format. Currently the following formats are supported:
  - [AGILEPack][ap]
  - [Keras][kr] (most popular, see [supported layers][supported])
  - [Julian's][julian] format, based on Numpy and JSON
+ 
+In particular, the following layers are implemented in the Keras
+sequential and functional models:
+
+|               | K sequential | K functional |
+|---------------|--------------|--------------|
+| Dense         |  yes         |  yes         |
+| Normalization |  yes         |  yes         |
+| Maxout        |  yes         |  yes         |
+| LSTM          |  yes         | [soon][issr] |
+| GRU           |  yes         | [soon][issr] |
+| Embedding     | sorta        | [soon][issr] |
+| Concatenate   |  no          |  yes         |
+
+[issr]: https://github.com/lwtnn/lwtnn/issues/38
 
 The converter scripts can be found in `converters/`. Run them with
 `-h` for more information.
@@ -146,7 +162,8 @@ Again, the corresponding model in Keras can be tested with
 Have problems?
 --------------
 
-If you find a bug in this code, or have any ideas, criticisms, etc, please email me at `dguest@cern.ch`.
+If you find a bug in this code, or have any ideas, criticisms, 
+etc, please email me at `dguest@cern.ch`.
 
 [![Build Status][build-img]][build-link] [![Scan Status][scan-img]][scan-link] 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.290682.svg)](https://doi.org/10.5281/zenodo.290682)
