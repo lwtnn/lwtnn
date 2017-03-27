@@ -30,6 +30,7 @@ sequential and functional models:
 | Dense         |  yes         |  yes         |
 | Normalization |  yes         |  yes         |
 | Maxout        |  yes         |  yes         |
+| Highway       |  yes         |  yes         |
 | LSTM          |  yes         | [soon][issr] |
 | GRU           |  yes         | [soon][issr] |
 | Embedding     | sorta        | [soon][issr] |
