@@ -203,16 +203,14 @@ def _get_h5_layers(layer_group):
     name. This function returns a dictionary of the datasets, keyed
     with the group name stripped off.
     """
+    strip_length = len(layer_group.name.lstrip('/')) + 1
     prefixes = set()
-    numbers = set()
     layers = {}
-    for name, ds in layer_group.items():
-        prefix, number, name = name.split('_', 2)
-        prefixes.add(prefix)
-        numbers.add(number)
+    for long_name, ds in layer_group.items():
+        name = long_name[strip_length:]
+        prefixes.add(long_name[:strip_length])
         layers[name] = np.asarray(ds)
-    assert len(prefixes) == 1, 'too many prefixes: {}'.format(prefixes)
-    assert len(numbers) == 1, 'too many numbers: {}'.format(numbers)
+    assert len(prefixes) == 1
     return layers
 
 # translate from keras to json representation

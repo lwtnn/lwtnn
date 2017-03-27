@@ -5,34 +5,19 @@
 Variable specification file
 
 In additon to the standard Keras architecture and weights files, you
-must provide a "variable specification" json file with the following
-format:
+must provide a "variable specification" json file.
 
-  {
-    "inputs": [
-      {"name": variable_name,
-       "scale": scale,
-       "offset": offset,
-       "default": default_value},
-      ...
-      ],
-    "class_labels": [output_class_1_name, output_class_2_name, ...],
-    "miscellaneous": {"key": "value"}
-  }
-
-where `scale` and `offset` account for any scaling and shifting to the
+Here `scale` and `offset` account for any scaling and shifting to the
 input variables in preprocessing. The "default" value is optional.
 
-The "miscellaneous" object is also optional and can contain (key,
-value) pairs of strings to pass to the application.
-
+If no file is provided, a template will be generated.
 """
 
 import argparse
 import json
 import h5py
 from collections import Counter
-import sys
+import sys, os
 from keras_layer_converters import layer_converters, skip_layers
 
 def _run():
@@ -40,12 +25,13 @@ def _run():
     args = _get_args()
     with open(args.arch_file, 'r') as arch_file:
         arch = json.load(arch_file)
+    if not args.variables_file:
+        _build_variables_file(args)
+        sys.exit(0)
     with open(args.variables_file, 'r') as variables_file:
         variables = json.load(variables_file)
 
     _check_version(arch)
-    if arch["class_name"] != "Model":
-        sys.exit("this is not a graph, try using keras2json")
 
     with h5py.File(args.hdf5_file, 'r') as h5:
         layers, node_dict = _get_layers_and_nodes(arch, h5)
@@ -65,6 +51,8 @@ def _run():
     print(json.dumps(out_dict, indent=2, sort_keys=True))
 
 def _check_version(arch):
+    if arch["class_name"] != "Model":
+        sys.exit("this is not a graph, try using keras2json")
     if 'keras_version' not in arch:
         sys.stderr.write(
             'WARNING: no version number found for this archetecture!\n')
@@ -82,9 +70,40 @@ def _get_args():
         epilog=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('arch_file', help='architecture json file')
-    parser.add_argument('variables_file', help='variable spec as json')
     parser.add_argument('hdf5_file', help='Keras weights file')
+    parser.add_argument('variables_file', help='variable spec as json',
+                        nargs='?')
     return parser.parse_args()
+
+def _build_variables_file(args):
+    with open(args.arch_file, 'r') as arch_file:
+        arch = json.load(arch_file)
+
+    _check_version(arch)
+
+    with h5py.File(args.hdf5_file, 'r') as h5:
+        layers, node_dict = _get_layers_and_nodes(arch, h5)
+    input_layer_arch = arch['config']['input_layers']
+    inputs = []
+    vars_per_input = _get_vars_per_input(input_layer_arch, node_dict)
+    for nodenum, n_vars in sorted(vars_per_input.items()):
+        def get_input(n):
+            return {'name': 'variable_{}'.format(n), 'scale': 1, 'offset':0}
+        the_input = {
+            'name': 'node_{}'.format(nodenum),
+            'variables': [get_input(n) for n in range(n_vars)]
+        }
+        inputs.append(the_input)
+    outputs = []
+    for kname, kid, ks in arch['config']['output_layers']:
+        node = node_dict[(kname, kid)]
+        output = {
+            'name': kname,
+            'labels': ['out_{}'.format(x) for x in range(node.n_outputs)]
+        }
+        outputs.append(output)
+    out_dict = {'inputs': inputs, 'outputs': outputs}
+    print(json.dumps(out_dict, indent=2, sort_keys=True))
 
 
 # __________________________________________________________________________
