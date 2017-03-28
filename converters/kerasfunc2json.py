@@ -125,13 +125,16 @@ class Node:
         self.number = None
         self.layer_number = None
         self.n_outputs = None
+        self.dims = None
         inbound = layer['inbound_nodes']
         if self.layer_type != "inputlayer":
             for sname, sidx, something in inbound[idx]:
                 assert something == 0
                 self.sources.append( (sname, sidx) )
         else:
-            self.n_outputs = layer['config']['batch_input_shape'][1]
+            shape = layer['config']['batch_input_shape']
+            self.n_outputs = shape[-1]
+            self.dims = len(shape) - 1
         self.keras_layer = layer
 
     def __str__(self):
@@ -221,6 +224,7 @@ _node_type_map = {
     'merge': 'concatenate',
     'inputlayer': 'input',
     'dense': 'feed_forward',
+    'lstm': 'sequence',
 }
 
 def _build_output_node_list(node_dict, input_layer_arch):
@@ -239,7 +243,9 @@ def _build_output_node_list(node_dict, input_layer_arch):
         if node_type == 'input':
             out_node['sources'] = [input_map[node.name]]
             out_node['size'] = node.n_outputs
-        elif node_type == 'feed_forward':
+            if node.dims > 1:
+                out_node['type'] = 'input_sequence'
+        elif node_type in ['feed_forward', 'sequence']:
             out_node['layer_index'] = node.layer_number
         node_list.append(out_node)
     return node_list

@@ -114,9 +114,9 @@ namespace {
 
     cfg.type = get_node_type(v.second.get<std::string>("type"));
     typedef NodeConfig::Type Type;
-    if (cfg.type == Type::INPUT) {
+    if (cfg.type == Type::INPUT || cfg.type == Type::INPUT_SEQUENCE) {
       cfg.index = v.second.get<int>("size");
-    } else if (cfg.type == Type::FEED_FORWARD) {
+    } else if (cfg.type == Type::FEED_FORWARD || cfg.type == Type::SEQUENCE) {
       cfg.index = v.second.get<int>("layer_index");
     } else if (cfg.type == Type::CONCATENATE){
       cfg.index = -1;
@@ -140,7 +140,9 @@ namespace {
   NodeConfig::Type get_node_type(const std::string& type) {
     typedef NodeConfig::Type Type;
     if (type == "feed_forward") return Type::FEED_FORWARD;
+    if (type == "sequence") return Type::SEQUENCE;
     if (type == "input") return Type::INPUT;
+    if (type == "input_sequence") return Type::INPUT_SEQUENCE;
     if (type == "concatenate") return Type::CONCATENATE;
     throw std::logic_error("no node type '" + type + "'");
   }
