@@ -136,12 +136,8 @@ namespace lwt {
   private:
     std::vector<INode*> m_nodes;
     std::vector<Stack*> m_stacks;
-    // TODO: add sequence and reduction nodes: sequences for RNN and
-    // time-distributed (i.e. embedding) layers and reduction to
-    // collapse MatrixXd into VectorXd. Reduction nodes could be
-    // inserted while the graph is being constructed by checking for
-    // node dimension mismatches.
-    //
+    std::vector<ISequenceNode*> m_seq_nodes;
+    std::vector<RecurrentStack*> m_seq_stacks;
     // At some point maybe also convolutional nodes, but we'd have to
     // have a use case for that first.
   };

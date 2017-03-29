@@ -3,6 +3,7 @@
 #include "lwtnn/NNLayerConfig.hh"
 
 #include <iostream>
+#include <fstream>
 
 #include <unistd.h>
 
@@ -28,13 +29,18 @@ lwt::GraphConfig dummy_config() {
 
 int main(int argc, char* argv[]) {
   lwt::GraphConfig config;
-  if (isatty(fileno(stdin))) {
-    config = dummy_config();
-  } else {
+  bool is_pipe = !isatty(fileno(stdin));
+  if (is_pipe) {
     config = lwt::parse_json_graph(std::cin);
+  } else if (argc == 2) {
+    std::string in_file_name(argv[1]);
+    std::ifstream in_file(in_file_name);
+    config = lwt::parse_json_graph(in_file);
+  } else {
+    config = dummy_config();
   }
   int node_number = -1;
-  if (argc > 1) node_number = atoi(argv[1]);
+  // if (argc > 1) node_number = atoi(argv[1]);
   using namespace lwt;
   std::vector<size_t> inputs_per_node;
   for (const auto& innode: config.inputs) {
