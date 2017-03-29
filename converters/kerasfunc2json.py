@@ -98,7 +98,7 @@ def _build_variables_file(args):
     for kname, kid, ks in arch['config']['output_layers']:
         node = node_dict[(kname, kid)]
         output = {
-            'name': kname,
+            'name': '{}_{}'.format(kname, kid),
             'labels': ['out_{}'.format(x) for x in range(node.n_outputs)]
         }
         outputs.append(output)
@@ -154,17 +154,18 @@ class Node:
 def _build_node_dict(network):
     layers = {l['name']: l for l in network['config']['layers']}
     nodes = {}
-    for top_name, top_layer in layers.items():
-        if (top_name, 0) not in nodes:
-            nodes[(top_name, 0)] = Node(top_layer, 0)
-        for sink in top_layer['inbound_nodes']:
-            for merge_node in sink:
-                lname, idx, something = merge_node
-                assert something == 0
-                layer = layers[lname]
-                id_tup = (lname, idx)
-                if id_tup not in nodes:
-                    nodes[id_tup] = Node(layer, idx)
+
+    # first get the nodes that something points to
+    for layer in layers.values():
+        for sink in layer['inbound_nodes']:
+            for kname, kid, something in sink:
+                nodes[(kname, kid)] = Node(layers[kname], kid)
+
+    # get the output nodes now
+    for kname, kid, something in network['config']['output_layers']:
+        id_tup = (kname, kid)
+        if id_tup not in nodes:
+            nodes[id_tup] = Node(layers[kname], kid)
 
     # now we collapse the node references
     for node in nodes.values():
@@ -290,7 +291,7 @@ def _parse_outputs(user_outputs, output_layers, node_dict):
     assert len(user_outputs) == len(output_layers)
     for num, (usr, ker) in enumerate(zip(user_outputs, output_layers)):
         kname, kid, ks = ker
-        assert kid == 0 and ks == 0
+        assert ks == 0
         node = node_dict[(kname, kid)]
         assert node.n_outputs == len(usr['labels'])
         assert usr['name'] not in outputs

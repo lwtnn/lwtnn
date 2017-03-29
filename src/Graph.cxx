@@ -218,6 +218,10 @@ namespace {
         "input node needs need one source, got", n_inputs);
       if (node.index < 0) throw_cfg(
         "input node needs positive index, got", node.index);
+      // TODO: we'll need to translate the source numbering scheme
+      // used in the JSON file to the one thats used by the source
+      // nodes.  This is going to be different because the source
+      // nodes have one array each for 1d and 2d inputs.
       m_nodes.push_back(new InputNode(node.sources.at(0), node.index));
       maps.node[iii] = m_nodes.back();
       return;
