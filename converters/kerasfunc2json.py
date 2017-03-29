@@ -36,13 +36,17 @@ def _run():
     with h5py.File(args.hdf5_file, 'r') as h5:
         layers, node_dict = _get_layers_and_nodes(arch, h5)
     input_layer_arch = arch['config']['input_layers']
-    nodes = _build_output_node_list(node_dict, input_layer_arch)
+    nodes = _build_node_list(node_dict, input_layer_arch)
 
+    vars_per_input = _get_vars_per_input(input_layer_arch, node_dict)
     out_dict = {
         'layers': layers, 'nodes': nodes,
         'inputs': _parse_inputs(
             variables['inputs'],
-            _get_vars_per_input(input_layer_arch, node_dict)),
+            vars_per_input[1]),
+        'input_sequences': _parse_inputs(
+            variables['input_sequences'],
+            vars_per_input[2]),
         'outputs': _parse_outputs(
             variables['outputs'],
             arch['config']['output_layers'],
@@ -84,16 +88,20 @@ def _build_variables_file(args):
     with h5py.File(args.hdf5_file, 'r') as h5:
         layers, node_dict = _get_layers_and_nodes(arch, h5)
     input_layer_arch = arch['config']['input_layers']
-    inputs = []
     vars_per_input = _get_vars_per_input(input_layer_arch, node_dict)
-    for nodenum, n_vars in sorted(vars_per_input.items()):
-        def get_input(n):
-            return {'name': 'variable_{}'.format(n), 'scale': 1, 'offset':0}
-        the_input = {
-            'name': 'node_{}'.format(nodenum),
-            'variables': [get_input(n) for n in range(n_vars)]
-        }
-        inputs.append(the_input)
+    def get_input(n):
+        return {'name': 'variable_{}'.format(n), 'scale': 1, 'offset':0}
+    def build_inputs(input_items):
+        inputs = []
+        for nodenum, n_vars in input_items:
+            the_input = {
+                'name': 'node_{}'.format(nodenum),
+                'variables': [get_input(n) for n in range(n_vars)]
+            }
+            inputs.append(the_input)
+        return inputs
+    inputs = build_inputs(sorted(vars_per_input[1].items()))
+    seq_inputs = build_inputs(sorted(vars_per_input[2].items()))
     outputs = []
     for kname, kid, ks in arch['config']['output_layers']:
         node = node_dict[(kname, kid)]
@@ -102,7 +110,9 @@ def _build_variables_file(args):
             'labels': ['out_{}'.format(x) for x in range(node.n_outputs)]
         }
         outputs.append(output)
-    out_dict = {'inputs': inputs, 'outputs': outputs}
+    out_dict = {
+        'inputs': inputs, 'input_sequences': seq_inputs,
+        'outputs': outputs}
     print(json.dumps(out_dict, indent=2, sort_keys=True))
 
 
@@ -228,13 +238,19 @@ _node_type_map = {
     'lstm': 'sequence',
 }
 
-def _build_output_node_list(node_dict, input_layer_arch):
+def _build_node_list(node_dict, input_layer_arch):
     """
     no effort is made to sort this list in any way, but the ordering
     is important because each node contains indices for other nodes
     """
     node_list = []
-    input_map = {n[0]:i for i, n in enumerate(input_layer_arch)}
+    input_map = {}
+    for kname, kid, ks in input_layer_arch:
+        node = node_dict[(kname, kid)]
+        submap = input_map.setdefault(node.dims, {})
+        n_in = len(submap)
+        submap[kname] = n_in
+
     for node in sorted(node_dict.values()):
         node_type = _node_type_map[node.layer_type]
         out_node = {'type': node_type}
@@ -242,7 +258,7 @@ def _build_output_node_list(node_dict, input_layer_arch):
             out_node['sources'] = [n.number for n in node.sources]
 
         if node_type == 'input':
-            out_node['sources'] = [input_map[node.name]]
+            out_node['sources'] = [input_map[node.dims][node.name]]
             out_node['size'] = node.n_outputs
             if node.dims > 1:
                 out_node['type'] = 'input_sequence'
@@ -263,10 +279,12 @@ def _get_layers_and_nodes(network, h5):
     return output_layers, node_dict
 
 def _get_vars_per_input(input_layer_arch, node_dict):
-    vars_per_input = {}
-    for nodenum, (lname, lidx, something) in enumerate(input_layer_arch):
+    vars_per_input = {1: {}, 2: {}}
+    for lname, lidx, something in input_layer_arch:
         assert lidx == 0 and something == 0
-        vars_per_input[nodenum] = node_dict[(lname, lidx)].n_outputs
+        node = node_dict[(lname, lidx)]
+        nodenum = len(vars_per_input[node.dims])
+        vars_per_input[node.dims][nodenum] = node.n_outputs
     return vars_per_input
 
 def _parse_inputs(input_list, vars_per_input):
