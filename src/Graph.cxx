@@ -48,7 +48,7 @@ namespace lwt {
     return vec;
   }
   MatrixXd DummySource::matrix_at(size_t index) const {
-    if (index >= m_sizes.size()) {
+    if (index >= m_matrix_sizes.size()) {
       throw NNEvaluationException(
         "Dummy Source: no size defined at " + std::to_string(index));
     }
@@ -219,9 +219,11 @@ namespace {
     std::map<size_t, ISequenceNode*> seq_node;
     std::map<size_t, Stack*> stack;
     std::map<size_t, RecurrentStack*> seq_stack;
+    // TODO: remove these
     std::map<size_t, size_t> input_to_vecnum;
     std::map<size_t, size_t> input_to_matnum;
   };
+  // TODO: remove this function
   void translate_input_numbering(const std::vector<NodeConfig>& nodes,
                                  GraphMaps& maps) {
     size_t total = 0;
