@@ -65,6 +65,9 @@ namespace lwt {
     for (const auto& v: pt.get_child("inputs")) {
       cfg.inputs.push_back(get_input_node(v));
     }
+    for (const auto& v: pt.get_child("input_sequences")) {
+      cfg.input_sequences.push_back(get_input_node(v));
+    }
     for (const auto& v: pt.get_child("nodes")) {
       cfg.nodes.push_back(get_node(v));
     }

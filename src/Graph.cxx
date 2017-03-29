@@ -170,11 +170,15 @@ namespace {
   void throw_cfg(std::string msg, size_t index) {
     throw NNConfigurationException(msg + " " + std::to_string(index));
   }
-  void check_compute_node(const NodeConfig& node, size_t n_layers) {
+  void check_compute_node(const NodeConfig& node) {
     size_t n_source = node.sources.size();
     if (n_source != 1) throw_cfg("need one source, found", n_source);
     int layer_n = node.index;
     if (layer_n < 0) throw_cfg("negative layer number", layer_n);
+  }
+  void check_compute_node(const NodeConfig& node, size_t n_layers) {
+    check_compute_node(node);
+    int layer_n = node.index;
     if (static_cast<size_t>(layer_n) >= n_layers) {
       throw_cfg("no layer number", layer_n);
     }
@@ -219,37 +223,7 @@ namespace {
     std::map<size_t, ISequenceNode*> seq_node;
     std::map<size_t, Stack*> stack;
     std::map<size_t, RecurrentStack*> seq_stack;
-    // TODO: remove these
-    std::map<size_t, size_t> input_to_vecnum;
-    std::map<size_t, size_t> input_to_matnum;
   };
-  // TODO: remove this function
-  void translate_input_numbering(const std::vector<NodeConfig>& nodes,
-                                 GraphMaps& maps) {
-    size_t total = 0;
-    size_t vec_num = 0;
-    size_t mat_num = 0;
-    for (const auto node: nodes) {
-      if (node.type == NodeConfig::Type::INPUT ||
-          node.type == NodeConfig::Type::INPUT_SEQUENCE) {
-        total++;
-        size_t n_inputs = node.sources.size();
-        if (n_inputs != 1) throw_cfg(
-          "input node needs need one source, got", n_inputs);
-        if (node.index < 0) throw_cfg(
-          "input node needs positive index, got", node.index);
-        if (node.type == NodeConfig::Type::INPUT) {
-          maps.input_to_vecnum[node.sources.at(0)] = vec_num;
-          vec_num++;
-        } else if (node.type == NodeConfig::Type::INPUT_SEQUENCE) {
-          maps.input_to_matnum[node.sources.at(0)] = mat_num;
-          mat_num++;
-        }
-      }
-    }
-    assert(total == vec_num + mat_num);
-  }
-
 
   void build_node(size_t iii,
                   const std::vector<NodeConfig>& nodes,
@@ -267,12 +241,14 @@ namespace {
 
     // if it's an input, build and return
     if (node.type == NodeConfig::Type::INPUT) {
-      size_t input_number = maps.input_to_vecnum.at(node.sources.at(0));
+      check_compute_node(node);
+      size_t input_number = node.sources.at(0);
       m_nodes.push_back(new InputNode(input_number, node.index));
       maps.node[iii] = m_nodes.back();
       return;
     } else if (node.type == NodeConfig::Type::INPUT_SEQUENCE) {
-      size_t input_number = maps.input_to_matnum.at(node.sources.at(0));
+      check_compute_node(node);
+      size_t input_number = node.sources.at(0);
       m_seq_nodes.push_back(new InputSequenceNode(input_number, node.index));
       maps.seq_node[iii] = m_seq_nodes.back();
       return;
@@ -335,7 +311,6 @@ namespace lwt {
   Graph::Graph(const std::vector<NodeConfig>& nodes,
                const std::vector<LayerConfig>& layers) {
     GraphMaps maps;
-    translate_input_numbering(nodes, maps);
     for (size_t iii = 0; iii < nodes.size(); iii++) {
       build_node(iii, nodes, layers,
                  m_nodes, m_stacks, m_seq_nodes, m_seq_stacks, maps);

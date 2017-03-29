@@ -46,7 +46,11 @@ int main(int argc, char* argv[]) {
   for (const auto& innode: config.inputs) {
     inputs_per_node.push_back(innode.variables.size());
   }
-  DummySource source(inputs_per_node);
+  std::vector<std::pair<size_t, size_t> > inputs_per_seq_node;
+  for (const auto& innode: config.input_sequences) {
+    inputs_per_seq_node.emplace_back(innode.variables.size(),10UL);
+  }
+  DummySource source(inputs_per_node, inputs_per_seq_node);
 
   lwt::Graph graph(config.nodes, config.layers);
   if (node_number < 0) {
