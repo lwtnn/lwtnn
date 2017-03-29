@@ -10,6 +10,7 @@
 namespace lwt {
 
   class Stack;
+  class RecurrentStack;
 
   using Eigen::VectorXd;
   using Eigen::MatrixXd;
@@ -19,24 +20,30 @@ namespace lwt {
   {
   public:
     virtual VectorXd at(size_t index) const = 0;
+    virtual MatrixXd matrix_at(size_t index) const = 0;
   };
 
   class VectorSource: public ISource
   {
   public:
-    VectorSource(std::vector<VectorXd>&&);
+    VectorSource(std::vector<VectorXd>&&, std::vector<MatrixXd>&& = {});
     virtual VectorXd at(size_t index) const;
+    virtual MatrixXd matrix_at(size_t index) const;
   private:
     std::vector<VectorXd> m_inputs;
+    std::vector<MatrixXd> m_matrix_inputs;
   };
 
   class DummySource: public ISource
   {
   public:
-    DummySource(const std::vector<size_t>& input_sizes);
+    DummySource(const std::vector<size_t>& input_sizes,
+                const std::vector<std::pair<size_t, size_t> >& = {});
     virtual VectorXd at(size_t index) const;
+    virtual MatrixXd matrix_at(size_t index) const;
   private:
     std::vector<size_t> m_sizes;
+    std::vector<std::pair<size_t, size_t> > m_matrix_sizes;
   };
 
 
@@ -82,6 +89,37 @@ namespace lwt {
     size_t m_n_outputs;
   };
 
+  // sequence nodes
+  class ISequenceNode
+  {
+  public:
+    virtual ~ISequenceNode() {}
+    virtual MatrixXd scan(const ISource&) const = 0;
+    virtual size_t n_outputs() const = 0;
+  };
+
+  class InputSequenceNode: public ISequenceNode
+  {
+  public:
+    InputSequenceNode(size_t index, size_t n_outputs);
+    virtual MatrixXd scan(const ISource&) const;
+    virtual size_t n_outputs() const;
+  private:
+    size_t m_index;
+    size_t m_n_outputs;
+  };
+
+  class SequenceNode: public ISequenceNode, public INode
+  {
+  public:
+    SequenceNode(const RecurrentStack*, const ISequenceNode* source);
+    virtual MatrixXd scan(const ISource&) const;
+    virtual VectorXd compute(const ISource&) const;
+    virtual size_t n_outputs() const;
+  private:
+    const RecurrentStack* m_stack;
+    const ISequenceNode* m_source;
+  };
 
   // Graph class, owns the nodes
   class Graph

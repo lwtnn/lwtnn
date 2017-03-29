@@ -7,8 +7,10 @@
 namespace lwt {
 
   // Sources
-  VectorSource::VectorSource(std::vector<VectorXd>&& vv):
-    m_inputs(std::move(vv))
+  VectorSource::VectorSource(std::vector<VectorXd>&& vv,
+                             std::vector<MatrixXd>&& mm):
+    m_inputs(std::move(vv)),
+    m_matrix_inputs(std::move(mm))
   {
   }
   VectorXd VectorSource::at(size_t index) const {
@@ -18,9 +20,18 @@ namespace lwt {
     }
     return m_inputs.at(index);
   }
+  MatrixXd VectorSource::matrix_at(size_t index) const {
+    if (index >= m_matrix_inputs.size()) {
+      throw NNEvaluationException(
+        "VectorSource: no source matrix defined at " + std::to_string(index));
+    }
+    return m_matrix_inputs.at(index);
+  }
 
-  DummySource::DummySource(const std::vector<size_t>& input_sizes):
-    m_sizes(input_sizes)
+  DummySource::DummySource(const std::vector<size_t>& input_sizes,
+                           const std::vector<std::pair<size_t,size_t> >& ma):
+    m_sizes(input_sizes),
+    m_matrix_sizes(ma)
   {
   }
   VectorXd DummySource::at(size_t index) const {
@@ -34,6 +45,21 @@ namespace lwt {
       vec(iii) = iii;
     }
     return vec;
+  }
+  MatrixXd DummySource::matrix_at(size_t index) const {
+    if (index >= m_sizes.size()) {
+      throw NNEvaluationException(
+        "Dummy Source: no size defined at " + std::to_string(index));
+    }
+    size_t n_rows = m_matrix_sizes.at(index).first;
+    size_t n_cols = m_matrix_sizes.at(index).second;
+    MatrixXd mat(n_rows, n_cols);
+    for (size_t iii = 0; iii < n_rows; iii++) {
+      for (size_t jjj = 0; jjj < n_cols; jjj++) {
+        mat(iii, jjj) = jjj + n_cols * iii;
+      }
+    }
+    return mat;
   }
 
 
@@ -95,6 +121,47 @@ namespace lwt {
     return m_n_outputs;
   }
 
+  // Sequence nodes
+  InputSequenceNode::InputSequenceNode(size_t index, size_t n_outputs):
+    m_index(index),
+    m_n_outputs(n_outputs)
+  {
+  }
+  MatrixXd InputSequenceNode::scan(const ISource& source) const {
+    MatrixXd output = source.matrix_at(m_index);
+    assert(output.rows() > 0);
+    if (output.cols() == 0) {
+      throw NNEvaluationException("zero length input sequence");
+    }
+    if (static_cast<size_t>(output.rows()) != m_n_outputs) {
+      std::string len = std::to_string(output.rows());
+      std::string found = std::to_string(m_n_outputs);
+      throw NNEvaluationException(
+        "Found vector of length " + len + ", expected " + found);
+    }
+    return output;
+  }
+  size_t InputSequenceNode::n_outputs() const {
+    return m_n_outputs;
+  }
+
+  SequenceNode::SequenceNode(const RecurrentStack* stack,
+                             const ISequenceNode* source) :
+    m_stack(stack),
+    m_source(source)
+  {
+  }
+  MatrixXd SequenceNode::scan(const ISource& source) const {
+    return m_stack->scan(m_source->scan(source));
+  }
+  VectorXd SequenceNode::compute(const ISource& src) const {
+    MatrixXd mat = scan(src);
+    size_t n_cols = mat.cols();
+    return mat.col(n_cols - 1);
+  }
+  size_t SequenceNode::n_outputs() const {
+    return m_stack->n_outputs();
+  }
 }
 
 namespace {
