@@ -61,7 +61,7 @@ namespace lwt {
   LightweightRNN::LightweightRNN(const std::vector<Input>& inputs,
                                  const std::vector<LayerConfig>& layers,
                                  const std::vector<std::string>& outputs):
-    m_stack(new RecurrentStack(inputs.size(), layers)),
+    m_stack(new ReductionStack(inputs.size(), layers)),
     m_preproc(new InputPreprocessor(inputs)),
     m_vec_preproc(new InputVectorPreprocessor(inputs)),
     m_outputs(outputs.begin(), outputs.end()),

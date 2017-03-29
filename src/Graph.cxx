@@ -126,15 +126,20 @@ namespace {
     return new FeedForwardNode(stack_map.at(layer_n), source);
   }
 
+  struct GraphMaps
+  {
+    std::map<size_t, INode*> node;
+    std::map<size_t, Stack*> stack;
+  };
+
   void build_node(size_t iii,
                   const std::vector<NodeConfig>& nodes,
                   const std::vector<LayerConfig>& layers,
                   std::vector<INode*>& m_nodes,
                   std::vector<Stack*>& m_stacks,
-                  std::map<size_t, INode*>& node_map,
-                  std::map<size_t, Stack*>& stack_map,
+                  GraphMaps& maps,
                   std::set<size_t> cycle_check = {}) {
-    if (node_map.count(iii)) return;
+    if (maps.node.count(iii)) return;
     if (iii >= nodes.size()) throw_cfg("no node index", iii);
 
     const NodeConfig& node = nodes.at(iii);
@@ -147,7 +152,7 @@ namespace {
       if (node.index < 0) throw_cfg(
         "input node needs positive index, got", node.index);
       m_nodes.push_back(new InputNode(node.sources.at(0), node.index));
-      node_map[iii] = m_nodes.back();
+      maps.node[iii] = m_nodes.back();
       return;
     }
 
@@ -158,14 +163,14 @@ namespace {
     cycle_check.insert(iii);
     for (size_t source_node: node.sources) {
       build_node(source_node, nodes, layers,
-                 m_nodes, m_stacks, node_map, stack_map, cycle_check);
+                 m_nodes, m_stacks, maps, cycle_check);
     }
 
     // build feed forward layer
     if (node.type == NodeConfig::Type::FEED_FORWARD) {
       m_nodes.push_back(
-        get_feedforward_node(node, layers, node_map, stack_map, m_stacks));
-      node_map[iii] = m_nodes.back();
+        get_feedforward_node(node, layers, maps.node, maps.stack, m_stacks));
+      maps.node[iii] = m_nodes.back();
       return;
     }
 
@@ -173,10 +178,10 @@ namespace {
     if (node.type == NodeConfig::Type::CONCATENATE) {
       std::vector<const INode*> in_nodes;
       for (size_t source_node: node.sources) {
-        in_nodes.push_back(node_map.at(source_node));
+        in_nodes.push_back(maps.node.at(source_node));
       }
       m_nodes.push_back(new ConcatenateNode(in_nodes));
-      node_map[iii] = m_nodes.back();
+      maps.node[iii] = m_nodes.back();
       return;
     }
     throw NNConfigurationException("unknown node type");
@@ -198,14 +203,12 @@ namespace lwt {
   }
   Graph::Graph(const std::vector<NodeConfig>& nodes,
                const std::vector<LayerConfig>& layers) {
-    std::map<size_t, INode*> node_map;
-    std::map<size_t, Stack*> stack_map;
+    GraphMaps maps;
     for (size_t iii = 0; iii < nodes.size(); iii++) {
       build_node(iii, nodes, layers,
-                 m_nodes, m_stacks,
-                 node_map, stack_map);
+                 m_nodes, m_stacks, maps);
     }
-    assert(node_map.size() == nodes.size());
+    assert(maps.node.size() == nodes.size());
   }
   Graph::~Graph() {
     for (auto node: m_nodes) {

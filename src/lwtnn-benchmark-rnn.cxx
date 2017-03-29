@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
   }
 
   size_t n_inputs = config.inputs.size();
-  lwt::RecurrentStack stack(n_inputs, config.layers);
+  lwt::ReductionStack stack(n_inputs, config.layers);
   lwt::LightweightRNN rnn(config.inputs, config.layers, config.outputs);
   Eigen::VectorXd sum_outputs = Eigen::VectorXd::Zero(stack.n_outputs());
   size_t n_loops = 1;

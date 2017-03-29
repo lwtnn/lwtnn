@@ -172,16 +172,33 @@ namespace lwt {
     ~RecurrentStack();
     RecurrentStack(RecurrentStack&) = delete;
     RecurrentStack& operator=(RecurrentStack&) = delete;
-    VectorXd reduce(MatrixXd inputs) const;
+    MatrixXd scan(MatrixXd inputs) const;
     size_t n_outputs() const;
   private:
     std::vector<IRecurrentLayer*> m_layers;
     size_t add_lstm_layers(size_t n_inputs, const LayerConfig&);
     size_t add_gru_layers(size_t n_inputs, const LayerConfig&);
     size_t add_embedding_layers(size_t n_inputs, const LayerConfig&);
-    Stack* m_stack;
+    size_t m_n_outputs;
   };
 
+  // This is the old RecurrentStack. Should probably absorb this into
+  // the high-level interface in LightweightRNN, since all it does is
+  // provide a slightly higher-level interface to a network which
+  // combines recurrent + ff layers.
+  class ReductionStack
+  {
+  public:
+    ReductionStack(size_t n_in, const std::vector<LayerConfig>& layers);
+    ~ReductionStack();
+    ReductionStack(ReductionStack&) = delete;
+    ReductionStack& operator=(ReductionStack&) = delete;
+    VectorXd reduce(MatrixXd inputs) const;
+    size_t n_outputs() const;
+  private:
+    RecurrentStack* m_recurrent;
+    Stack* m_stack;
+  };
 
   // __________________________________________________________________
   // Recurrent layers

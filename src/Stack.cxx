@@ -265,9 +265,8 @@ namespace lwt {
                                  const std::vector<lwt::LayerConfig>& layers)
   {
     using namespace lwt;
-    size_t layer_n = 0;
     const size_t n_layers = layers.size();
-    for (;layer_n < n_layers; layer_n++) {
+    for (size_t layer_n = 0; layer_n < n_layers; layer_n++) {
       auto& layer = layers.at(layer_n);
 
       // add recurrent layers (now LSTM and GRU!)
@@ -278,29 +277,25 @@ namespace lwt {
       } else if (layer.architecture == Architecture::EMBEDDING) {
         n_inputs = add_embedding_layers(n_inputs, layer);
       } else {
-        // leave this loop if we're done with the recurrent stuff
-        break;
+        throw NNConfigurationException("found non-recurrent layer");
       }
     }
-    // fill the remaining dense layers
-    m_stack = new Stack(n_inputs, layers, layer_n);
+    m_n_outputs = n_inputs;
   }
   RecurrentStack::~RecurrentStack() {
     for (auto& layer: m_layers) {
       delete layer;
       layer = 0;
     }
-    delete m_stack;
-    m_stack = 0;
   }
-  VectorXd RecurrentStack::reduce(MatrixXd in) const {
+  MatrixXd RecurrentStack::scan(MatrixXd in) const {
     for (auto* layer: m_layers) {
       in = layer->scan(in);
     }
-    return m_stack->compute(in.col(in.cols() - 1));
+    return in;
   }
   size_t RecurrentStack::n_outputs() const {
-    return m_stack->n_outputs();
+    return m_n_outputs;
   }
 
   size_t RecurrentStack::add_lstm_layers(size_t n_inputs,
@@ -343,6 +338,34 @@ namespace lwt {
       n_inputs += emb.n_out - 1;
     }
     return n_inputs;
+  }
+
+  ReductionStack::ReductionStack(size_t n_in,
+                                 const std::vector<LayerConfig>& layers) {
+    std::vector<LayerConfig> recurrent;
+    std::vector<LayerConfig> feed_forward;
+    std::set<Architecture> recurrent_arcs{
+      Architecture::LSTM, Architecture::GRU, Architecture::EMBEDDING};
+    for (const auto& layer: layers) {
+      if (recurrent_arcs.count(layer.architecture)) {
+        recurrent.push_back(layer);
+      } else {
+        feed_forward.push_back(layer);
+      }
+    }
+    m_recurrent = new RecurrentStack(n_in, recurrent);
+    m_stack = new Stack(m_recurrent->n_outputs(), feed_forward);
+  }
+  ReductionStack::~ReductionStack() {
+    delete m_recurrent;
+    delete m_stack;
+  }
+  VectorXd ReductionStack::reduce(MatrixXd in) const {
+    in = m_recurrent->scan(in);
+    return m_stack->compute(in.col(in.cols() -1));
+  }
+  size_t ReductionStack::n_outputs() const {
+    return m_stack->n_outputs();
   }
 
   // __________________________________________________________________

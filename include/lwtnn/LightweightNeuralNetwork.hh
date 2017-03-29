@@ -21,7 +21,7 @@
 namespace lwt {
 
   class Stack;
-  class RecurrentStack;
+  class ReductionStack;
   class InputPreprocessor;
   class InputVectorPreprocessor;
 
@@ -76,7 +76,7 @@ namespace lwt {
     ValueMap reduce(const std::vector<ValueMap>&) const;
     ValueMap reduce(const VectorMap&) const;
   private:
-    RecurrentStack* m_stack;
+    ReductionStack* m_stack;
     InputPreprocessor* m_preproc;
     InputVectorPreprocessor* m_vec_preproc;
     std::vector<std::string> m_outputs;
