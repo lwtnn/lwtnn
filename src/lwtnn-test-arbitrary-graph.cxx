@@ -3,11 +3,19 @@
 
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 namespace {
   // ramp function so that the inputs _after_ normalization fall on the
   // [-1,1] range, i.e. `np.linspace(-1, 1, n_entries)`
   double ramp(const lwt::Input& in, size_t pos, size_t n_entries);
+
+  // sequence things
+  double ramp(const lwt::Input& in, size_t x, size_t y,
+              size_t n_x, size_t n_y);
+  lwt::LightweightGraph::SeqNodeMap get_sequences(
+    const std::vector<lwt::InputNodeConfig>& config);
+
   int run_on_generated(const lwt::GraphConfig& config);
 }
 
@@ -35,7 +43,9 @@ int main(int argc, char* argv[]) {
 }
 namespace {
   int run_on_generated(const lwt::GraphConfig& config) {
-    lwt::LightweightGraph tagger(config);
+    using namespace lwt;
+    assert(config.outputs.size() > 0);
+    lwt::LightweightGraph tagger(config, config.outputs.begin()->first);
     std::map<std::string, std::map<std::string, double> > in_nodes;
 
     for (const auto& input: config.inputs) {
@@ -48,7 +58,8 @@ namespace {
       }
       in_nodes[input.name] = in_vals;
     }
-    auto out_vals = tagger.compute(in_nodes);
+    LightweightGraph::SeqNodeMap seq = get_sequences(config.input_sequences);
+    auto out_vals = tagger.compute(in_nodes, seq);
     for (const auto& out: out_vals) {
       std::cout << out.first << " " << out.second << std::endl;
     }
@@ -60,5 +71,40 @@ namespace {
     double x = ( (n_entries == 1) ? 0 : (-1 + pos * step) );
     return x / in.scale - in.offset;
   }
+  // 2d ramp function, see declaration above
+  double ramp(const lwt::Input& in, size_t x, size_t y,
+              size_t n_x, size_t n_y) {
+    assert(x < n_x);
+    assert(y < n_y);
+    double s_x = 2.0 / (n_x - 1);
+    double s_y = 2.0 / (n_y - 1);
+    double x_m = ( (n_x == 1) ? 0 : (-1.0 + x * s_x) );
+    double y_m = ( (n_y == 1) ? 0 : (-1.0 + y * s_y) );
+    return x_m * y_m / in.scale - in.offset;
+  }
 
+  lwt::VectorMap get_values_vec(const std::vector<lwt::Input>& inputs,
+                                size_t n_patterns) {
+    lwt::VectorMap out;
+
+    // ramp through the input multiplier
+    const size_t total_inputs = inputs.size();
+    for (size_t jjj = 0; jjj < n_patterns; jjj++) {
+      for (size_t nnn = 0; nnn < total_inputs; nnn++) {
+        const auto& input = inputs.at(nnn);
+        double ramp_val = ramp(input, nnn, jjj, total_inputs, n_patterns);
+        out[input.name].push_back(ramp_val);
+      }
+    }
+    return out;
+  }
+
+  lwt::LightweightGraph::SeqNodeMap get_sequences(
+    const std::vector<lwt::InputNodeConfig>& config) {
+    lwt::LightweightGraph::SeqNodeMap nodes;
+    for (const auto& input: config) {
+      nodes[input.name] = get_values_vec(input.variables, 20);
+    }
+    return nodes;
+  }
 }

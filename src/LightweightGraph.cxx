@@ -9,7 +9,8 @@ namespace {
 
   // utility functions
   typedef LightweightGraph::NodeMap NodeMap;
-  typedef std::vector<std::pair<std::string, InputPreprocessor*> > Preprocs;
+  typedef InputPreprocessor IP;
+  typedef std::vector<std::pair<std::string, IP*> > Preprocs;
   std::vector<VectorXd> get_input_vectors(const NodeMap& nodes,
                                           const Preprocs& preprocs) {
     std::vector<VectorXd> input_vectors;
@@ -21,6 +22,21 @@ namespace {
       input_vectors.emplace_back(preproc(nodes.at(proc.first)));
     }
     return input_vectors;
+  }
+  typedef LightweightGraph::SeqNodeMap SeqNodeMap;
+  typedef InputVectorPreprocessor IVP;
+  typedef std::vector<std::pair<std::string, IVP*> > VecPreprocs;
+  std::vector<MatrixXd> get_input_seq(const SeqNodeMap& nodes,
+                                      const VecPreprocs& preprocs) {
+    std::vector<MatrixXd> input_mats;
+    for (const auto& proc: preprocs) {
+      if (!nodes.count(proc.first)) {
+        throw NNEvaluationException("Can't find node " + proc.first);
+      }
+      const auto& preproc = *proc.second;
+      input_mats.emplace_back(preproc(nodes.at(proc.first)));
+    }
+    return input_mats;
   }
 
 }
@@ -36,6 +52,10 @@ namespace lwt {
     for (const auto& node: config.inputs) {
       m_preprocs.emplace_back(
         node.name, new InputPreprocessor(node.variables));
+    }
+    for (const auto& node: config.input_sequences) {
+      m_vec_preprocs.emplace_back(
+        node.name, new InputVectorPreprocessor(node.variables));
     }
     size_t output_n = 0;
     for (const auto& node: config.outputs) {
@@ -61,20 +81,29 @@ namespace lwt {
       delete preproc.second;
       preproc.second = 0;
     }
+    for (auto& preproc: m_vec_preprocs) {
+      delete preproc.second;
+      preproc.second = 0;
+    }
   }
 
-  ValueMap LightweightGraph::compute(const NodeMap& nodes) const {
-    return compute(nodes, m_default_output);
+  ValueMap LightweightGraph::compute(const NodeMap& nodes,
+                                     const SeqNodeMap& seq) const {
+    return compute(nodes, seq, m_default_output);
   }
   ValueMap LightweightGraph::compute(const NodeMap& nodes,
+                                     const SeqNodeMap& seq,
                                      const std::string& output) const {
     if (!m_output_indices.count(output)) {
       throw NNEvaluationException("no output node " + output);
     }
-    return compute(nodes, m_output_indices.at(output));
+    return compute(nodes, seq, m_output_indices.at(output));
   }
-  ValueMap LightweightGraph::compute(const NodeMap& nodes, size_t idx) const {
-    VectorSource source(get_input_vectors(nodes, m_preprocs));
+  ValueMap LightweightGraph::compute(const NodeMap& nodes,
+                                     const SeqNodeMap& seq,
+                                     size_t idx) const {
+    VectorSource source(get_input_vectors(nodes, m_preprocs),
+                        get_input_seq(seq, m_vec_preprocs));
     VectorXd result = m_graph->compute(source, m_outputs.at(idx).first);
     const std::vector<std::string>& labels = m_outputs.at(idx).second;
     std::map<std::string, double> output;
