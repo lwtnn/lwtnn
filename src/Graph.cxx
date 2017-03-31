@@ -239,8 +239,9 @@ namespace lwt {
       node.second = nullptr;
     }
     for (auto node: m_seq_nodes) {
-      // m_nodes is the owner of anything that inherits from both
-      // don't have m_seq_nodes try to delete it too
+      // The m_nodes collection is the owner of anything that inherits
+      // from both INode and ISequenceNode. So we try not to delete
+      // anything that the m_nodes would already take care of.
       if (!m_nodes.count(node.first)) delete node.second;
       node.second = nullptr;
     }

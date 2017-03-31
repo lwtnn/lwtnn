@@ -13,13 +13,14 @@
 
 namespace lwt {
 
+  typedef std::map<std::string, std::vector<double> > VectorMap;
+
   struct Input
   {
     std::string name;
     double offset;
     double scale;
   };
-
 
   // feed forward structure
   //
