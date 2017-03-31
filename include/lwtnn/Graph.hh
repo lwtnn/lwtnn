@@ -6,6 +6,8 @@
 #include <Eigen/Dense>
 
 #include <vector>
+#include <unordered_map>
+#include <set>
 
 namespace lwt {
 
@@ -134,10 +136,16 @@ namespace lwt {
     VectorXd compute(const ISource&, size_t node_number) const;
     VectorXd compute(const ISource&) const;
   private:
-    std::vector<INode*> m_nodes;
-    std::vector<Stack*> m_stacks;
-    std::vector<ISequenceNode*> m_seq_nodes;
-    std::vector<RecurrentStack*> m_seq_stacks;
+    void build_node(const size_t,
+                    const std::vector<NodeConfig>& nodes,
+                    const std::vector<LayerConfig>& layers,
+                    std::set<size_t> cycle_check = {});
+
+    std::unordered_map<size_t, INode*> m_nodes;
+    size_t m_last_node; // <-- convenience for graphs with one output
+    std::unordered_map<size_t, Stack*> m_stacks;
+    std::unordered_map<size_t, ISequenceNode*> m_seq_nodes;
+    std::unordered_map<size_t, RecurrentStack*> m_seq_stacks;
     // At some point maybe also convolutional nodes, but we'd have to
     // have a use case for that first.
   };

@@ -184,57 +184,99 @@ namespace {
     }
   }
   // NOTE: you own this pointer!
-  INode* get_feedforward_node(const NodeConfig& node,
-                              const std::vector<LayerConfig>& layers,
-                              const std::map<size_t, INode*>& node_map,
-                              std::map<size_t, Stack*>& stack_map,
-                              std::vector<Stack*>& m_stacks) {
+  INode* get_feedforward_node(
+    const NodeConfig& node,
+    const std::vector<LayerConfig>& layers,
+    const std::unordered_map<size_t, INode*>& node_map,
+    std::unordered_map<size_t, Stack*>& stack_map) {
+
     check_compute_node(node, layers.size());
     INode* source = node_map.at(node.sources.at(0));
     int layer_n = node.index;
     if (!stack_map.count(layer_n)) {
-      m_stacks.push_back(
-        new Stack(source->n_outputs(), {layers.at(layer_n)}));
-      stack_map[layer_n] = m_stacks.back();
+      stack_map[layer_n] = new Stack(source->n_outputs(),
+                                     {layers.at(layer_n)});
     }
     return new FeedForwardNode(stack_map.at(layer_n), source);
   }
   SequenceNode* get_sequence_node(
     const NodeConfig& node,
     const std::vector<LayerConfig>& layers,
-    const std::map<size_t, ISequenceNode*>& node_map,
-    std::map<size_t, RecurrentStack*>& stack_map,
-    std::vector<RecurrentStack*>& m_stacks) {
+    const std::unordered_map<size_t, ISequenceNode*>& node_map,
+    std::unordered_map<size_t, RecurrentStack*>& stack_map) {
 
     check_compute_node(node, layers.size());
     ISequenceNode* source = node_map.at(node.sources.at(0));
     int layer_n = node.index;
     if (!stack_map.count(layer_n)) {
-      m_stacks.push_back(
-        new RecurrentStack(source->n_outputs(), {layers.at(layer_n)}));
-      stack_map[layer_n] = m_stacks.back();
+      stack_map[layer_n] = new RecurrentStack(source->n_outputs(),
+                                              {layers.at(layer_n)});
     }
     return new SequenceNode(stack_map.at(layer_n), source);
   }
+}
 
-  struct GraphMaps
-  {
-    std::map<size_t, INode*> node;
-    std::map<size_t, ISequenceNode*> seq_node;
-    std::map<size_t, Stack*> stack;
-    std::map<size_t, RecurrentStack*> seq_stack;
-  };
+namespace lwt {
+  // graph
+  Graph::Graph() {
+    m_stacks[0] = new Stack;
 
-  void build_node(size_t iii,
-                  const std::vector<NodeConfig>& nodes,
-                  const std::vector<LayerConfig>& layers,
-                  std::vector<INode*>& m_nodes,
-                  std::vector<Stack*>& m_stacks,
-                  std::vector<ISequenceNode*>& m_seq_nodes,
-                  std::vector<RecurrentStack*>& m_seq_stacks,
-                  GraphMaps& maps,
-                  std::set<size_t> cycle_check = {}) {
-    if (maps.node.count(iii)) return;
+    m_nodes[0] = new InputNode(0, 2);
+    m_nodes[1] = new InputNode(1, 2);
+    m_nodes[2] = new ConcatenateNode({m_nodes.at(0), m_nodes.at(1)});
+    m_nodes[3] = new FeedForwardNode(m_stacks.at(0), m_nodes.at(2));
+  }
+  Graph::Graph(const std::vector<NodeConfig>& nodes,
+               const std::vector<LayerConfig>& layers) {
+    for (size_t iii = 0; iii < nodes.size(); iii++) {
+      build_node(iii, nodes, layers);
+    }
+    // assert(maps.node.size() + maps.seq_node.size() == nodes.size());
+  }
+  Graph::~Graph() {
+    for (auto node: m_nodes) {
+      delete node.second;
+      node.second = nullptr;
+    }
+    for (auto node: m_seq_nodes) {
+      if (!m_nodes.count(node.first)) delete node.second;
+      node.second = nullptr;
+    }
+    for (auto stack: m_stacks) {
+      delete stack.second;
+      stack.second = nullptr;
+    }
+    for (auto stack: m_seq_stacks) {
+      delete stack.second;
+      stack.second = nullptr;
+    }
+  }
+  VectorXd Graph::compute(const ISource& source, size_t node_number) const {
+    if (!m_nodes.count(node_number)) {
+      throw NNEvaluationException(
+        "Graph: no output at " + std::to_string(node_number));
+    }
+    return m_nodes.at(node_number)->compute(source);
+  }
+  VectorXd Graph::compute(const ISource& source) const {
+    assert(m_nodes.size() > 0);
+    return m_nodes.at(m_last_node)->compute(source);
+  }
+
+  // ______________________________________________________________________
+  // private methods
+
+  void Graph::build_node(const size_t iii,
+                         const std::vector<NodeConfig>& nodes,
+                         const std::vector<LayerConfig>& layers,
+                         std::set<size_t> cycle_check) {
+    if (m_nodes.count(iii) || m_seq_nodes.count(iii)) return;
+
+    // we insist that the upstream nodes are built before the
+    // downstream ones, so the last node built should be some kind of
+    // sink for graphs with only one output this will be it.
+    m_last_node = iii;
+
     if (iii >= nodes.size()) throw_cfg("no node index", iii);
 
     const NodeConfig& node = nodes.at(iii);
@@ -243,14 +285,12 @@ namespace {
     if (node.type == NodeConfig::Type::INPUT) {
       check_compute_node(node);
       size_t input_number = node.sources.at(0);
-      m_nodes.push_back(new InputNode(input_number, node.index));
-      maps.node[iii] = m_nodes.back();
+      m_nodes[iii] = new InputNode(input_number, node.index);
       return;
     } else if (node.type == NodeConfig::Type::INPUT_SEQUENCE) {
       check_compute_node(node);
       size_t input_number = node.sources.at(0);
-      m_seq_nodes.push_back(new InputSequenceNode(input_number, node.index));
-      maps.seq_node[iii] = m_seq_nodes.back();
+      m_seq_nodes[iii] = new InputSequenceNode(input_number, node.index);
       return;
     }
 
@@ -260,90 +300,28 @@ namespace {
     }
     cycle_check.insert(iii);
     for (size_t source_node: node.sources) {
-      build_node(source_node, nodes, layers,
-                 m_nodes, m_stacks, m_seq_nodes, m_seq_stacks,
-                 maps, cycle_check);
+      build_node(source_node, nodes, layers, cycle_check);
     }
 
-    // build feed forward layer
+    // check node types
     if (node.type == NodeConfig::Type::FEED_FORWARD) {
-      m_nodes.push_back(
-        get_feedforward_node(node, layers, maps.node, maps.stack, m_stacks));
-      maps.node[iii] = m_nodes.back();
-      return;
+      m_nodes[iii] = get_feedforward_node(node, layers,
+                                          m_nodes, m_stacks);
     } else if (node.type == NodeConfig::Type::SEQUENCE) {
       std::unique_ptr<SequenceNode> seq_node(
-        get_sequence_node(node, layers, maps.seq_node, maps.seq_stack,
-                          m_seq_stacks));
-      m_seq_nodes.push_back(seq_node.get());
-      maps.seq_node[iii] = seq_node.get();
-      maps.node[iii] = seq_node.release();
-      return;
-    }
-
-    // build concatenate layer
-    if (node.type == NodeConfig::Type::CONCATENATE) {
+        get_sequence_node(node, layers, m_seq_nodes, m_seq_stacks));
+      m_seq_nodes[iii] = seq_node.get();
+      m_nodes[iii] = seq_node.release();
+    } else if (node.type == NodeConfig::Type::CONCATENATE) {
+      // build concatenate layer
       std::vector<const INode*> in_nodes;
       for (size_t source_node: node.sources) {
-        in_nodes.push_back(maps.node.at(source_node));
+        in_nodes.push_back(m_nodes.at(source_node));
       }
-      m_nodes.push_back(new ConcatenateNode(in_nodes));
-      maps.node[iii] = m_nodes.back();
-      return;
+      m_nodes[iii] = new ConcatenateNode(in_nodes);
+    } else {
+      throw NNConfigurationException("unknown node type");
     }
-    throw NNConfigurationException("unknown node type");
   }
-}
-namespace lwt {
-  // graph
-  Graph::Graph() {
-    m_stacks.push_back(new Stack);
-    Stack* stack = m_stacks.back();
 
-    m_nodes.push_back(new InputNode(0, 2));
-    INode* source1 = m_nodes.back();
-    m_nodes.push_back(new InputNode(1, 2));
-    INode* source2 = m_nodes.back();
-    m_nodes.push_back(new ConcatenateNode({source1, source2}));
-    INode* cat = m_nodes.back();
-    m_nodes.push_back(new FeedForwardNode(stack, cat));
-  }
-  Graph::Graph(const std::vector<NodeConfig>& nodes,
-               const std::vector<LayerConfig>& layers) {
-    GraphMaps maps;
-    for (size_t iii = 0; iii < nodes.size(); iii++) {
-      build_node(iii, nodes, layers,
-                 m_nodes, m_stacks, m_seq_nodes, m_seq_stacks, maps);
-    }
-    // assert(maps.node.size() + maps.seq_node.size() == nodes.size());
-  }
-  Graph::~Graph() {
-    for (auto node: m_nodes) {
-      delete node;
-      node = 0;
-    }
-    for (auto node: m_seq_nodes) {
-      delete node;
-      node = 0;
-    }
-    for (auto stack: m_stacks) {
-      delete stack;
-      stack = 0;
-    }
-    for (auto stack: m_seq_stacks) {
-      delete stack;
-      stack = 0;
-    }
-  }
-  VectorXd Graph::compute(const ISource& source, size_t node_number) const {
-    if (node_number >= m_nodes.size()) {
-      throw NNEvaluationException(
-        "Graph: no node at " + std::to_string(node_number));
-    }
-    return m_nodes.at(node_number)->compute(source);
-  }
-  VectorXd Graph::compute(const ISource& source) const {
-    assert(m_nodes.size() > 0);
-    return m_nodes.back()->compute(source);
-  }
 }
