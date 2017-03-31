@@ -16,58 +16,63 @@ main design principles are:
    consistency. To prevent bugs with incorrectly ordered variables,
    all inputs and outputs are stored in `std::map`s.
 
-We also include converters from several popular formats to the `lwtnn` 
+We also include converters from several popular formats to the `lwtnn`
 JSON format. Currently the following formats are supported:
  - [AGILEPack][ap]
- - [Keras][kr] (most popular, see [supported layers][supported])
- - [Julian's][julian] format, based on Numpy and JSON
- 
+ - [Keras][kr] (most popular, see below)
+
 In particular, the following layers are implemented in the Keras
 sequential and functional models:
 
-|               | K sequential | K functional |
-|---------------|--------------|--------------|
-| Dense         |  yes         |  yes         |
-| Normalization |  yes         |  yes         |
-| Maxout        |  yes         |  yes         |
-| Highway       |  yes         |  yes         |
-| LSTM          |  yes         | [soon][issr] |
-| GRU           |  yes         | [soon][issr] |
-| Embedding     | sorta        | [soon][issr] |
-| Concatenate   |  no          |  yes         |
+|               | K sequential | K functional  |
+|---------------|--------------|---------------|
+| Dense         |  yes         |  yes          |
+| Normalization |  yes         |  yes          |
+| Maxout        |  yes         |  yes          |
+| Highway       |  yes         |  yes          |
+| LSTM          |  yes         |  yes          |
+| GRU           |  yes         |  yes          |
+| Embedding     | sorta        | [issue][ghie] |
+| Concatenate   |  no          |  yes          |
 
-[issr]: https://github.com/lwtnn/lwtnn/issues/38
+[ghie]: https://github.com/lwtnn/lwtnn/issues/39
 
 The converter scripts can be found in `converters/`. Run them with
 `-h` for more information.
+
+[eg]: http://eigen.tuxfamily.org
+[pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
+[ap]: https://github.com/lukedeo/AGILEPack
+[kr]: http://keras.io/
 
 How do I use it?
 ----------------
 
 #### Quick Start ####
 
-After running `make`, just run `./tests/test-agilepack.sh`. If nothing
+After running `make`, just run `./tests/test-ipmp.sh`. If nothing
 goes wrong you should see something like:
 
 ```
-Running conversion ./convert/agile2json.py data/agile-in.yml
-Testing with ./bin/lwtnn-test-arbitrary-net
 all outputs within thresholds!
+ *** Success! ***
 cleaning up
 ```
 
-There may be some problems if you don't have python 3 or don't have
-[`pyyaml`][pyy] installed, but these should be limited to the YAML ->
-JSON converter. At the very least calling `./bin/lwtag-test-hlwrapper`
-with no arguments (which doesn't depend on the converter) should work.
+There may be some problems if you don't have python 3 or
+[`h5py`][h5py]. At the very least you should be able to run
+`./bin/lwtnn-test-graph`, which will spit out a few numbers (and
+nothing else).
+
+[h5py]: http://docs.h5py.org/en/latest/build.html#source-installation-on-linux-and-os-x
 
 #### Cool, what the hell did that do? ####
 
-Take a look inside the test routine, it does a few things:
+Take a look inside the test script, it does a few things:
 
- - Runs `./converters/agile2json.py`. This takes an [AGILEPack][ap]
+ - Runs `./converters/keras2json.py`. This takes a [Keras][kr]
    output and write a JSON file to standard out.
- - Sends the output to `./bin/lwtag-test-arbitrary-net`. This will
+ - Sends the output to `./bin/lwtag-test-rnn`. This will
    construct a NN from the resulting JSON and run a single test
    pattern.
 
@@ -76,16 +81,16 @@ Of course this isn't very useful, to do more you have to understand...
 Code Organization
 -----------------
 
-Code is intentionally organized into only a few files to make it
-easier to copy into existing packages. The main files are:
+Code is organized into a low and high level interface. The main files are:
 
- - `Stack` files: contain the low level NN classes, and any code
-   that relies on Eigen.
- - `LightweightNeuralNetwork` files: contain the high-level wrappers,
-   which implement STL (rather than Eigen) interfaces. To speed up
-   compilation the header file can be included without including
-   Eigen.
- - `NNLayerConfig` header: defines the structures to initialize networks.
+ - `Stack` and `Graph` files: contain the low level NN classes, and
+   any code that relies on Eigen.
+ - `LightweightNeuralNetwork` and `LightweightGraph` files: contain
+   the high-level wrappers, which implement STL (rather than Eigen)
+   interfaces. To speed up compilation the header file can be included
+   without including Eigen.
+ - `NNLayerConfig` and `lightweight_network_config` headers: define
+   the structures to initialize the (low and high level) networks.
  - `parse_json` files: contain functions to build the config
    structures from JSON.
 
@@ -160,22 +165,23 @@ level interface is implemented as `RecurrentStack`. See
 Again, the corresponding model in Keras can be tested with
 `lwtnn-test-keras-rnn.py`.
 
+Graphs
+------
+
+Like the feed-forward models, the graphs (functional models in Keras)
+are broken into low level and high level interfaces. See
+`lwtnn-test-graph.cxx` and `lwtnn-test-lightweight-graph.cxx` for a
+working example.
+
 Have problems?
 --------------
 
-If you find a bug in this code, or have any ideas, criticisms, 
+If you find a bug in this code, or have any ideas, criticisms,
 etc, please email me at `dguest@cern.ch`.
 
-[![Build Status][build-img]][build-link] [![Scan Status][scan-img]][scan-link] 
+[![Build Status][build-img]][build-link] [![Scan Status][scan-img]][scan-link]
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.290682.svg)](https://doi.org/10.5281/zenodo.290682)
 
-[supported]: https://github.com/lwtnn/lwtnn/wiki/Supported-Layers
-[ap]: https://github.com/lukedeo/AGILEPack
-[kr]: http://keras.io/
-[eg]: http://eigen.tuxfamily.org
-[pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
-[pyy]: http://pyyaml.org/wiki/PyYAML
-[julian]: https://github.com/lwtnn/lwtnn/wiki/Julian-file-format
 [build-img]: https://travis-ci.org/lwtnn/lwtnn.svg?branch=master
 [build-link]: https://travis-ci.org/lwtnn/lwtnn
 [scan-img]: https://scan.coverity.com/projects/9285/badge.svg
