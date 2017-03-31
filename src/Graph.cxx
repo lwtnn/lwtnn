@@ -239,6 +239,8 @@ namespace lwt {
       node.second = nullptr;
     }
     for (auto node: m_seq_nodes) {
+      // m_nodes is the owner of anything that inherits from both
+      // don't have m_seq_nodes try to delete it too
       if (!m_nodes.count(node.first)) delete node.second;
       node.second = nullptr;
     }
@@ -310,6 +312,8 @@ namespace lwt {
     } else if (node.type == NodeConfig::Type::SEQUENCE) {
       std::unique_ptr<SequenceNode> seq_node(
         get_sequence_node(node, layers, m_seq_nodes, m_seq_stacks));
+      // entering in m_nodes means that m_nodes will delete this one
+      m_nodes[iii] = nullptr;
       m_seq_nodes[iii] = seq_node.get();
       m_nodes[iii] = seq_node.release();
     } else if (node.type == NodeConfig::Type::CONCATENATE) {
