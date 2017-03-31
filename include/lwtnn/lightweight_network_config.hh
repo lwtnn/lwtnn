@@ -13,13 +13,14 @@
 
 namespace lwt {
 
+  typedef std::map<std::string, std::vector<double> > VectorMap;
+
   struct Input
   {
     std::string name;
     double offset;
     double scale;
   };
-
 
   // feed forward structure
   //
@@ -50,6 +51,7 @@ namespace lwt {
   struct GraphConfig
   {
     std::vector<InputNodeConfig> inputs;
+    std::vector<InputNodeConfig> input_sequences;
     std::vector<NodeConfig> nodes;
     std::map<std::string, OutputNodeConfig> outputs;
     std::vector<LayerConfig> layers;

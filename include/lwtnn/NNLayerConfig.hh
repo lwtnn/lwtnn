@@ -14,7 +14,7 @@
 namespace lwt {
   enum class Activation {NONE, LINEAR, SIGMOID, RECTIFIED, SOFTMAX, TANH,
       HARD_SIGMOID};
-  enum class Architecture {NONE, DENSE, NORMALIZATION, MAXOUT, HIGHWAY, 
+  enum class Architecture {NONE, DENSE, NORMALIZATION, MAXOUT, HIGHWAY,
       LSTM, GRU, EMBEDDING};
   // components (for LSTM, etc)
   enum class Component {
@@ -53,7 +53,8 @@ namespace lwt {
   // graph node configuration
   struct NodeConfig
   {
-    enum class Type { INPUT, FEED_FORWARD, CONCATENATE};
+    enum class Type { INPUT, INPUT_SEQUENCE, FEED_FORWARD,
+        CONCATENATE, SEQUENCE};
     Type type;
     std::vector<size_t> sources;
     int index;                  // input node size, or layer number

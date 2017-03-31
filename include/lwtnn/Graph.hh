@@ -6,10 +6,13 @@
 #include <Eigen/Dense>
 
 #include <vector>
+#include <unordered_map>
+#include <set>
 
 namespace lwt {
 
   class Stack;
+  class RecurrentStack;
 
   using Eigen::VectorXd;
   using Eigen::MatrixXd;
@@ -19,24 +22,30 @@ namespace lwt {
   {
   public:
     virtual VectorXd at(size_t index) const = 0;
+    virtual MatrixXd matrix_at(size_t index) const = 0;
   };
 
   class VectorSource: public ISource
   {
   public:
-    VectorSource(std::vector<VectorXd>&&);
+    VectorSource(std::vector<VectorXd>&&, std::vector<MatrixXd>&& = {});
     virtual VectorXd at(size_t index) const;
+    virtual MatrixXd matrix_at(size_t index) const;
   private:
     std::vector<VectorXd> m_inputs;
+    std::vector<MatrixXd> m_matrix_inputs;
   };
 
   class DummySource: public ISource
   {
   public:
-    DummySource(const std::vector<size_t>& input_sizes);
+    DummySource(const std::vector<size_t>& input_sizes,
+                const std::vector<std::pair<size_t, size_t> >& = {});
     virtual VectorXd at(size_t index) const;
+    virtual MatrixXd matrix_at(size_t index) const;
   private:
     std::vector<size_t> m_sizes;
+    std::vector<std::pair<size_t, size_t> > m_matrix_sizes;
   };
 
 
@@ -82,6 +91,37 @@ namespace lwt {
     size_t m_n_outputs;
   };
 
+  // sequence nodes
+  class ISequenceNode
+  {
+  public:
+    virtual ~ISequenceNode() {}
+    virtual MatrixXd scan(const ISource&) const = 0;
+    virtual size_t n_outputs() const = 0;
+  };
+
+  class InputSequenceNode: public ISequenceNode
+  {
+  public:
+    InputSequenceNode(size_t index, size_t n_outputs);
+    virtual MatrixXd scan(const ISource&) const;
+    virtual size_t n_outputs() const;
+  private:
+    size_t m_index;
+    size_t m_n_outputs;
+  };
+
+  class SequenceNode: public ISequenceNode, public INode
+  {
+  public:
+    SequenceNode(const RecurrentStack*, const ISequenceNode* source);
+    virtual MatrixXd scan(const ISource&) const;
+    virtual VectorXd compute(const ISource&) const;
+    virtual size_t n_outputs() const;
+  private:
+    const RecurrentStack* m_stack;
+    const ISequenceNode* m_source;
+  };
 
   // Graph class, owns the nodes
   class Graph
@@ -96,14 +136,16 @@ namespace lwt {
     VectorXd compute(const ISource&, size_t node_number) const;
     VectorXd compute(const ISource&) const;
   private:
-    std::vector<INode*> m_nodes;
-    std::vector<Stack*> m_stacks;
-    // TODO: add sequence and reduction nodes: sequences for RNN and
-    // time-distributed (i.e. embedding) layers and reduction to
-    // collapse MatrixXd into VectorXd. Reduction nodes could be
-    // inserted while the graph is being constructed by checking for
-    // node dimension mismatches.
-    //
+    void build_node(const size_t,
+                    const std::vector<NodeConfig>& nodes,
+                    const std::vector<LayerConfig>& layers,
+                    std::set<size_t> cycle_check = {});
+
+    std::unordered_map<size_t, INode*> m_nodes;
+    size_t m_last_node; // <-- convenience for graphs with one output
+    std::unordered_map<size_t, Stack*> m_stacks;
+    std::unordered_map<size_t, ISequenceNode*> m_seq_nodes;
+    std::unordered_map<size_t, RecurrentStack*> m_seq_stacks;
     // At some point maybe also convolutional nodes, but we'd have to
     // have a use case for that first.
   };

@@ -36,13 +36,17 @@ def _run():
     with h5py.File(args.hdf5_file, 'r') as h5:
         layers, node_dict = _get_layers_and_nodes(arch, h5)
     input_layer_arch = arch['config']['input_layers']
-    nodes = _build_output_node_list(node_dict, input_layer_arch)
+    nodes = _build_node_list(node_dict, input_layer_arch)
 
+    vars_per_input = _get_vars_per_input(input_layer_arch, node_dict)
     out_dict = {
         'layers': layers, 'nodes': nodes,
         'inputs': _parse_inputs(
             variables['inputs'],
-            _get_vars_per_input(input_layer_arch, node_dict)),
+            vars_per_input[1]),
+        'input_sequences': _parse_inputs(
+            variables['input_sequences'],
+            vars_per_input[2]),
         'outputs': _parse_outputs(
             variables['outputs'],
             arch['config']['output_layers'],
@@ -84,25 +88,31 @@ def _build_variables_file(args):
     with h5py.File(args.hdf5_file, 'r') as h5:
         layers, node_dict = _get_layers_and_nodes(arch, h5)
     input_layer_arch = arch['config']['input_layers']
-    inputs = []
     vars_per_input = _get_vars_per_input(input_layer_arch, node_dict)
-    for nodenum, n_vars in sorted(vars_per_input.items()):
-        def get_input(n):
-            return {'name': 'variable_{}'.format(n), 'scale': 1, 'offset':0}
-        the_input = {
-            'name': 'node_{}'.format(nodenum),
-            'variables': [get_input(n) for n in range(n_vars)]
-        }
-        inputs.append(the_input)
+    def get_input(n):
+        return {'name': 'variable_{}'.format(n), 'scale': 1, 'offset':0}
+    def build_inputs(input_items):
+        inputs = []
+        for nodenum, n_vars in input_items:
+            the_input = {
+                'name': 'node_{}'.format(nodenum),
+                'variables': [get_input(n) for n in range(n_vars)]
+            }
+            inputs.append(the_input)
+        return inputs
+    inputs = build_inputs(sorted(vars_per_input[1].items()))
+    seq_inputs = build_inputs(sorted(vars_per_input[2].items()))
     outputs = []
     for kname, kid, ks in arch['config']['output_layers']:
         node = node_dict[(kname, kid)]
         output = {
-            'name': kname,
+            'name': '{}_{}'.format(kname, kid),
             'labels': ['out_{}'.format(x) for x in range(node.n_outputs)]
         }
         outputs.append(output)
-    out_dict = {'inputs': inputs, 'outputs': outputs}
+    out_dict = {
+        'inputs': inputs, 'input_sequences': seq_inputs,
+        'outputs': outputs}
     print(json.dumps(out_dict, indent=2, sort_keys=True))
 
 
@@ -125,13 +135,16 @@ class Node:
         self.number = None
         self.layer_number = None
         self.n_outputs = None
+        self.dims = None
         inbound = layer['inbound_nodes']
         if self.layer_type != "inputlayer":
             for sname, sidx, something in inbound[idx]:
                 assert something == 0
                 self.sources.append( (sname, sidx) )
         else:
-            self.n_outputs = layer['config']['batch_input_shape'][1]
+            shape = layer['config']['batch_input_shape']
+            self.n_outputs = shape[-1]
+            self.dims = len(shape) - 1
         self.keras_layer = layer
 
     def __str__(self):
@@ -151,17 +164,18 @@ class Node:
 def _build_node_dict(network):
     layers = {l['name']: l for l in network['config']['layers']}
     nodes = {}
-    for top_name, top_layer in layers.items():
-        if (top_name, 0) not in nodes:
-            nodes[(top_name, 0)] = Node(top_layer, 0)
-        for sink in top_layer['inbound_nodes']:
-            for merge_node in sink:
-                lname, idx, something = merge_node
-                assert something == 0
-                layer = layers[lname]
-                id_tup = (lname, idx)
-                if id_tup not in nodes:
-                    nodes[id_tup] = Node(layer, idx)
+
+    # first get the nodes that something points to
+    for layer in layers.values():
+        for sink in layer['inbound_nodes']:
+            for kname, kid, something in sink:
+                nodes[(kname, kid)] = Node(layers[kname], kid)
+
+    # get the output nodes now
+    for kname, kid, something in network['config']['output_layers']:
+        id_tup = (kname, kid)
+        if id_tup not in nodes:
+            nodes[id_tup] = Node(layers[kname], kid)
 
     # now we collapse the node references
     for node in nodes.values():
@@ -221,15 +235,22 @@ _node_type_map = {
     'merge': 'concatenate',
     'inputlayer': 'input',
     'dense': 'feed_forward',
+    'lstm': 'sequence',
 }
 
-def _build_output_node_list(node_dict, input_layer_arch):
+def _build_node_list(node_dict, input_layer_arch):
     """
     no effort is made to sort this list in any way, but the ordering
     is important because each node contains indices for other nodes
     """
     node_list = []
-    input_map = {n[0]:i for i, n in enumerate(input_layer_arch)}
+    input_map = {}
+    for kname, kid, ks in input_layer_arch:
+        node = node_dict[(kname, kid)]
+        submap = input_map.setdefault(node.dims, {})
+        n_in = len(submap)
+        submap[kname] = n_in
+
     for node in sorted(node_dict.values()):
         node_type = _node_type_map[node.layer_type]
         out_node = {'type': node_type}
@@ -237,9 +258,11 @@ def _build_output_node_list(node_dict, input_layer_arch):
             out_node['sources'] = [n.number for n in node.sources]
 
         if node_type == 'input':
-            out_node['sources'] = [input_map[node.name]]
+            out_node['sources'] = [input_map[node.dims][node.name]]
             out_node['size'] = node.n_outputs
-        elif node_type == 'feed_forward':
+            if node.dims > 1:
+                out_node['type'] = 'input_sequence'
+        elif node_type in ['feed_forward', 'sequence']:
             out_node['layer_index'] = node.layer_number
         node_list.append(out_node)
     return node_list
@@ -256,10 +279,12 @@ def _get_layers_and_nodes(network, h5):
     return output_layers, node_dict
 
 def _get_vars_per_input(input_layer_arch, node_dict):
-    vars_per_input = {}
-    for nodenum, (lname, lidx, something) in enumerate(input_layer_arch):
+    vars_per_input = {1: {}, 2: {}}
+    for lname, lidx, something in input_layer_arch:
         assert lidx == 0 and something == 0
-        vars_per_input[nodenum] = node_dict[(lname, lidx)].n_outputs
+        node = node_dict[(lname, lidx)]
+        nodenum = len(vars_per_input[node.dims])
+        vars_per_input[node.dims][nodenum] = node.n_outputs
     return vars_per_input
 
 def _parse_inputs(input_list, vars_per_input):
@@ -284,7 +309,7 @@ def _parse_outputs(user_outputs, output_layers, node_dict):
     assert len(user_outputs) == len(output_layers)
     for num, (usr, ker) in enumerate(zip(user_outputs, output_layers)):
         kname, kid, ks = ker
-        assert kid == 0 and ks == 0
+        assert ks == 0
         node = node_dict[(kname, kid)]
         assert node.n_outputs == len(usr['labels'])
         assert usr['name'] not in outputs

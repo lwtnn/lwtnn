@@ -1,13 +1,16 @@
 #include "lwtnn/LightweightGraph.hh"
 #include "lwtnn/parse_json.hh"
 
+#include "test_utilities.hh"
+
 #include <iostream>
 #include <fstream>
+#include <cassert>
 
 namespace {
-  // ramp function so that the inputs _after_ normalization fall on the
-  // [-1,1] range, i.e. `np.linspace(-1, 1, n_entries)`
-  double ramp(const lwt::Input& in, size_t pos, size_t n_entries);
+  lwt::LightweightGraph::SeqNodeMap get_sequences(
+    const std::vector<lwt::InputNodeConfig>& config);
+
   int run_on_generated(const lwt::GraphConfig& config);
 }
 
@@ -35,7 +38,9 @@ int main(int argc, char* argv[]) {
 }
 namespace {
   int run_on_generated(const lwt::GraphConfig& config) {
-    lwt::LightweightGraph tagger(config);
+    using namespace lwt;
+    assert(config.outputs.size() > 0);
+    lwt::LightweightGraph tagger(config, config.outputs.begin()->first);
     std::map<std::string, std::map<std::string, double> > in_nodes;
 
     for (const auto& input: config.inputs) {
@@ -48,17 +53,23 @@ namespace {
       }
       in_nodes[input.name] = in_vals;
     }
-    auto out_vals = tagger.compute(in_nodes);
-    for (const auto& out: out_vals) {
-      std::cout << out.first << " " << out.second << std::endl;
+    LightweightGraph::SeqNodeMap seq = get_sequences(config.input_sequences);
+    for (const auto& output: config.outputs) {
+      auto out_vals = tagger.compute(in_nodes, seq, output.first);
+      std::cout << output.first << ":" << std::endl;
+      for (const auto& out: out_vals) {
+        std::cout << out.first << " " << out.second << std::endl;
+      }
     }
     return 0;
   }
 
-  double ramp(const lwt::Input& in, size_t pos, size_t n_entries) {
-    double step = 2.0 / (n_entries - 1);
-    double x = ( (n_entries == 1) ? 0 : (-1 + pos * step) );
-    return x / in.scale - in.offset;
+  lwt::LightweightGraph::SeqNodeMap get_sequences(
+    const std::vector<lwt::InputNodeConfig>& config) {
+    lwt::LightweightGraph::SeqNodeMap nodes;
+    for (const auto& input: config) {
+      nodes[input.name] = get_values_vec(input.variables, 20);
+    }
+    return nodes;
   }
-
 }

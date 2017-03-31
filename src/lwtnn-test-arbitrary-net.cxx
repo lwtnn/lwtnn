@@ -2,6 +2,8 @@
 #include "lwtnn/parse_json.hh"
 #include "lwtnn/NanReplacer.hh"
 
+#include "test_utilities.hh"
+
 #include <Eigen/Dense>
 
 #include <iostream>
@@ -13,22 +15,9 @@ namespace {
   int run_on_files(const lwt::JSONConfig& config,
                    const std::string& vars,
                    const std::string& vals);
-  // ramp function so that the inputs _after_ normalization fall on the
-  // [-1,1] range, i.e. `np.linspace(-1, 1, n_entries)`
-  double ramp(const lwt::Input& in, size_t pos, size_t n_entries);
   int run_on_generated(const lwt::JSONConfig& config);
 }
 
-std::vector<std::string> parse_line(std::string& line) {
-  std::stringstream          line_stream(line);
-  std::string                cell;
-
-  std::vector<std::string>   result;
-  while(line_stream >> cell) {
-    result.push_back(cell);
-  }
-  return result;
-}
 
 void usage(const std::string& name) {
   std::cout << "usage: " << name << " <nn config> [<labels> <values>]\n"
@@ -113,12 +102,6 @@ namespace {
     }
 
     return 0;
-  }
-
-  double ramp(const lwt::Input& in, size_t pos, size_t n_entries) {
-    double step = 2.0 / (n_entries - 1);
-    double x = ( (n_entries == 1) ? 0 : (-1 + pos * step) );
-    return x / in.scale - in.offset;
   }
 
 }

@@ -3,12 +3,15 @@
 #include "lwtnn/Stack.hh"
 
 #include <set>
+#include <memory>
 
 namespace lwt {
 
   // Sources
-  VectorSource::VectorSource(std::vector<VectorXd>&& vv):
-    m_inputs(std::move(vv))
+  VectorSource::VectorSource(std::vector<VectorXd>&& vv,
+                             std::vector<MatrixXd>&& mm):
+    m_inputs(std::move(vv)),
+    m_matrix_inputs(std::move(mm))
   {
   }
   VectorXd VectorSource::at(size_t index) const {
@@ -18,9 +21,18 @@ namespace lwt {
     }
     return m_inputs.at(index);
   }
+  MatrixXd VectorSource::matrix_at(size_t index) const {
+    if (index >= m_matrix_inputs.size()) {
+      throw NNEvaluationException(
+        "VectorSource: no source matrix defined at " + std::to_string(index));
+    }
+    return m_matrix_inputs.at(index);
+  }
 
-  DummySource::DummySource(const std::vector<size_t>& input_sizes):
-    m_sizes(input_sizes)
+  DummySource::DummySource(const std::vector<size_t>& input_sizes,
+                           const std::vector<std::pair<size_t,size_t> >& ma):
+    m_sizes(input_sizes),
+    m_matrix_sizes(ma)
   {
   }
   VectorXd DummySource::at(size_t index) const {
@@ -34,6 +46,21 @@ namespace lwt {
       vec(iii) = iii;
     }
     return vec;
+  }
+  MatrixXd DummySource::matrix_at(size_t index) const {
+    if (index >= m_matrix_sizes.size()) {
+      throw NNEvaluationException(
+        "Dummy Source: no size defined at " + std::to_string(index));
+    }
+    size_t n_rows = m_matrix_sizes.at(index).first;
+    size_t n_cols = m_matrix_sizes.at(index).second;
+    MatrixXd mat(n_rows, n_cols);
+    for (size_t iii = 0; iii < n_rows; iii++) {
+      for (size_t jjj = 0; jjj < n_cols; jjj++) {
+        mat(iii, jjj) = jjj + n_cols * iii;
+      }
+    }
+    return mat;
   }
 
 
@@ -95,6 +122,47 @@ namespace lwt {
     return m_n_outputs;
   }
 
+  // Sequence nodes
+  InputSequenceNode::InputSequenceNode(size_t index, size_t n_outputs):
+    m_index(index),
+    m_n_outputs(n_outputs)
+  {
+  }
+  MatrixXd InputSequenceNode::scan(const ISource& source) const {
+    MatrixXd output = source.matrix_at(m_index);
+    assert(output.rows() > 0);
+    if (output.cols() == 0) {
+      throw NNEvaluationException("zero length input sequence");
+    }
+    if (static_cast<size_t>(output.rows()) != m_n_outputs) {
+      std::string len = std::to_string(output.rows());
+      std::string found = std::to_string(m_n_outputs);
+      throw NNEvaluationException(
+        "Found vector of length " + len + ", expected " + found);
+    }
+    return output;
+  }
+  size_t InputSequenceNode::n_outputs() const {
+    return m_n_outputs;
+  }
+
+  SequenceNode::SequenceNode(const RecurrentStack* stack,
+                             const ISequenceNode* source) :
+    m_stack(stack),
+    m_source(source)
+  {
+  }
+  MatrixXd SequenceNode::scan(const ISource& source) const {
+    return m_stack->scan(m_source->scan(source));
+  }
+  VectorXd SequenceNode::compute(const ISource& src) const {
+    MatrixXd mat = scan(src);
+    size_t n_cols = mat.cols();
+    return mat.col(n_cols - 1);
+  }
+  size_t SequenceNode::n_outputs() const {
+    return m_stack->n_outputs();
+  }
 }
 
 namespace {
@@ -102,52 +170,130 @@ namespace {
   void throw_cfg(std::string msg, size_t index) {
     throw NNConfigurationException(msg + " " + std::to_string(index));
   }
-  // NOTE: you own this pointer!
-  INode* get_feedforward_node(const NodeConfig& node,
-                              const std::vector<LayerConfig>& layers,
-                              const std::map<size_t, INode*>& node_map,
-                              std::map<size_t, Stack*>& stack_map,
-                              std::vector<Stack*>& m_stacks) {
-
+  void check_compute_node(const NodeConfig& node) {
     size_t n_source = node.sources.size();
     if (n_source != 1) throw_cfg("need one source, found", n_source);
-    INode* source = node_map.at(node.sources.at(0));
-
     int layer_n = node.index;
     if (layer_n < 0) throw_cfg("negative layer number", layer_n);
-    if (static_cast<size_t>(layer_n) >= layers.size()) {
+  }
+  void check_compute_node(const NodeConfig& node, size_t n_layers) {
+    check_compute_node(node);
+    int layer_n = node.index;
+    if (static_cast<size_t>(layer_n) >= n_layers) {
       throw_cfg("no layer number", layer_n);
     }
+  }
+  // NOTE: you own this pointer!
+  INode* get_feedforward_node(
+    const NodeConfig& node,
+    const std::vector<LayerConfig>& layers,
+    const std::unordered_map<size_t, INode*>& node_map,
+    std::unordered_map<size_t, Stack*>& stack_map) {
+
+    check_compute_node(node, layers.size());
+    INode* source = node_map.at(node.sources.at(0));
+    int layer_n = node.index;
     if (!stack_map.count(layer_n)) {
-      m_stacks.push_back(
-        new Stack(source->n_outputs(), {layers.at(layer_n)}));
-      stack_map[layer_n] = m_stacks.back();
+      stack_map[layer_n] = new Stack(source->n_outputs(),
+                                     {layers.at(layer_n)});
     }
     return new FeedForwardNode(stack_map.at(layer_n), source);
   }
+  SequenceNode* get_sequence_node(
+    const NodeConfig& node,
+    const std::vector<LayerConfig>& layers,
+    const std::unordered_map<size_t, ISequenceNode*>& node_map,
+    std::unordered_map<size_t, RecurrentStack*>& stack_map) {
 
-  void build_node(size_t iii,
-                  const std::vector<NodeConfig>& nodes,
-                  const std::vector<LayerConfig>& layers,
-                  std::vector<INode*>& m_nodes,
-                  std::vector<Stack*>& m_stacks,
-                  std::map<size_t, INode*>& node_map,
-                  std::map<size_t, Stack*>& stack_map,
-                  std::set<size_t> cycle_check = {}) {
-    if (node_map.count(iii)) return;
+    check_compute_node(node, layers.size());
+    ISequenceNode* source = node_map.at(node.sources.at(0));
+    int layer_n = node.index;
+    if (!stack_map.count(layer_n)) {
+      stack_map[layer_n] = new RecurrentStack(source->n_outputs(),
+                                              {layers.at(layer_n)});
+    }
+    return new SequenceNode(stack_map.at(layer_n), source);
+  }
+}
+
+namespace lwt {
+  // graph
+  Graph::Graph() {
+    m_stacks[0] = new Stack;
+
+    m_nodes[0] = new InputNode(0, 2);
+    m_nodes[1] = new InputNode(1, 2);
+    m_nodes[2] = new ConcatenateNode({m_nodes.at(0), m_nodes.at(1)});
+    m_nodes[3] = new FeedForwardNode(m_stacks.at(0), m_nodes.at(2));
+  }
+  Graph::Graph(const std::vector<NodeConfig>& nodes,
+               const std::vector<LayerConfig>& layers) {
+    for (size_t iii = 0; iii < nodes.size(); iii++) {
+      build_node(iii, nodes, layers);
+    }
+    // assert(maps.node.size() + maps.seq_node.size() == nodes.size());
+  }
+  Graph::~Graph() {
+    for (auto node: m_nodes) {
+      delete node.second;
+      node.second = nullptr;
+    }
+    for (auto node: m_seq_nodes) {
+      // The m_nodes collection is the owner of anything that inherits
+      // from both INode and ISequenceNode. So we try not to delete
+      // anything that the m_nodes would already take care of.
+      if (!m_nodes.count(node.first)) delete node.second;
+      node.second = nullptr;
+    }
+    for (auto stack: m_stacks) {
+      delete stack.second;
+      stack.second = nullptr;
+    }
+    for (auto stack: m_seq_stacks) {
+      delete stack.second;
+      stack.second = nullptr;
+    }
+  }
+  VectorXd Graph::compute(const ISource& source, size_t node_number) const {
+    if (!m_nodes.count(node_number)) {
+      throw NNEvaluationException(
+        "Graph: no output at " + std::to_string(node_number));
+    }
+    return m_nodes.at(node_number)->compute(source);
+  }
+  VectorXd Graph::compute(const ISource& source) const {
+    assert(m_nodes.size() > 0);
+    return m_nodes.at(m_last_node)->compute(source);
+  }
+
+  // ______________________________________________________________________
+  // private methods
+
+  void Graph::build_node(const size_t iii,
+                         const std::vector<NodeConfig>& nodes,
+                         const std::vector<LayerConfig>& layers,
+                         std::set<size_t> cycle_check) {
+    if (m_nodes.count(iii) || m_seq_nodes.count(iii)) return;
+
+    // we insist that the upstream nodes are built before the
+    // downstream ones, so the last node built should be some kind of
+    // sink for graphs with only one output this will be it.
+    m_last_node = iii;
+
     if (iii >= nodes.size()) throw_cfg("no node index", iii);
 
     const NodeConfig& node = nodes.at(iii);
 
     // if it's an input, build and return
     if (node.type == NodeConfig::Type::INPUT) {
-      size_t n_inputs = node.sources.size();
-      if (n_inputs != 1) throw_cfg(
-        "input node needs need one source, got", n_inputs);
-      if (node.index < 0) throw_cfg(
-        "input node needs positive index, got", node.index);
-      m_nodes.push_back(new InputNode(node.sources.at(0), node.index));
-      node_map[iii] = m_nodes.back();
+      check_compute_node(node);
+      size_t input_number = node.sources.at(0);
+      m_nodes[iii] = new InputNode(input_number, node.index);
+      return;
+    } else if (node.type == NodeConfig::Type::INPUT_SEQUENCE) {
+      check_compute_node(node);
+      size_t input_number = node.sources.at(0);
+      m_seq_nodes[iii] = new InputSequenceNode(input_number, node.index);
       return;
     }
 
@@ -157,75 +303,30 @@ namespace {
     }
     cycle_check.insert(iii);
     for (size_t source_node: node.sources) {
-      build_node(source_node, nodes, layers,
-                 m_nodes, m_stacks, node_map, stack_map, cycle_check);
+      build_node(source_node, nodes, layers, cycle_check);
     }
 
-    // build feed forward layer
+    // check node types
     if (node.type == NodeConfig::Type::FEED_FORWARD) {
-      m_nodes.push_back(
-        get_feedforward_node(node, layers, node_map, stack_map, m_stacks));
-      node_map[iii] = m_nodes.back();
-      return;
-    }
-
-    // build concatenate layer
-    if (node.type == NodeConfig::Type::CONCATENATE) {
+      m_nodes[iii] = get_feedforward_node(node, layers,
+                                          m_nodes, m_stacks);
+    } else if (node.type == NodeConfig::Type::SEQUENCE) {
+      std::unique_ptr<SequenceNode> seq_node(
+        get_sequence_node(node, layers, m_seq_nodes, m_seq_stacks));
+      // entering in m_nodes means that m_nodes will delete this one
+      m_nodes[iii] = nullptr;
+      m_seq_nodes[iii] = seq_node.get();
+      m_nodes[iii] = seq_node.release();
+    } else if (node.type == NodeConfig::Type::CONCATENATE) {
+      // build concatenate layer
       std::vector<const INode*> in_nodes;
       for (size_t source_node: node.sources) {
-        in_nodes.push_back(node_map.at(source_node));
+        in_nodes.push_back(m_nodes.at(source_node));
       }
-      m_nodes.push_back(new ConcatenateNode(in_nodes));
-      node_map[iii] = m_nodes.back();
-      return;
+      m_nodes[iii] = new ConcatenateNode(in_nodes);
+    } else {
+      throw NNConfigurationException("unknown node type");
     }
-    throw NNConfigurationException("unknown node type");
   }
-}
-namespace lwt {
-  // graph
-  Graph::Graph() {
-    m_stacks.push_back(new Stack);
-    Stack* stack = m_stacks.back();
 
-    m_nodes.push_back(new InputNode(0, 2));
-    INode* source1 = m_nodes.back();
-    m_nodes.push_back(new InputNode(1, 2));
-    INode* source2 = m_nodes.back();
-    m_nodes.push_back(new ConcatenateNode({source1, source2}));
-    INode* cat = m_nodes.back();
-    m_nodes.push_back(new FeedForwardNode(stack, cat));
-  }
-  Graph::Graph(const std::vector<NodeConfig>& nodes,
-               const std::vector<LayerConfig>& layers) {
-    std::map<size_t, INode*> node_map;
-    std::map<size_t, Stack*> stack_map;
-    for (size_t iii = 0; iii < nodes.size(); iii++) {
-      build_node(iii, nodes, layers,
-                 m_nodes, m_stacks,
-                 node_map, stack_map);
-    }
-    assert(node_map.size() == nodes.size());
-  }
-  Graph::~Graph() {
-    for (auto node: m_nodes) {
-      delete node;
-      node = 0;
-    }
-    for (auto stack: m_stacks) {
-      delete stack;
-      stack = 0;
-    }
-  }
-  VectorXd Graph::compute(const ISource& source, size_t node_number) const {
-    if (node_number >= m_nodes.size()) {
-      throw NNEvaluationException(
-        "Graph: no node at " + std::to_string(node_number));
-    }
-    return m_nodes.at(node_number)->compute(source);
-  }
-  VectorXd Graph::compute(const ISource& source) const {
-    assert(m_nodes.size() > 0);
-    return m_nodes.back()->compute(source);
-  }
 }
