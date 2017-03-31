@@ -236,6 +236,8 @@ _node_type_map = {
     'inputlayer': 'input',
     'dense': 'feed_forward',
     'lstm': 'sequence',
+    'gru': 'sequence',
+
 }
 
 def _build_node_list(node_dict, input_layer_arch):
