@@ -21,6 +21,8 @@ JSON format. Currently the following formats are supported:
  - [AGILEPack][ap]
  - [Keras][kr] (most popular, see below)
 
+#### Supported Layers ####
+
 In particular, the following layers are implemented in the Keras
 sequential and functional models:
 
