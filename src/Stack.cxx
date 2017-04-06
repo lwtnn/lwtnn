@@ -176,10 +176,13 @@ namespace lwt {
   }
 
   VectorXd SoftmaxLayer::compute(const VectorXd& in) const {
+    // More numerically stable softmax, as suggested in
+    // http://stackoverflow.com/a/34969389
     size_t n_elements = in.rows();
     VectorXd exp(n_elements);
+    double max = in.maxCoeff();
     for (size_t iii = 0; iii < n_elements; iii++) {
-      exp(iii) = std::exp(in(iii));
+      exp(iii) = std::exp(in(iii) - max);
     }
     double sum_exp = exp.sum();
     return exp / sum_exp;
