@@ -20,16 +20,21 @@ We also include converters from several popular formats to the `lwtnn`
 JSON format. Currently the following formats are supported:
  - [AGILEPack][ap]
  - [Keras][kr] (most popular, see below)
+ 
+[eg]: http://eigen.tuxfamily.org
+[pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
+[ap]: https://github.com/lukedeo/AGILEPack
+[kr]: http://keras.io/
 
-#### Supported Layers ####
+### Supported Layers ###
 
-In particular, the following layers are implemented in the Keras
-sequential and functional models:
+In particular, the following layers are supported as implemented in the
+Keras sequential and functional models:
 
 |               | K sequential | K functional  |
 |---------------|--------------|---------------|
 | Dense         |  yes         |  yes          |
-| Normalization |  yes         |  yes          |
+| Normalization | See Note 1   | See Note 1    |
 | Maxout        |  yes         |  yes          |
 | Highway       |  yes         |  yes          |
 | LSTM          |  yes         |  yes          |
@@ -37,15 +42,28 @@ sequential and functional models:
 | Embedding     | sorta        | [issue][ghie] |
 | Concatenate   |  no          |  yes          |
 
+**Note 1:** Normalization layers (i.e. Batch Normalization) are only supported
+for Keras 1.0.8 and higher.
+
+**Note 2:** We don't currently support Keras version 2. See the related
+[issue][ghkeras2].
+
 [ghie]: https://github.com/lwtnn/lwtnn/issues/39
+[ghkeras2]: https://github.com/lwtnn/lwtnn/issues/40
+
+#### Supported Activation Functions ####
+
+| Function      | Implemented? |
+|---------------|--------------|
+| ReLU          | Yes          |
+| Sigmoid       | Yes          |
+| Hard Sigmoid  | Yes          |
+| Tanh          | Yes          |
+| Softmax       | Yes          |
+| ELU           | No           |
 
 The converter scripts can be found in `converters/`. Run them with
 `-h` for more information.
-
-[eg]: http://eigen.tuxfamily.org
-[pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
-[ap]: https://github.com/lukedeo/AGILEPack
-[kr]: http://keras.io/
 
 How do I use it?
 ----------------
