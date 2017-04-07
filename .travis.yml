@@ -40,5 +40,5 @@ script:
   - make
   - ./tests/test-agilepack.sh
   - ./tests/test-highway.sh
-  - ./tests/test-LSTM.sh
+  - ./tests/test-GRU.sh
   - ./tests/test-BatchNorm.sh
