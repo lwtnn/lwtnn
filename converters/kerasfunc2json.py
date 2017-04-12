@@ -18,7 +18,7 @@ import json
 import h5py
 from collections import Counter
 import sys, os
-from keras_layer_converters import layer_converters, skip_layers
+from keras_layer_converters import layer_converters, skip_layers, _send_recieve_meta_info
 
 def _run():
     """Top level routine"""
@@ -57,16 +57,32 @@ def _run():
 def _check_version(arch):
     if arch["class_name"] != "Model":
         sys.exit("this is not a graph, try using keras2json")
+
+    global BACKEND
+    if 'backend' not in arch:
+        sys.stderr.write(
+            'WARNING: no backend found for this architecture! \
+             Defaulting to theano.\n')
+        BACKEND="theano"
+    else:
+        BACKEND = arch['backend']
+    
+    global KERAS_VERSION
     if 'keras_version' not in arch:
         sys.stderr.write(
-            'WARNING: no version number found for this archetecture!\n')
-        return
+            'WARNING: no version number found for this architecture!\
+             Defaulting to v1.\n')
+        KERAS_VERSION=1
     major, minor, *bugfix = arch['keras_version'].split('.')
-    if major != '1' or minor < '2':
-        warn_tmp = (
-            "WARNNING: This converter was developed for Keras version 1.2. "
-            "Your version (v{}.{}) may be incompatible.\n")
-        sys.stderr.write(warn_tmp.format(major, minor))
+    if major == '1' or minor < '2':
+        KERAS_VERSION=1
+    if major == '2':
+        KERAS_VERSION=2
+    config_tmp = (
+        "lwtnn converter being configured for keras (v{}.{}).\n")
+    sys.stderr.write(config_tmp.format(major, minor))
+    _send_recieve_meta_info(KERAS_VERSION,BACKEND)
+
 
 def _get_args():
     parser = argparse.ArgumentParser(
@@ -138,9 +154,15 @@ class Node:
         self.dims = None
         inbound = layer['inbound_nodes']
         if self.layer_type != "inputlayer":
-            for sname, sidx, something in inbound[idx]:
-                assert something == 0
-                self.sources.append( (sname, sidx) )
+            #V2
+            if KERAS_VERSION==2:
+                for sname, sidx, something, empty_dict in inbound[idx]:
+                    assert something == 0
+                    self.sources.append( (sname, sidx) )
+            if KERAS_VERSION==1:
+                for sname, sidx, something in inbound[idx]:
+                    assert something == 0
+                    self.sources.append( (sname, sidx) )
         else:
             shape = layer['config']['batch_input_shape']
             self.n_outputs = shape[-1]
@@ -168,8 +190,13 @@ def _build_node_dict(network):
     # first get the nodes that something points to
     for layer in layers.values():
         for sink in layer['inbound_nodes']:
-            for kname, kid, something in sink:
-                nodes[(kname, kid)] = Node(layers[kname], kid)
+            # V2
+            if KERAS_VERSION==2:
+                for kname, kid, something, empty_dict in sink:
+                    nodes[(kname, kid)] = Node(layers[kname], kid)
+            if KERAS_VERSION==1:
+                for kname, kid, something in sink:
+                    nodes[(kname, kid)] = Node(layers[kname], kid)
 
     # get the output nodes now
     for kname, kid, something in network['config']['output_layers']:
@@ -217,6 +244,7 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
 
     layer_type = node.layer_type
     if layer_type in skip_layers:
+        node.n_outputs = sum(s.n_outputs for s in node.sources)
         return
     convert = layer_converters[layer_type]
 
@@ -254,6 +282,9 @@ def _build_node_list(node_dict, input_layer_arch):
         submap[kname] = n_in
 
     for node in sorted(node_dict.values()):
+        # And now pass over the layers that we're meant to skip
+        if node.layer_type in skip_layers:
+            continue
         node_type = _node_type_map[node.layer_type]
         out_node = {'type': node_type}
         if node.sources:
