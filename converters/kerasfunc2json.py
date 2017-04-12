@@ -154,15 +154,10 @@ class Node:
         self.dims = None
         inbound = layer['inbound_nodes']
         if self.layer_type != "inputlayer":
-            #V2
-            if KERAS_VERSION==2:
-                for sname, sidx, something, empty_dict in inbound[idx]:
-                    assert something == 0
-                    self.sources.append( (sname, sidx) )
-            if KERAS_VERSION==1:
-                for sname, sidx, something in inbound[idx]:
-                    assert something == 0
-                    self.sources.append( (sname, sidx) )
+            for sname, sidx, *something in inbound[idx]:
+                for some_stuff in something:
+                    assert not some_stuff
+                self.sources.append( (sname, sidx) )
         else:
             shape = layer['config']['batch_input_shape']
             self.n_outputs = shape[-1]
@@ -190,13 +185,8 @@ def _build_node_dict(network):
     # first get the nodes that something points to
     for layer in layers.values():
         for sink in layer['inbound_nodes']:
-            # V2
-            if KERAS_VERSION==2:
-                for kname, kid, something, empty_dict in sink:
-                    nodes[(kname, kid)] = Node(layers[kname], kid)
-            if KERAS_VERSION==1:
-                for kname, kid, something in sink:
-                    nodes[(kname, kid)] = Node(layers[kname], kid)
+            for kname, kid, *something in sink:
+                nodes[(kname, kid)] = Node(layers[kname], kid)
 
     # get the output nodes now
     for kname, kid, something in network['config']['output_layers']:
