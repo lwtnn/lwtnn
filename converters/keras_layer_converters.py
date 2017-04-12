@@ -12,12 +12,24 @@
 
 import numpy as np
 
+def _send_recieve_meta_info(keras_version, backend):
+    global KERAS_VERSION
+    global BACKEND
+    KERAS_VERSION = keras_version
+    BACKEND = ":0" if backend == "tensorflow" else ""
+
 def _get_dense_layer_parameters(h5, layer_config, n_in):
     """Get weights, bias, and n-outputs for a dense layer"""
     layer_group = h5[layer_config['name']]
     layers = _get_h5_layers(layer_group)
-    weights = layers['W']
-    bias = layers['b']
+    if KERAS_VERSION == 1:
+        _weight_convention = "W"
+        _bias_convention = "b"
+    if KERAS_VERSION == 2:
+        _weight_convention = "kernel"
+        _bias_convention = "bias"
+    weights = layers[_weight_convention+BACKEND]
+    bias = layers[_bias_convention+BACKEND]
     assert weights.shape[1] == bias.shape[0]
     assert weights.shape[0] == n_in
     # TODO: confirm that we should be transposing the weight
@@ -199,19 +211,32 @@ skip_layers = {'flatten', 'dropout', 'masking'}
 # utility function to handle keras layer naming
 def _get_h5_layers(layer_group):
     """
+    Keras: v1:
     For some reason Keras prefixes the datasets we need with the group
     name. This function returns a dictionary of the datasets, keyed
     with the group name stripped off.
+    Keras: v2:
+    An extra level is added, then the datasets we need. I.e., no stripping
+    is needed, but one more iteration is.
     """
     strip_length = len(layer_group.name.lstrip('/')) + 1
     prefixes = set()
     layers = {}
     for long_name, ds in layer_group.items():
-        name = long_name[strip_length:]
-        prefixes.add(long_name[:strip_length])
-        layers[name] = np.asarray(ds)
-    assert len(prefixes) == 1
+        if KERAS_VERSION == 2:
+            for long_name1, ds1 in ds.items():
+                layers[long_name1] = np.asarray(ds1)
+        elif KERAS_VERSION == 1:
+            name = long_name[strip_length:]
+            prefixes.add(long_name[:strip_length])
+            layers[name] = np.asarray(ds)
+        else:
+            raise TypeError('The object is of type {} instead of Group or Dataset. \
+                Check what version of Keras you are using'.format(
+                type(ds)))
     return layers
+
+
 
 # translate from keras to json representation
 _activation_map = {
