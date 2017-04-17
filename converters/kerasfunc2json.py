@@ -57,30 +57,26 @@ def _run():
 def _check_version(arch):
     if arch["class_name"] != "Model":
         sys.exit("this is not a graph, try using keras2json")
-
     global BACKEND
     if 'backend' not in arch:
         sys.stderr.write(
-            'WARNING: no backend found for this architecture! \
-             Defaulting to theano.\n')
+            'WARNING: no backend found for this architecture!\n'
+            'Defaulting to theano.\n')
         BACKEND="theano"
     else:
         BACKEND = arch['backend']
-    
     global KERAS_VERSION
     if 'keras_version' not in arch:
         sys.stderr.write(
-            'WARNING: no version number found for this architecture!\
-             Defaulting to v1.\n')
+            'WARNING: no version number found for this architecture!\n'
+            'Defaulting to version 1.2.\n')
         KERAS_VERSION=1
-    major, minor, *bugfix = arch['keras_version'].split('.')
-    if major == '1' or minor < '2':
-        KERAS_VERSION=1
-    if major == '2':
-        KERAS_VERSION=2
-    config_tmp = (
-        "lwtnn converter being configured for keras (v{}.{}).\n")
-    sys.stderr.write(config_tmp.format(major, minor))
+    else: 
+        major, minor, *bugfix = arch['keras_version'].split('.')
+        KERAS_VERSION=int(major)
+        config_tmp = (
+            "lwtnn converter being configured for keras (v{}.{}).\n")
+        sys.stderr.write(config_tmp.format(major, minor))
     _send_recieve_meta_info(KERAS_VERSION,BACKEND)
 
 
