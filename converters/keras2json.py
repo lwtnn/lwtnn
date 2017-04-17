@@ -33,7 +33,8 @@ import json
 import h5py
 from collections import Counter
 import sys
-from keras_layer_converters import layer_converters, skip_layers
+from keras_layer_converters import layer_converters, skip_layers,\
+ _send_recieve_meta_info
 
 def _run():
     """Top level routine"""
@@ -55,16 +56,30 @@ def _run():
     print(json.dumps(out_dict, indent=2, sort_keys=True))
 
 def _check_version(arch):
+    global BACKEND
+    if 'backend' not in arch:
+        sys.stderr.write(
+            'WARNING: no backend found for this architecture!\n'
+            'Defaulting to theano.\n')
+        BACKEND="theano"
+    else:
+        BACKEND = arch['backend']
+    global KERAS_VERSION
     if 'keras_version' not in arch:
         sys.stderr.write(
-            'WARNING: no version number found for this archetecture!\n')
-        return
-    major, minor, *bugfix = arch['keras_version'].split('.')
-    if major != '1' or minor < '2':
-        warn_tmp = (
-            "WARNNING: This converter was developed for Keras version 1.2. "
-            "Your version (v{}.{}) may be incompatible.\n")
-        sys.stderr.write(warn_tmp.format(major, minor))
+            'WARNING: no version number found for this architecture!\n'
+            'Defaulting to version 1.2.\n')
+        KERAS_VERSION=1
+    else:
+        major, minor, *bugfix = arch['keras_version'].split('.')
+        if major != '1' or minor < '2':
+            warn_tmp = (
+                "WARNNING: This converter was developed for Keras version 1.2. "
+                "Your version (v{}.{}) may be incompatible.\n")
+            sys.stderr.write(warn_tmp.format(major, minor))
+        KERAS_VERSION=int(major)
+    _send_recieve_meta_info(KERAS_VERSION,BACKEND)
+
 
 def _get_args():
     parser = argparse.ArgumentParser(
