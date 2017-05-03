@@ -179,6 +179,7 @@ def _build_node_dict(network):
     nodes = {}
 
     # first get the nodes that something points to
+    # source nodes are inbound nodes
     for layer in layers.values():
         for sink in layer['inbound_nodes']:
             for kname, kid, *something in sink:
@@ -191,12 +192,38 @@ def _build_node_dict(network):
             nodes[id_tup] = Node(layers[kname], kid)
 
     # now we collapse the node references
-    for node in nodes.values():
-        source_nodes = []
-        for source in node.sources:
-            source_nodes.append(nodes[source])
-        node.sources = source_nodes
+    for node in nodes.values():        
+            source_nodes = []
+            for source in node.sources:
+                source_nodes.append(nodes[source])
+            node.sources = source_nodes
+
+    # Remove the nodes and sources that are of type skip_layers
+    removed_nodes = set()
+    for node_index, node in nodes.items():
+        if node.layer_type in skip_layers:
+            removed_nodes.add(node_index)
+        else:
+            new_sources = []
+            for source in node.sources:
+                # new_sources.append(_get_source_nodes()) instead of the below
+                if source.layer_type in skip_layers:
+                    assert len(source.sources) == 1
+                    new_sources.append(source.sources[0])
+                else:
+                    new_sources.append(source)
+                    # make sure this applied recursively
+            node.sources = new_sources
+
+    for node_index in removed_nodes:
+        del nodes[node_index]
     return nodes
+
+# def _getValidParent(node_dict,node_sources):
+#     # for number, node in enumerate(sorted(node_dict.values())):
+#     # x=1
+#         print(node_dict)
+#         print(node_sources)
 
 
 def _number_nodes(node_dict):
@@ -229,9 +256,11 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
         return
 
     layer_type = node.layer_type
+    # FIXME DO WE NEED THIS
     if layer_type in skip_layers:
-        node.n_outputs = sum(s.n_outputs for s in node.sources)
         return
+
+    # Case import either keras v1/v2 layer file 
     convert = layer_converters[layer_type]
 
     # build the out layer
@@ -268,9 +297,6 @@ def _build_node_list(node_dict, input_layer_arch):
         submap[kname] = n_in
 
     for node in sorted(node_dict.values()):
-        # And now pass over the layers that we're meant to skip
-        if node.layer_type in skip_layers:
-            continue
         node_type = _node_type_map[node.layer_type]
         out_node = {'type': node_type}
         if node.sources:
