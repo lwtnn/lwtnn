@@ -206,24 +206,21 @@ def _build_node_dict(network):
         else:
             new_sources = []
             for source in node.sources:
-                # new_sources.append(_get_source_nodes()) instead of the below
-                if source.layer_type in skip_layers:
-                    assert len(source.sources) == 1
-                    new_sources.append(source.sources[0])
-                else:
-                    new_sources.append(source)
-                    # make sure this applied recursively
+                new_sources.append(_get_valid_sources(source))
             node.sources = new_sources
-
     for node_index in removed_nodes:
         del nodes[node_index]
     return nodes
 
-# def _getValidParent(node_dict,node_sources):
-#     # for number, node in enumerate(sorted(node_dict.values())):
-#     # x=1
-#         print(node_dict)
-#         print(node_sources)
+def _get_valid_sources(node_source):
+    """Function to get valid sources for a node.
+        Apply this recursively"""
+    if node_source.layer_type not in skip_layers:
+        return node_source
+    else:
+        assert len(node_source.sources) == 1
+        #@Todo: Check that this will work with two skip_layers in a row
+        return _get_valid_sources(node_source.sources[0])      
 
 
 def _number_nodes(node_dict):
@@ -256,9 +253,6 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
         return
 
     layer_type = node.layer_type
-    # FIXME DO WE NEED THIS
-    if layer_type in skip_layers:
-        return
 
     # Case import either keras v1/v2 layer file 
     convert = layer_converters[layer_type]
