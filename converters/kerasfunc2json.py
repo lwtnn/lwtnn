@@ -18,7 +18,8 @@ import json
 import h5py
 from collections import Counter
 import sys, os
-from keras_layer_converters import layer_converters, skip_layers, _send_recieve_meta_info
+import importlib
+from keras_layer_converters_common import skip_layers
 
 def _run():
     """Top level routine"""
@@ -77,7 +78,6 @@ def _check_version(arch):
         config_tmp = (
             "lwtnn converter being configured for keras (v{}.{}).\n")
         sys.stderr.write(config_tmp.format(major, minor))
-    _send_recieve_meta_info(KERAS_VERSION,BACKEND)
 
 
 def _get_args():
@@ -254,8 +254,22 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
 
     layer_type = node.layer_type
 
-    # Case import either keras v1/v2 layer file 
+    if KERAS_VERSION == 1:
+        keras_layer_converters = "keras_v1_layer_converters"
+    elif KERAS_VERSION == 2:
+        keras_layer_converters = "keras_v2_layer_converters"
+    else:
+        sys.exit("We don't support Keras version {}.\n"
+          "Pleas open an issue at https://github.com/lwtnn").format(KERAS_VERSION)
+
+    _send_recieve_meta_info = getattr(importlib.import_module(keras_layer_converters),
+      "_send_recieve_meta_info")
+    layer_converters = getattr(importlib.import_module(keras_layer_converters),
+      "layer_converters")
+
+    _send_recieve_meta_info(BACKEND)
     convert = layer_converters[layer_type]
+
 
     # build the out layer
     n_inputs = sum(s.n_outputs for s in node.sources)
