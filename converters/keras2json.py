@@ -33,8 +33,9 @@ import json
 import h5py
 from collections import Counter
 import sys
-from keras_layer_converters import layer_converters, skip_layers,\
+from keras_v1_layer_converters import layer_converters,\
  _send_recieve_meta_info
+from keras_layer_converters_common import skip_layers
 
 def _run():
     """Top level routine"""
@@ -78,7 +79,7 @@ def _check_version(arch):
                 "Your version (v{}.{}) may be incompatible.\n")
             sys.stderr.write(warn_tmp.format(major, minor))
         KERAS_VERSION=int(major)
-    _send_recieve_meta_info(KERAS_VERSION,BACKEND)
+    _send_recieve_meta_info(BACKEND)
 
 
 def _get_args():
