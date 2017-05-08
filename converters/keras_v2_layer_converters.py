@@ -58,35 +58,7 @@ def _normalization_parameters(h5, layer_config, n_in):
     }
     return return_dict, scale.shape[0]
 
-def _get_maxout_layer_parameters(h5, layer_config, n_in):
-    """Get weights, bias, and n-outputs for a maxout layer"""
-    layer_group = h5[layer_config['name']]
-    layers = _get_h5_layers(layer_group)
-    weights = layers['W']
-    bias = layers['b']
-
-    # checks (note the transposed arrays)
-    wt_layers, wt_in, wt_out = weights.shape
-    bias_layers, bias_n = bias.shape
-    assert wt_out == bias_n
-    assert wt_in == n_in, '{} != {}'.format(wt_in, n_in)
-    assert wt_layers == bias_layers
-    assert 'activation' not in layer_config
-
-    sublayers = []
-    for nnn in range(weights.shape[0]):
-        w_slice = weights[nnn,:,:]
-        b_slice = bias[nnn,:]
-        sublayer = {
-            'weights': w_slice.T.flatten().tolist(),
-            'bias': b_slice.flatten().tolist(),
-            'architecture': 'dense'
-        }
-        sublayers.append(sublayer)
-    return {'sublayers': sublayers, 'architecture': 'maxout',
-            'activation': 'linear'}, wt_out
-
-# TODO: unify LSTM, highway, and GRU here, they do almost the same thing
+# TODO: unify LSTM, and GRU here, they do almost the same thing
 def _lstm_parameters(h5, layer_config, n_in):
     """LSTM parameter converter"""
     layer_group = h5[layer_config['name']]
@@ -103,21 +75,6 @@ def _lstm_parameters(h5, layer_config, n_in):
     return {'components': submap, 'architecture': 'lstm',
             'activation': _activation_map[layer_config['activation']],
             'inner_activation': _activation_map[layer_config['inner_activation']]}, n_out
-
-def _get_highway_layer_parameters(h5, layer_config, n_in):
-    """Get weights, bias, and n-outputs for a highway layer"""
-    layer_group = h5[layer_config['name']]
-    layers = _get_h5_layers(layer_group)
-    n_out = layers['W'].shape[1]
-
-    submap = {}
-    for gate in ['', '_carry']:
-        submap[gate[1:] or 't'] = {
-            'weights': layers['W' + gate].T.flatten().tolist(),
-            'bias': layers['b' + gate].flatten().tolist(),
-        }
-    return {'components': submap, 'architecture': 'highway',
-            'activation': _activation_map[layer_config['activation']]}, n_out
 
 def _gru_parameters(h5, layer_config, n_in):
     """GRU parameter converter"""
@@ -189,8 +146,6 @@ def _activation_parameters(h5, layer_config, n_in):
 layer_converters = {
     'dense': _get_dense_layer_parameters,
     'batchnormalization': _normalization_parameters,
-    'highway': _get_highway_layer_parameters,
-    'maxoutdense': _get_maxout_layer_parameters,
     'lstm': _lstm_parameters,
     'gru': _gru_parameters,
     'merge': _get_merge_layer_parameters,
