@@ -41,8 +41,8 @@ def _normalization_parameters(h5, layer_config, n_in):
     layers = _get_h5_layers(layer_group)
     gamma = layers['gamma']
     beta = layers['beta']
-    mean = layers['running_mean']
-    stddev = layers['running_std']
+    mean = layers['moving_mean']
+    stddev = layers['moving_variance']
     # Do some checks
     assert gamma.shape[0] == beta.shape[0]
     assert mean.shape[0] == stddev.shape[0]

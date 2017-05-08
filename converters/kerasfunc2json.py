@@ -283,6 +283,7 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
     output_layers.append(out_layer)
 
 _node_type_map = {
+    'batchnormalization': 'feed_forward',
     'merge': 'concatenate',
     'inputlayer': 'input',
     'dense': 'feed_forward',
