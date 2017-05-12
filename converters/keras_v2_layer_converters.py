@@ -11,6 +11,7 @@
 #  - The number of outputs (also for error checking)
 
 import numpy as np
+import sys
 from keras_layer_converters_common import _activation_map
 
 def _send_recieve_meta_info(backend):
@@ -58,15 +59,25 @@ def _normalization_parameters(h5, layer_config, n_in):
     }
     return return_dict, scale.shape[0]
 
-# TODO: unify LSTM, and GRU here, they do almost the same thing
-def _lstm_parameters(h5, layer_config, n_in):
-    """LSTM parameter converter"""
+def _rnn_parameters(h5, layer_config, n_in):
+    """RNN parameter converter. We support lstm and GRU """
     layer_group = h5[layer_config['name']]
+    if "lstm" in layer_config['name']:
+        elements = "ifco"
+        rnn_architecure = "lstm"
+    elif "gru" in layer_config['name']:
+        elements = "zrh"
+        rnn_architecure = "gru"
+    else:
+        print(layer_config['name'])
+        sys.exit("We don't recognize the layer {}"
+            .format(layer_config['name']))
+
     layers = _get_h5_layers(layer_group)
     n_out = layers['recurrent_kernel'+ BACKEND_SUFFIX].shape[0]
     submap = {}
-    
-    for n_gate, gate in enumerate('ifco'):
+
+    for n_gate, gate in enumerate(elements):
         submap[gate] = {
             'U': layers['recurrent_kernel'+BACKEND_SUFFIX]\
                 [:, n_out*n_gate : n_out*(1+n_gate)].T.flatten().tolist(),
@@ -76,26 +87,9 @@ def _lstm_parameters(h5, layer_config, n_in):
                 [n_out*n_gate : n_out*(1+n_gate)].flatten().tolist(),
         }
 
-    return {'components': submap, 'architecture': 'lstm',
+    return {'components': submap, 'architecture': rnn_architecure,
             'activation': _activation_map[layer_config['activation']],
             'inner_activation': _activation_map[layer_config['recurrent_activation']]}, n_out
-
-def _gru_parameters(h5, layer_config, n_in):
-    """GRU parameter converter"""
-    layer_group = h5[layer_config['name']]
-    layers = _get_h5_layers(layer_group)
-    n_out = layers['W_h'].shape[1]
-
-    submap = {}
-    for gate in 'zrh':
-        submap[gate] = {
-            'U': layers['U_' + gate].T.flatten().tolist(),
-            'weights': layers['W_' + gate].T.flatten().tolist(),
-            'bias': layers['b_' + gate].flatten().tolist(),
-        }
-    return {'components': submap, 'architecture': 'gru',
-            'activation': layer_config['activation'],
-            'inner_activation': layer_config['inner_activation']}, n_out
 
 def _get_merge_layer_parameters(h5, layer_config, n_in):
     """
@@ -150,8 +144,8 @@ def _activation_parameters(h5, layer_config, n_in):
 layer_converters = {
     'dense': _get_dense_layer_parameters,
     'batchnormalization': _normalization_parameters,
-    'lstm': _lstm_parameters,
-    'gru': _gru_parameters,
+    'lstm': _rnn_parameters,
+    'gru': _rnn_parameters,
     'merge': _get_merge_layer_parameters,
     'activation': _activation_parameters,
     }
