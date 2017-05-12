@@ -63,18 +63,22 @@ def _lstm_parameters(h5, layer_config, n_in):
     """LSTM parameter converter"""
     layer_group = h5[layer_config['name']]
     layers = _get_h5_layers(layer_group)
-    n_out = layers['W_o'].shape[1]
-
+    n_out = layers['recurrent_kernel'+ BACKEND_SUFFIX].shape[0]
     submap = {}
-    for gate in 'cfio':
+    
+    for n_gate, gate in enumerate('ifco'):
         submap[gate] = {
-            'U': layers['U_' + gate].T.flatten().tolist(),
-            'weights': layers['W_' + gate].T.flatten().tolist(),
-            'bias': layers['b_' + gate].flatten().tolist(),
+            'U': layers['recurrent_kernel'+BACKEND_SUFFIX]\
+                [:, n_out*n_gate : n_out*(1+n_gate)].T.flatten().tolist(),
+            'weights': layers['kernel'+BACKEND_SUFFIX]\
+                [:, n_out*n_gate : n_out*(1+n_gate)].T.flatten().tolist(),
+            'bias': layers['bias'+BACKEND_SUFFIX]\
+                [n_out*n_gate : n_out*(1+n_gate)].flatten().tolist(),
         }
+
     return {'components': submap, 'architecture': 'lstm',
             'activation': _activation_map[layer_config['activation']],
-            'inner_activation': _activation_map[layer_config['inner_activation']]}, n_out
+            'inner_activation': _activation_map[layer_config['recurrent_activation']]}, n_out
 
 def _gru_parameters(h5, layer_config, n_in):
     """GRU parameter converter"""
