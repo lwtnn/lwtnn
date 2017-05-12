@@ -69,7 +69,6 @@ def _rnn_parameters(h5, layer_config, n_in):
         elements = "zrh"
         rnn_architecure = "gru"
     else:
-        print(layer_config['name'])
         sys.exit("We don't recognize the layer {}"
             .format(layer_config['name']))
 
