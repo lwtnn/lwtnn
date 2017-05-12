@@ -39,10 +39,10 @@ def _normalization_parameters(h5, layer_config, n_in):
     """Get weights (gamma), bias (beta), for normalization layer"""
     layer_group = h5[layer_config['name']]
     layers = _get_h5_layers(layer_group)
-    gamma = layers['gamma']
-    beta = layers['beta']
-    mean = layers['moving_mean']
-    stddev = layers['moving_variance']
+    gamma = layers['gamma'+BACKEND_SUFFIX]
+    beta = layers['beta'+BACKEND_SUFFIX]
+    mean = layers['moving_mean'+BACKEND_SUFFIX]
+    stddev = layers['moving_variance'+BACKEND_SUFFIX]
     # Do some checks
     assert gamma.shape[0] == beta.shape[0]
     assert mean.shape[0] == stddev.shape[0]
