@@ -18,7 +18,7 @@ def _send_recieve_meta_info(backend):
     global BACKEND_SUFFIX
     BACKEND_SUFFIX = ":0" if backend == "tensorflow" else ""
 
-def _get_dense_layer_parameters(h5, layer_config, n_in, *args):
+def _get_dense_layer_parameters(h5, layer_config, n_in, layer_type):
     """Get weights, bias, and n-outputs for a dense layer"""
     layer_group = h5[layer_config['name']]
     layers = _get_h5_layers(layer_group)
@@ -36,7 +36,7 @@ def _get_dense_layer_parameters(h5, layer_config, n_in, *args):
     }
     return return_dict, weights.shape[1]
 
-def _normalization_parameters(h5, layer_config, n_in, *args):
+def _normalization_parameters(h5, layer_config, n_in, layer_type):
     """Get weights (gamma), bias (beta), for normalization layer"""
     layer_group = h5[layer_config['name']]
     layers = _get_h5_layers(layer_group)
@@ -59,19 +59,19 @@ def _normalization_parameters(h5, layer_config, n_in, *args):
     }
     return return_dict, scale.shape[0]
 
-def _rnn_parameters(h5, layer_config, n_in, *args):
+def _rnn_parameters(h5, layer_config, n_in, layer_type):
     """RNN parameter converter. We support lstm and GRU """
     layer_group = h5[layer_config['name']]
 
-    if "lstm" in args:
+    if "lstm" in layer_type:
         elements = "ifco"
         rnn_architecure = "lstm"
-    elif "gru" in args:
+    elif "gru" in layer_type:
         elements = "zrh"
         rnn_architecure = "gru"
     else:
         sys.exit("We don't recognize the layer {}"
-            .format(layer_config['name']))
+            .format(layer_type))
 
     layers = _get_h5_layers(layer_group)
     n_out = layers['recurrent_kernel'+ BACKEND_SUFFIX].shape[0]
@@ -91,7 +91,7 @@ def _rnn_parameters(h5, layer_config, n_in, *args):
             'activation': _activation_map[layer_config['activation']],
             'inner_activation': _activation_map[layer_config['recurrent_activation']]}, n_out
 
-def _get_merge_layer_parameters(h5, layer_config, n_in, *args):
+def _get_merge_layer_parameters(h5, layer_config, n_in, layer_type):
     """
     Merge layer converter, currently only supports embedding, and only
     for the first layer.
@@ -133,7 +133,7 @@ def _get_merge_layer_parameters(h5, layer_config, n_in, *args):
             'activation': 'linear'}, sum_outputs
 
 
-def _activation_parameters(h5, layer_config, n_in, *args):
+def _activation_parameters(h5, layer_config, n_in, layer_type):
     """Return dummy parameters"""
     return {'weights':[], 'bias':[], 'architecture':'dense',
             'activation':_activation_map[layer_config['activation']]}, n_in
