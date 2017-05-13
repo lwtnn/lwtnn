@@ -274,7 +274,7 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
     # build the out layer
     n_inputs = sum(s.n_outputs for s in node.sources)
     layer_config = node.keras_layer['config']
-    out_layer, node.n_outputs = convert(h5, layer_config, n_inputs)
+    out_layer, node.n_outputs = convert(h5, layer_config, n_inputs, layer_type)
     layer_number = len(output_layers)
     layer_dict[node.name] = {
         'n_outputs': node.n_outputs,
