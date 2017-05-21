@@ -42,3 +42,5 @@ script:
   - ./tests/test-highway.sh
   - ./tests/test-GRU.sh
   - ./tests/test-BatchNorm.sh
+  - ./tests/test-dense_dropout_functional.sh
+  - ./tests/test-lstm_functional.sh
