@@ -16,7 +16,7 @@
 # If to add another test you'll probably have to edit this
 
 # Trained network to convert and test
-INPUT=https://github.com/lwtnn/lwtnn-test-data/blob/master/Dense_dropout_functional.tgz
+INPUT=https://github.com/lwtnn/lwtnn-test-data/raw/master/Dense_dropout_functional.tgz
 ARCH=model.json
 VARIABLES=inputs.json
 HDF5=weights.h5
@@ -87,8 +87,8 @@ fi
 JSON_FILE=$TMPDIR/intermediate.json
 
 # run the conversion
-echo " -- Running conversion $CONVERT $ARCH $VARIABLES $HDF5 --"
-$CONVERT $TMPDIR/$ARCH $TMPDIR/$VARIABLES $TMPDIR/$HDF5 > $JSON_FILE
+echo " -- Running conversion $CONVERT $ARCH $HDF5 $VARIABLES --"
+$CONVERT $TMPDIR/$ARCH $TMPDIR/$HDF5 $TMPDIR/$VARIABLES > $JSON_FILE
 # check that it hasn't changed!
 echo "Testing with $TEST"
 $TEST $JSON_FILE | ./reg-test.py $OUTPUT

@@ -16,7 +16,7 @@
 # If to add another test you'll probably have to edit this
 
 # Trained network to convert and test
-INPUT=https://github.com/lwtnn/lwtnn-test-data/blob/master/lstm_functional.tgz
+INPUT=https://github.com/lwtnn/lwtnn-test-data/raw/master/lstm_functional.tgz
 ARCH=model.json
 VARIABLES=inputs.json
 HDF5=weights.h5
@@ -77,7 +77,7 @@ fi
     echo " -- downloading and unpacking data --"
     wget -nv $INPUT
     tar xf ${INPUT##*/}
-    if [[ ! -f $ARCH || ! -f $VARIABLES || ! -f $HDF5 ]] ; then
+    if [[ ! -f $ARCH || ! -f $HDF5 || ! -f $VARIABLES ]] ; then
         echo "missing some inputs to the keras -> json converter" >&2
         exit 1
     fi
@@ -87,8 +87,8 @@ fi
 JSON_FILE=$TMPDIR/intermediate.json
 
 # run the conversion
-echo " -- Running conversion $CONVERT $ARCH $VARIABLES $HDF5 --"
-$CONVERT $TMPDIR/$ARCH $TMPDIR/$VARIABLES $TMPDIR/$HDF5 > $JSON_FILE
+echo " -- Running conversion $CONVERT $ARCH $HDF5 $VARIABLES --"
+$CONVERT $TMPDIR/$ARCH $TMPDIR/$HDF5 $TMPDIR/$VARIABLES  > $JSON_FILE
 # check that it hasn't changed!
 echo "Testing with $TEST"
 $TEST $JSON_FILE | ./reg-test.py $OUTPUT
