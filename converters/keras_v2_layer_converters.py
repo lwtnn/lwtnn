@@ -96,6 +96,8 @@ def _get_merge_layer_parameters(h5, layer_config, n_in, layer_type):
     Merge layer converter, currently only supports embedding, and only
     for the first layer.
     """
+    sys.exit("This layer has not yet been ported to Keras v2.\n"
+      "Please open an issue to hurry us along (https://github.com/lwtnn/lwtnn) \n")
     sum_inputs = 0
     sum_outputs = 0
     sublayers = []
