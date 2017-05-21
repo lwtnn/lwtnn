@@ -16,7 +16,7 @@
 # If to add another test you'll probably have to edit this
 
 # Trained network to convert and test
-INPUT=https://github.com/lwtnn/lwtnn-test-data/raw/v2.1/Dense_dropout_functional.tgz
+INPUT=https://github.com/lwtnn/lwtnn-test-data/blob/master/Dense_dropout_functional.tgz
 ARCH=model.json
 VARIABLES=inputs.json
 HDF5=weights.h5
