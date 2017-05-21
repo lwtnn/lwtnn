@@ -35,6 +35,11 @@ def _run():
     _check_version(arch)
 
     with h5py.File(args.hdf5_file, 'r') as h5:
+        for group in h5:
+          if group == "model_weights":
+            sys.exit("The weight file has been saved incorrectly.\n"
+              "Please see https://github.com/lwtnn/lwtnn/wiki/Keras-Converter#saving-keras-models \n"
+              "on how to correctly save weights.")
         layers, node_dict = _get_layers_and_nodes(arch, h5)
     input_layer_arch = arch['config']['input_layers']
     nodes = _build_node_list(node_dict, input_layer_arch)

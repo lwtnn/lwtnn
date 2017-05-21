@@ -50,6 +50,11 @@ def _run():
         sys.exit("this is not a Sequential model, try using kerasfunc2json")
 
     with h5py.File(args.hdf5_file, 'r') as h5:
+        for group in h5:
+          if group == "model_weights":
+            sys.exit("The weight file has been saved incorrectly.\n"
+                "Please see https://github.com/lwtnn/lwtnn/wiki/Keras-Converter#saving-keras-models \n"
+                "on how to correctly save weights.")
         out_dict = {
             'layers': _get_layers(arch, inputs, h5),
         }
