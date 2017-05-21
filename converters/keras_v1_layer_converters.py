@@ -17,7 +17,7 @@ def _send_recieve_meta_info(backend):
     global BACKEND_SUFFIX
     BACKEND_SUFFIX = ":0" if backend == "tensorflow" else ""
 
-def _get_dense_layer_parameters(h5, layer_config, n_in):
+def _get_dense_layer_parameters(h5, layer_config, n_in, layer_type):
     """Get weights, bias, and n-outputs for a dense layer"""
     layer_group = h5[layer_config['name']]
     layers = _get_h5_layers(layer_group)
@@ -35,7 +35,7 @@ def _get_dense_layer_parameters(h5, layer_config, n_in):
     }
     return return_dict, weights.shape[1]
 
-def _normalization_parameters(h5, layer_config, n_in):
+def _normalization_parameters(h5, layer_config, n_in, layer_type):
     """Get weights (gamma), bias (beta), for normalization layer"""
     layer_group = h5[layer_config['name']]
     layers = _get_h5_layers(layer_group)
@@ -58,7 +58,7 @@ def _normalization_parameters(h5, layer_config, n_in):
     }
     return return_dict, scale.shape[0]
 
-def _get_maxout_layer_parameters(h5, layer_config, n_in):
+def _get_maxout_layer_parameters(h5, layer_config, n_in, layer_type):
     """Get weights, bias, and n-outputs for a maxout layer"""
     layer_group = h5[layer_config['name']]
     layers = _get_h5_layers(layer_group)
@@ -87,7 +87,7 @@ def _get_maxout_layer_parameters(h5, layer_config, n_in):
             'activation': 'linear'}, wt_out
 
 # TODO: unify LSTM, highway, and GRU here, they do almost the same thing
-def _lstm_parameters(h5, layer_config, n_in):
+def _lstm_parameters(h5, layer_config, n_in, layer_type):
     """LSTM parameter converter"""
     layer_group = h5[layer_config['name']]
     layers = _get_h5_layers(layer_group)
@@ -104,7 +104,7 @@ def _lstm_parameters(h5, layer_config, n_in):
             'activation': _activation_map[layer_config['activation']],
             'inner_activation': _activation_map[layer_config['inner_activation']]}, n_out
 
-def _get_highway_layer_parameters(h5, layer_config, n_in):
+def _get_highway_layer_parameters(h5, layer_config, n_in, layer_type):
     """Get weights, bias, and n-outputs for a highway layer"""
     layer_group = h5[layer_config['name']]
     layers = _get_h5_layers(layer_group)
@@ -119,7 +119,7 @@ def _get_highway_layer_parameters(h5, layer_config, n_in):
     return {'components': submap, 'architecture': 'highway',
             'activation': _activation_map[layer_config['activation']]}, n_out
 
-def _gru_parameters(h5, layer_config, n_in):
+def _gru_parameters(h5, layer_config, n_in, layer_type):
     """GRU parameter converter"""
     layer_group = h5[layer_config['name']]
     layers = _get_h5_layers(layer_group)
@@ -136,7 +136,7 @@ def _gru_parameters(h5, layer_config, n_in):
             'activation': layer_config['activation'],
             'inner_activation': layer_config['inner_activation']}, n_out
 
-def _get_merge_layer_parameters(h5, layer_config, n_in):
+def _get_merge_layer_parameters(h5, layer_config, n_in, layer_type):
     """
     Merge layer converter, currently only supports embedding, and only
     for the first layer.

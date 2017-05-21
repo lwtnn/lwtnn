@@ -33,9 +33,9 @@ import json
 import h5py
 from collections import Counter
 import sys
-from keras_v1_layer_converters import layer_converters,\
- _send_recieve_meta_info
+import importlib
 from keras_layer_converters_common import skip_layers
+
 
 def _run():
     """Top level routine"""
@@ -73,13 +73,11 @@ def _check_version(arch):
         KERAS_VERSION=1
     else:
         major, minor, *bugfix = arch['keras_version'].split('.')
-        if major != '1' or minor < '2':
-            warn_tmp = (
-                "WARNNING: This converter was developed for Keras version 1.2. "
-                "Your version (v{}.{}) may be incompatible.\n")
-            sys.stderr.write(warn_tmp.format(major, minor))
         KERAS_VERSION=int(major)
-    _send_recieve_meta_info(BACKEND)
+        config_tmp = (
+            "lwtnn converter being configured for keras (v{}.{}).\n")
+        sys.stderr.write(config_tmp.format(major, minor))
+
 
 
 def _get_args():
@@ -100,15 +98,33 @@ def _get_layers(network, inputs, h5):
     layers = []
     in_layers = network['config']
     n_out = len(inputs['inputs'])
+
+    # Determine which layer version we should use
+    if KERAS_VERSION == 1:
+        keras_layer_converters = "keras_v1_layer_converters"
+    elif KERAS_VERSION == 2:
+        keras_layer_converters = "keras_v2_layer_converters"
+    else:
+        sys.exit("We don't support Keras version {}.\n"
+        "Pleas open an issue at https://github.com/lwtnn").format(KERAS_VERSION)
+
+    _send_recieve_meta_info = getattr(importlib.import_module(keras_layer_converters),
+    "_send_recieve_meta_info")
+    layer_converters = getattr(importlib.import_module(keras_layer_converters),
+    "layer_converters")
+
+    _send_recieve_meta_info(BACKEND)
+
     for layer_n in range(len(in_layers)):
         # get converter for this layer
         layer_arch = in_layers[layer_n]
         layer_type = layer_arch['class_name'].lower()
         if layer_type in skip_layers: continue
+
         convert = layer_converters[layer_type]
 
         # build the out layer
-        out_layer, n_out = convert(h5, layer_arch['config'], n_out)
+        out_layer, n_out = convert(h5, layer_arch['config'], n_out, layer_type)
         layers.append(out_layer)
     return layers
 
