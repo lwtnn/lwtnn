@@ -178,7 +178,7 @@ def _get_merge_layer_parameters(h5, layer_config, n_in, layer_type):
             'activation': 'linear'}, sum_outputs
 
 
-def _activation_parameters(h5, layer_config, n_in):
+def _activation_parameters(h5, layer_config, n_in, layer_type):
     """Return dummy parameters"""
     return {'weights':[], 'bias':[], 'architecture':'dense',
             'activation':_activation_map[layer_config['activation']]}, n_in
