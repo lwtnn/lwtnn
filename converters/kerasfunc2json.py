@@ -141,8 +141,6 @@ def _build_variables_file(args):
 LAYERS = 'layers'
 NODES = 'nodes'
 
-_merge_layers = set(['concat'])
-
 class Node:
     # TODO: make the node object a wrapper on the Keras layer dictionary
     def __init__(self, layer, idx):
@@ -243,13 +241,13 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
                      node_dict, layer_dict)
 
     # special cases for merge layers
-    if node.layer_type == 'merge':
+    if node.layer_type in ['concatenate','merge']:
         node.n_outputs = 0
         for source in node.sources:
             node.n_outputs += source.n_outputs
         return
-
-    assert len(node.sources) == 1
+    else:
+        assert len(node.sources) == 1, "in {}".format(node.layer_type)
 
     # if this layer is already defined, just add the node count and
     # continue
@@ -291,7 +289,8 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
 
 _node_type_map = {
     'batchnormalization': 'feed_forward',
-    'merge': 'concatenate',
+    'merge': 'concatenate',       # <- v1
+    'concatenate': 'concatenate', # <- v2
     'inputlayer': 'input',
     'dense': 'feed_forward',
     'lstm': 'sequence',
