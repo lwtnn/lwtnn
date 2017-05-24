@@ -18,7 +18,8 @@ import json
 import h5py
 from collections import Counter
 import sys, os
-from keras_layer_converters import layer_converters, skip_layers
+import importlib
+from keras_layer_converters_common import skip_layers
 
 def _run():
     """Top level routine"""
@@ -34,6 +35,11 @@ def _run():
     _check_version(arch)
 
     with h5py.File(args.hdf5_file, 'r') as h5:
+        for group in h5:
+          if group == "model_weights":
+            sys.exit("The weight file has been saved incorrectly.\n"
+              "Please see https://github.com/lwtnn/lwtnn/wiki/Keras-Converter#saving-keras-models \n"
+              "on how to correctly save weights.")
         layers, node_dict = _get_layers_and_nodes(arch, h5)
     input_layer_arch = arch['config']['input_layers']
     nodes = _build_node_list(node_dict, input_layer_arch)
@@ -57,16 +63,27 @@ def _run():
 def _check_version(arch):
     if arch["class_name"] != "Model":
         sys.exit("this is not a graph, try using keras2json")
+    global BACKEND
+    if 'backend' not in arch:
+        sys.stderr.write(
+            'WARNING: no backend found for this architecture!\n'
+            'Defaulting to theano.\n')
+        BACKEND="theano"
+    else:
+        BACKEND = arch['backend']
+    global KERAS_VERSION
     if 'keras_version' not in arch:
         sys.stderr.write(
-            'WARNING: no version number found for this archetecture!\n')
-        return
-    major, minor, *bugfix = arch['keras_version'].split('.')
-    if major != '1' or minor < '2':
-        warn_tmp = (
-            "WARNNING: This converter was developed for Keras version 1.2. "
-            "Your version (v{}.{}) may be incompatible.\n")
-        sys.stderr.write(warn_tmp.format(major, minor))
+            'WARNING: no version number found for this architecture!\n'
+            'Defaulting to version 1.2.\n')
+        KERAS_VERSION=1
+    else: 
+        major, minor, *bugfix = arch['keras_version'].split('.')
+        KERAS_VERSION=int(major)
+        config_tmp = (
+            "lwtnn converter being configured for keras (v{}.{}).\n")
+        sys.stderr.write(config_tmp.format(major, minor))
+
 
 def _get_args():
     parser = argparse.ArgumentParser(
@@ -138,8 +155,9 @@ class Node:
         self.dims = None
         inbound = layer['inbound_nodes']
         if self.layer_type != "inputlayer":
-            for sname, sidx, something in inbound[idx]:
-                assert something == 0
+            for sname, sidx, *something in inbound[idx]:
+                for some_stuff in something:
+                    assert not some_stuff
                 self.sources.append( (sname, sidx) )
         else:
             shape = layer['config']['batch_input_shape']
@@ -166,9 +184,10 @@ def _build_node_dict(network):
     nodes = {}
 
     # first get the nodes that something points to
+    # source nodes are inbound nodes
     for layer in layers.values():
         for sink in layer['inbound_nodes']:
-            for kname, kid, something in sink:
+            for kname, kid, *something in sink:
                 nodes[(kname, kid)] = Node(layers[kname], kid)
 
     # get the output nodes now
@@ -178,12 +197,35 @@ def _build_node_dict(network):
             nodes[id_tup] = Node(layers[kname], kid)
 
     # now we collapse the node references
-    for node in nodes.values():
-        source_nodes = []
-        for source in node.sources:
-            source_nodes.append(nodes[source])
-        node.sources = source_nodes
+    for node in nodes.values():        
+            source_nodes = []
+            for source in node.sources:
+                source_nodes.append(nodes[source])
+            node.sources = source_nodes
+
+    # Remove the nodes and sources that are of type skip_layers
+    removed_nodes = set()
+    for node_index, node in nodes.items():
+        if node.layer_type in skip_layers:
+            removed_nodes.add(node_index)
+        else:
+            new_sources = []
+            for source in node.sources:
+                new_sources.append(_get_valid_sources(source))
+            node.sources = new_sources
+    for node_index in removed_nodes:
+        del nodes[node_index]
     return nodes
+
+def _get_valid_sources(node_source):
+    """Function to get valid sources for a node.
+        Apply this recursively"""
+    if node_source.layer_type not in skip_layers:
+        return node_source
+    else:
+        assert len(node_source.sources) == 1
+        #@Todo: Check that this will work with two skip_layers in a row
+        return _get_valid_sources(node_source.sources[0])      
 
 
 def _number_nodes(node_dict):
@@ -216,14 +258,28 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
         return
 
     layer_type = node.layer_type
-    if layer_type in skip_layers:
-        return
+
+    if KERAS_VERSION == 1:
+        keras_layer_converters = "keras_v1_layer_converters"
+    elif KERAS_VERSION == 2:
+        keras_layer_converters = "keras_v2_layer_converters"
+    else:
+        sys.exit("We don't support Keras version {}.\n"
+          "Pleas open an issue at https://github.com/lwtnn").format(KERAS_VERSION)
+
+    _send_recieve_meta_info = getattr(importlib.import_module(keras_layer_converters),
+      "_send_recieve_meta_info")
+    layer_converters = getattr(importlib.import_module(keras_layer_converters),
+      "layer_converters")
+
+    _send_recieve_meta_info(BACKEND)
     convert = layer_converters[layer_type]
+
 
     # build the out layer
     n_inputs = sum(s.n_outputs for s in node.sources)
     layer_config = node.keras_layer['config']
-    out_layer, node.n_outputs = convert(h5, layer_config, n_inputs)
+    out_layer, node.n_outputs = convert(h5, layer_config, n_inputs, layer_type)
     layer_number = len(output_layers)
     layer_dict[node.name] = {
         'n_outputs': node.n_outputs,
@@ -232,6 +288,7 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
     output_layers.append(out_layer)
 
 _node_type_map = {
+    'batchnormalization': 'feed_forward',
     'merge': 'concatenate',
     'inputlayer': 'input',
     'dense': 'feed_forward',

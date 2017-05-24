@@ -33,7 +33,9 @@ import json
 import h5py
 from collections import Counter
 import sys
-from keras_layer_converters import layer_converters, skip_layers
+import importlib
+from keras_layer_converters_common import skip_layers
+
 
 def _run():
     """Top level routine"""
@@ -48,6 +50,11 @@ def _run():
         sys.exit("this is not a Sequential model, try using kerasfunc2json")
 
     with h5py.File(args.hdf5_file, 'r') as h5:
+        for group in h5:
+          if group == "model_weights":
+            sys.exit("The weight file has been saved incorrectly.\n"
+                "Please see https://github.com/lwtnn/lwtnn/wiki/Keras-Converter#saving-keras-models \n"
+                "on how to correctly save weights.")
         out_dict = {
             'layers': _get_layers(arch, inputs, h5),
         }
@@ -55,16 +62,28 @@ def _run():
     print(json.dumps(out_dict, indent=2, sort_keys=True))
 
 def _check_version(arch):
+    global BACKEND
+    if 'backend' not in arch:
+        sys.stderr.write(
+            'WARNING: no backend found for this architecture!\n'
+            'Defaulting to theano.\n')
+        BACKEND="theano"
+    else:
+        BACKEND = arch['backend']
+    global KERAS_VERSION
     if 'keras_version' not in arch:
         sys.stderr.write(
-            'WARNING: no version number found for this archetecture!\n')
-        return
-    major, minor, *bugfix = arch['keras_version'].split('.')
-    if major != '1' or minor < '2':
-        warn_tmp = (
-            "WARNNING: This converter was developed for Keras version 1.2. "
-            "Your version (v{}.{}) may be incompatible.\n")
-        sys.stderr.write(warn_tmp.format(major, minor))
+            'WARNING: no version number found for this architecture!\n'
+            'Defaulting to version 1.2.\n')
+        KERAS_VERSION=1
+    else:
+        major, minor, *bugfix = arch['keras_version'].split('.')
+        KERAS_VERSION=int(major)
+        config_tmp = (
+            "lwtnn converter being configured for keras (v{}.{}).\n")
+        sys.stderr.write(config_tmp.format(major, minor))
+
+
 
 def _get_args():
     parser = argparse.ArgumentParser(
@@ -84,15 +103,33 @@ def _get_layers(network, inputs, h5):
     layers = []
     in_layers = network['config']
     n_out = len(inputs['inputs'])
+
+    # Determine which layer version we should use
+    if KERAS_VERSION == 1:
+        keras_layer_converters = "keras_v1_layer_converters"
+    elif KERAS_VERSION == 2:
+        keras_layer_converters = "keras_v2_layer_converters"
+    else:
+        sys.exit("We don't support Keras version {}.\n"
+        "Pleas open an issue at https://github.com/lwtnn").format(KERAS_VERSION)
+
+    _send_recieve_meta_info = getattr(importlib.import_module(keras_layer_converters),
+    "_send_recieve_meta_info")
+    layer_converters = getattr(importlib.import_module(keras_layer_converters),
+    "layer_converters")
+
+    _send_recieve_meta_info(BACKEND)
+
     for layer_n in range(len(in_layers)):
         # get converter for this layer
         layer_arch = in_layers[layer_n]
         layer_type = layer_arch['class_name'].lower()
         if layer_type in skip_layers: continue
+
         convert = layer_converters[layer_type]
 
         # build the out layer
-        out_layer, n_out = convert(h5, layer_arch['config'], n_out)
+        out_layer, n_out = convert(h5, layer_arch['config'], n_out, layer_type)
         layers.append(out_layer)
     return layers
 

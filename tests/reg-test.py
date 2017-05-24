@@ -48,8 +48,10 @@ def _run():
 def _get_dict(infile):
     odict = {}
     for line in infile:
+      try:
         key, val = line.split()
         odict[key] = float(val)
+      except ValueError: continue
     return odict
 
 def _compare_equal(old, new, tolerance, warn_threshold=0.000001):
