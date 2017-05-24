@@ -338,6 +338,8 @@ def _get_layers_and_nodes(network, h5):
 
     return output_layers, node_dict
 
+# TODO: rename this, and make it return a mapping to the nodes rather
+# than to the number of variables in the nodes.
 def _get_vars_per_input(input_layer_arch, node_dict):
     vars_per_input = {1: {}, 2: {}}
     for lname, lidx, something in input_layer_arch:
