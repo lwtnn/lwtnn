@@ -36,10 +36,11 @@ def _run():
 
     with h5py.File(args.hdf5_file, 'r') as h5:
         for group in h5:
-          if group == "model_weights":
-            sys.exit("The weight file has been saved incorrectly.\n"
-              "Please see https://github.com/lwtnn/lwtnn/wiki/Keras-Converter#saving-keras-models \n"
-              "on how to correctly save weights.")
+            if group == "model_weights":
+                sys.exit(
+                    "The weight file has been saved incorrectly.\n"
+                    "Please see https://github.com/lwtnn/lwtnn/wiki/Keras-Converter#saving-keras-models \n"
+                    "on how to correctly save weights.")
         layers, node_dict = _get_layers_and_nodes(arch, h5)
     input_layer_arch = arch['config']['input_layers']
     nodes = _build_node_list(node_dict, input_layer_arch)
@@ -77,7 +78,7 @@ def _check_version(arch):
             'WARNING: no version number found for this architecture!\n'
             'Defaulting to version 1.2.\n')
         KERAS_VERSION=1
-    else: 
+    else:
         major, minor, *bugfix = arch['keras_version'].split('.')
         KERAS_VERSION=int(major)
         config_tmp = (
@@ -197,7 +198,7 @@ def _build_node_dict(network):
             nodes[id_tup] = Node(layers[kname], kid)
 
     # now we collapse the node references
-    for node in nodes.values():        
+    for node in nodes.values():
             source_nodes = []
             for source in node.sources:
                 source_nodes.append(nodes[source])
@@ -225,7 +226,7 @@ def _get_valid_sources(node_source):
     else:
         assert len(node_source.sources) == 1
         #@Todo: Check that this will work with two skip_layers in a row
-        return _get_valid_sources(node_source.sources[0])      
+        return _get_valid_sources(node_source.sources[0])
 
 
 def _number_nodes(node_dict):
@@ -279,7 +280,8 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
     # build the out layer
     n_inputs = sum(s.n_outputs for s in node.sources)
     layer_config = node.keras_layer['config']
-    out_layer, node.n_outputs = convert(h5, layer_config, n_inputs, layer_type)
+    out_layer, node.n_outputs = convert(
+        h5, layer_config, n_inputs, layer_type)
     layer_number = len(output_layers)
     layer_dict[node.name] = {
         'n_outputs': node.n_outputs,

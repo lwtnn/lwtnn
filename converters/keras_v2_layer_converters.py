@@ -166,4 +166,3 @@ def _get_h5_layers(layer_group):
         for long_name1, ds1 in ds.items():
             layers[long_name1] = np.asarray(ds1)
     return layers
-
