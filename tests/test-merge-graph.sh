@@ -16,7 +16,7 @@
 # If to add another test you'll probably have to edit this
 
 # Trained network to convert and test
-INPUT=https://github.com/lwtnn/lwtnn-test-data/raw/master/merge-graph.tgz
+INPUT=https://github.com/lwtnn/lwtnn-test-data/raw/v3/merge-graph.tgz
 ARCH=arch.json
 VARIABLES=vars.json
 HDF5=weights.h5
