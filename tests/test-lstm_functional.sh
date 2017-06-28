@@ -63,7 +63,7 @@ cd $(dirname ${BASH_SOURCE[0]})
 # make sure the inputs / outputs are there
 if [[ ! -f $OUTPUT ]]; then
     echo "no output found" >&2
-    # exit 1
+    exit 1
 fi
 
 # If you're adding another test other tests, I'd recommend downloading
