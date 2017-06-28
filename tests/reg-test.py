@@ -19,40 +19,84 @@ import argparse
 import json
 import sys
 
-def _run():
+def _get_args():
     parser = argparse.ArgumentParser(
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('saved_variables', nargs='?')
     parser.add_argument('-t', '--tolerance', type=float, default=0.0001)
-    args = parser.parse_args()
+    parser.add_argument('-g', '--graph', action='store_true',
+                        help="expect a graph regression test")
+    return parser.parse_args()
 
+
+def _run():
+    args = _get_args()
     if sys.stdin.isatty():
         parser.print_usage()
         sys.exit('you need to pipe in a file')
 
-    in_dict = _get_dict(sys.stdin)
+    parse = _get_output_node_dicts if args.graph else _get_dict
+    in_dict = parse(sys.stdin)
     if not args.saved_variables:
         print(json.dumps(in_dict, indent=2, sort_keys=True))
         sys.exit(1)
 
     with open(args.saved_variables) as old_file:
         old_dict = json.load(old_file)
-    if _compare_equal(old_dict, in_dict, args.tolerance):
-        sys.stdout.write('all outputs within thresholds!\n')
-        sys.exit(0)
-    else:
-        sys.stderr.write('Failure!\n')
-        sys.exit(1)
+
+    # for the sequential tests we make a dummy output node name
+    if not args.graph:
+        in_dict = {'dummy': in_dict}
+        old_dict = {'dummy': old_dict}
+
+    good_nodes = set()
+    for node_name, input_node in in_dict.items():
+        old_node = old_dict[node_name]
+        if _compare_equal(old_node, input_node, args.tolerance):
+            good_nodes.add(node_name)
+        else:
+            sys.stderr.write('Failure!\n')
+            sys.exit(1)
+
+    sys.stdout.write('all outputs within thresholds!\n')
+    sys.exit(0)
+
+def _get_output_node_dicts(infile):
+    """parse the input to get a nested dict, one for each output node
+
+    We expect each node name to end with a `:` and include one
+    entry. In other words, formatted as `<key>:`
+
+    The values for each element in the node are formatted as
+    `<key> <value>`.
+    """
+    odict = {}
+    node_key = None
+    for line in infile:
+
+        if line.endswith(':\n'):
+            node_key = line[:-1]
+            assert node_key not in odict
+            odict[node_key] = {}
+            continue
+
+        key, val = line.split()
+        odict[node_key][key] = float(val)
+
+    return odict
+
 
 def _get_dict(infile):
+    """Simpler version of the input stream parser. This expects several
+    lines, formatted as `<key> <value>`.
+    """
     odict = {}
     for line in infile:
-      try:
         key, val = line.split()
         odict[key] = float(val)
-      except ValueError: continue
     return odict
+
 
 def _compare_equal(old, new, tolerance, warn_threshold=0.000001):
     """

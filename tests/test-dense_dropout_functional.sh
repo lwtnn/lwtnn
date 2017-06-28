@@ -91,6 +91,6 @@ echo " -- Running conversion $CONVERT $ARCH $HDF5 $VARIABLES --"
 $CONVERT $TMPDIR/$ARCH $TMPDIR/$HDF5 $TMPDIR/$VARIABLES > $JSON_FILE
 # check that it hasn't changed!
 echo "Testing with $TEST"
-$TEST $JSON_FILE | ./reg-test.py $OUTPUT
+$TEST $JSON_FILE | ./reg-test.py --graph $OUTPUT
 
 echo " *** Success! ***"
