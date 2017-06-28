@@ -45,9 +45,6 @@ Keras sequential and functional models:
 **Note 1:** Normalization layers (i.e. Batch Normalization) are only supported
 for Keras 1.0.8 and higher.
 
-**Note 2:** We don't currently support Keras version 2. See the related
-[issue][ghkeras2].
-
 [ghie]: https://github.com/lwtnn/lwtnn/issues/39
 [ghkeras2]: https://github.com/lwtnn/lwtnn/issues/40
 
