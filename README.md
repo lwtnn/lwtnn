@@ -197,7 +197,7 @@ If you find a bug in this code, or have any ideas, criticisms,
 etc, please email me at `dguest@cern.ch`.
 
 [![Build Status][build-img]][build-link] [![Scan Status][scan-img]][scan-link]
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.290682.svg)](https://doi.org/10.5281/zenodo.290682)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.597221.svg)](https://doi.org/10.5281/zenodo.597221)
 
 [build-img]: https://travis-ci.org/lwtnn/lwtnn.svg?branch=master
 [build-link]: https://travis-ci.org/lwtnn/lwtnn
