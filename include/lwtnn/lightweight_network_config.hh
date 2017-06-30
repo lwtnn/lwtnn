@@ -6,7 +6,9 @@
 //
 #include "NNLayerConfig.hh"
 
-// The code below is to configure the "high level" interface.
+// The code below is to configure the "high level" interface.  These
+// structures are used to initalize the "LightweightNeuralNetwork" and
+// "LightweightGraph".
 
 #include <map>
 #include <string>
