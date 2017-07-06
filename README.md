@@ -15,16 +15,13 @@ What is this?
 The code comes in two parts:
 
  1. A set of scripts to convert saved neural networks to a JSON format
- 2. A set of classes can be used for inference in a C++ framework
+ 2. A set of classes which are used to reconstruct a neural network in a C++ framework
 
 The main design principles are:
 
  - **Minimal dependencies:** The core class should only depend on
    C++11 and [Eigen][eg]. The JSON parser to read in NNs also requires
-   boost [PropertyTree][pt].
- - **Minimal API:** The C++ classes have no non-const methods. Once
-   they have been constructed they can be used for inference and
-   nothing else.
+   boost [PropertyTree][pt]. The converter requires Python3 and `h5py`.
  - **Easy to extend:** Should cover 95% of deep network architectures we
    would realistically consider.
  - **Hard to break:** The NN constructor checks the serialized NN for
@@ -40,10 +37,41 @@ JSON format. Currently the following formats are supported:
 [ap]: https://github.com/lukedeo/AGILEPack
 [kr]: http://keras.io/
 
-How do I use it?
-----------------
+Quick Start
+-----------
+After running `make`, there are some required steps:
 
-Applying a saved neural network within C++ code is easy:
+##### 1) Save your network output file
+Make sure you saved your architecture, weights and created your input variable file. See this link for the correct procedure in doing all of this. (Link to this in the wiki??)
+
+If your are using the _sequential API_:
+```
+lwtnn/converters/keras2json.py architecture.json inputs.json weights.h5 > neural_net.json
+```
+
+If your are using the _model API_:
+```
+lwtnn/converters/kerasfunc2json.py architecture.json weights.h5 inputs.json > neural_net.json
+```
+<sup>Helpful hint: if you do `lwtnn/converters/kerasfunc2json.py architecture.json weights.h5` it creates an input file for you!</sup>
+
+##### 2) Test your saved output file
+A good idea is to test your converted network.
+
+If you have a sequential _feed-forward_ neural network do
+```
+./bin/lwtnn-test-arbitrary-net neural_net.json
+```
+If you have a sequential _recurrent_ neural network do
+```
+./bin/lwtnn-test-rnn neural_net.json
+```
+If you are using the _graph model API_, in all cases do
+```
+./test graph
+```
+
+##### 3) Apply your saved neural network within C++ code
 
 ```C++
 // Include several headers. See the files for more documentation.
@@ -73,8 +101,6 @@ All inputs and outputs are stored in `std::map`s to prevent bugs with
 incorrectly ordered inputs and outputs. The strings used as keys in
 the map are specified by the network configuration.
 
-If you find this interface cumbersome or slow, you're free to work
-with the underlying `Graph` class's `Eigen::VectorXd` interface.
 
 ### Supported Layers ###
 
@@ -113,10 +139,10 @@ The converter scripts can be found in `converters/`. Run them with
 `-h` for more information.
 
 
-Quick Start
+A Quick Unit Test
 -----------
 
-After running `make`, just run `./tests/test-ipmp.sh`. If nothing
+After running `make`, to execute a unit test, just run `./tests/test-ipmp.sh`. If nothing
 goes wrong you should see something like:
 
 ```
@@ -124,11 +150,6 @@ all outputs within thresholds!
  *** Success! ***
 cleaning up
 ```
-
-There may be some problems if you don't have python 3 or
-[`h5py`][h5py]. At the very least you should be able to run
-`./bin/lwtnn-test-graph`, which will spit out a few numbers (and
-nothing else).
 
 [h5py]: http://docs.h5py.org/en/latest/build.html#source-installation-on-linux-and-os-x
 
@@ -143,6 +164,8 @@ Take a look inside the test script, it does a few things:
    pattern.
 
 Of course this isn't very useful, to do more you have to understand...
+
+
 
 Code Organization
 -----------------
