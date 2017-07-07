@@ -24,7 +24,7 @@ The main design principles are:
    boost [PropertyTree][pt]. The converter requires Python3 and `h5py`.
  - **Easy to extend:** Should cover 95% of deep network architectures we
    would realistically consider.
- - **Hard to break:** The NN constructor checks the serialized NN for
+ - **Hard to break:** The NN constructor checks the input NN for
    consistency and fails loudly if anything goes wrong.
 
 We also include converters from several popular formats to the `lwtnn`
@@ -42,7 +42,9 @@ Quick Start
 After running `make`, there are some required steps:
 
 ##### 1) Save your network output file
-Make sure you saved your architecture, weights and created your input variable file. See this link for the correct procedure in doing all of this. (Link to this in the wiki??)
+Make sure you saved your architecture, weights and created your input variable
+file. See [the lwtnn Keras Converter wiki page][weightsInputs] for the correct procedure in doing all of this.
+
 
 If your are using the _sequential API_:
 ```
@@ -53,7 +55,7 @@ If your are using the _model API_:
 ```
 lwtnn/converters/kerasfunc2json.py architecture.json weights.h5 inputs.json > neural_net.json
 ```
-<sup>Helpful hint: if you do `lwtnn/converters/kerasfunc2json.py architecture.json weights.h5` it creates an input file for you!</sup>
+<sup>Helpful hint: if you do `lwtnn/converters/kerasfunc2json.py architecture.json weights.h5` it creates an input file for you, which can be used in the above command!</sup>
 
 ##### 2) Test your saved output file
 A good idea is to test your converted network.
@@ -71,7 +73,14 @@ If you are using the _graph model API_, in all cases do
 ./test graph
 ```
 
+In all cases, a basic regression test is performed with a bunch of random
+numbers. This test just ensures that lwtnn can in fact read your NN.
+
+[weightsInputs]: https://github.com/lwtnn/lwtnn/wiki/Keras-Converter
+
 ##### 3) Apply your saved neural network within C++ code
+<span style="color:red">Do we want to add a sequential example as well?</span>
+<span style="color:red">The section needs to be cleaned up.</span>.
 
 ```C++
 // Include several headers. See the files for more documentation.
@@ -96,6 +105,13 @@ inputs["another_input_node"] = {{"another_value", another_value}};
 // compute the output values
 std::map<std::string, double> outputs = graph.compute(inputs);
 ```
+
+After the constructor for the class `LightweightNeuralNetwork` is constructed,
+it has one method, `compute`, which
+takes a `map<string, double>` as an input and returns a `map` of named
+outputs (of the same type). It's fine to give `compute` a map with
+more arguments than the NN requires, but if some argument is _missing_
+it will throw an `NNEvaluationException`.
 
 All inputs and outputs are stored in `std::map`s to prevent bugs with
 incorrectly ordered inputs and outputs. The strings used as keys in
@@ -138,11 +154,14 @@ supported for Keras 1.0.8 and higher.
 The converter scripts can be found in `converters/`. Run them with
 `-h` for more information.
 
+<span style="color:red">Everything below this: Do we want it in the README?
+I would suggest to put it in the wiki.</span>.
 
 A Quick Unit Test
 -----------
 
-After running `make`, to execute a unit test, just run `./tests/test-ipmp.sh`. If nothing
+After running `make`, to execute a unit test, just run `./tests/test-ipmp.sh`.
+If nothing
 goes wrong you should see something like:
 
 ```
@@ -186,31 +205,6 @@ Code is organized into a low and high level interface. The main files are:
 There are a few other less important files that contain debugging code
 and utilities.
 
-#### The High Level Interface ####
-
-Open `include/LightweightNeuralNetwork.hh` and find the class
-declaration for `LightweightNeuralNetwork`. The constructor takes
-three arguments:
-
- - A vector of `Input`s: these structures give the variable `name`,
-   `offset`, and `scale`. Note that these are applied as `v = (input +
-   offset) * scale`, so if you're normalizing inputs with some `mean`
-   and `standard_deviation`, these are given by `offset = - mean` and
-   `scale = 1 / standard_deviation`.
- - A vector of `LayerConfig` structures. See the below section for an
-   explanation of this class.
- - A vector of output names.
-
-The constructor should check to make sure everything makes sense
-internally. If anything goes wrong it will throw a
-`NNConfigurationException`.
-
-After the class is constructed, it has one method, `compute`, which
-takes a `map<string, double>` as an input and returns a `map` of named
-outputs (of the same type). It's fine to give `compute` a map with
-more arguments than the NN requires, but if some argument is _missing_
-it will throw an `NNEvaluationException`. All the exceptions inherit
-from `LightweightNNException`.
 
 #### The Low Level Interface ####
 
