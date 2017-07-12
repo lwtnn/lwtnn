@@ -178,6 +178,11 @@ def _get_merge_layer_parameters(h5, layer_config, n_in, layer_type):
             'activation': 'linear'}, sum_outputs
 
 
+def _get_elu_activation_parameters(h5, layer_config, n_in):
+    """Return dummy parameters for ELU activation"""
+    return {'weights':[], 'bias':[], 'architecture':'dense','alpha':layer_config["alpha"],
+            'activation':_activation_map['elu']}, n_in
+
 def _activation_parameters(h5, layer_config, n_in, layer_type):
     """Return dummy parameters"""
     return {'weights':[], 'bias':[], 'architecture':'dense',
@@ -195,6 +200,7 @@ layer_converters = {
     'gru': _gru_parameters,
     'merge': _get_merge_layer_parameters,
     'activation': _activation_parameters,
+    'elu': _get_elu_activation_parameters,
     }
 
 # __________________________________________________________________________

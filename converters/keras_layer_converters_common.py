@@ -17,4 +17,5 @@ _activation_map = {
     'softmax': 'softmax',
     'tanh': 'tanh',
     'hard_sigmoid': 'hard_sigmoid',
+    'elu':'elu',
 }
