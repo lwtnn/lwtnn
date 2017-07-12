@@ -13,7 +13,7 @@
 
 namespace lwt {
   enum class Activation {NONE, LINEAR, SIGMOID, RECTIFIED, SOFTMAX, TANH,
-      HARD_SIGMOID};
+      HARD_SIGMOID, ELU};
   enum class Architecture {NONE, DENSE, NORMALIZATION, MAXOUT, HIGHWAY,
       LSTM, GRU, EMBEDDING};
   // components (for LSTM, etc)
