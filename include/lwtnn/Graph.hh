@@ -90,6 +90,17 @@ namespace lwt {
     const ISequenceNode* m_source;
   };
 
+  class TimeDistributedNode: public ISequenceNode
+  {
+  public:
+    TimeDistributedNode(const Stack*, const ISequenceNode* source);
+    virtual MatrixXd scan(const ISource&) const;
+    virtual size_t n_outputs() const;
+  private:
+    const Stack* m_stack;
+    const ISequenceNode* m_source;
+  };
+
   // Graph class, owns the nodes
   class Graph
   {
