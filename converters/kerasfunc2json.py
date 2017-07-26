@@ -295,7 +295,7 @@ _node_type_map = {
     'dense': 'feed_forward',
     'lstm': 'sequence',
     'gru': 'sequence',
-
+    'timedistributed': 'time_distributed',
 }
 
 def _build_node_list(node_dict, input_layer_arch):
@@ -322,7 +322,7 @@ def _build_node_list(node_dict, input_layer_arch):
             out_node['size'] = node.n_outputs
             if node.dims > 1:
                 out_node['type'] = 'input_sequence'
-        elif node_type in ['feed_forward', 'sequence']:
+        elif node_type in ['feed_forward', 'sequence', 'time_distributed']:
             out_node['layer_index'] = node.layer_number
         node_list.append(out_node)
     return node_list
