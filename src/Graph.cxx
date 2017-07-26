@@ -173,7 +173,8 @@ namespace lwt {
   MatrixXd TimeDistributedNode::scan(const ISource& source) const {
     MatrixXd input = m_source->scan(source);
     MatrixXd output(m_stack->n_outputs(), input.cols());
-    for (size_t col_n = 0; col_n < input.cols(); col_n++) {
+    size_t n_columns = input.cols();
+    for (size_t col_n = 0; col_n < n_columns; col_n++) {
       output.col(col_n) = m_stack->compute(input.col(col_n));
     }
     return output;
