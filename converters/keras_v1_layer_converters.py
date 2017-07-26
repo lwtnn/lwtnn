@@ -19,7 +19,10 @@ def _send_recieve_meta_info(backend):
 
 def _get_dense_layer_parameters(h5, layer_config, n_in, layer_type):
     """Get weights, bias, and n-outputs for a dense layer"""
-    layer_group = h5[layer_config['name']]
+    if layer_type in ['timedistributed']:
+        layer_group = h5
+    else:
+        layer_group = h5[layer_config['name']]
     layers = _get_h5_layers(layer_group)
     weights = layers['W'+BACKEND_SUFFIX]
     bias = layers['b'+BACKEND_SUFFIX]
@@ -34,6 +37,12 @@ def _get_dense_layer_parameters(h5, layer_config, n_in, layer_type):
         'activation': _activation_map[layer_config['activation']],
     }
     return return_dict, weights.shape[1]
+
+def _time_distributed_parameters(h5, layer_config, n_in, layer_type):
+    dist_layer = layer_config['layer']['config']
+    dist_name = layer_config['layer']['class_name'].lower()
+    subgroup = h5[layer_config['name']]
+    return layer_converters[dist_name](subgroup, dist_layer, n_in, layer_type)
 
 def _normalization_parameters(h5, layer_config, n_in, layer_type):
     """Get weights (gamma), bias (beta), for normalization layer"""
@@ -195,6 +204,7 @@ layer_converters = {
     'gru': _gru_parameters,
     'merge': _get_merge_layer_parameters,
     'activation': _activation_parameters,
+    'timedistributed': _time_distributed_parameters,
     }
 
 # __________________________________________________________________________
@@ -208,12 +218,20 @@ def _get_h5_layers(layer_group):
     name. This function returns a dictionary of the datasets, keyed
     with the group name stripped off.
     """
-    strip_length = len(layer_group.name.lstrip('/')) + 1
+    group_name = layer_group.name.lstrip('/')
+    strip_length = len(group_name) + 1
     prefixes = set()
     layers = {}
     for long_name, ds in layer_group.items():
-        name = long_name[strip_length:]
-        prefixes.add(long_name[:strip_length])
+        if long_name.startswith(group_name):
+            name = long_name[strip_length:]
+            prefixes.add(long_name[:strip_length])
+        else:
+            name_parts = long_name.split('_')
+            assert name_parts[1].isnumeric()
+            assert len(name_parts) > 2
+            name = '_'.join(name_parts[2:])
+            prefixes.add('_'.join(name_parts[:2]))
         layers[name] = np.asarray(ds)
-    assert len(prefixes) == 1
+    assert len(prefixes) == 1, prefixes
     return layers

@@ -163,6 +163,25 @@ namespace lwt {
   size_t SequenceNode::n_outputs() const {
     return m_stack->n_outputs();
   }
+
+  TimeDistributedNode::TimeDistributedNode(const Stack* stack,
+                                           const ISequenceNode* source):
+    m_stack(stack),
+    m_source(source)
+  {
+  }
+  MatrixXd TimeDistributedNode::scan(const ISource& source) const {
+    MatrixXd input = m_source->scan(source);
+    MatrixXd output(m_stack->n_outputs(), input.cols());
+    size_t n_columns = input.cols();
+    for (size_t col_n = 0; col_n < n_columns; col_n++) {
+      output.col(col_n) = m_stack->compute(input.col(col_n));
+    }
+    return output;
+  }
+  size_t TimeDistributedNode::n_outputs() const {
+    return m_stack->n_outputs();
+  }
 }
 
 namespace {
@@ -190,6 +209,7 @@ namespace {
     const std::unordered_map<size_t, INode*>& node_map,
     std::unordered_map<size_t, Stack*>& stack_map) {
 
+    // FIXME: merge this block with the time distributed one later on
     check_compute_node(node, layers.size());
     INode* source = node_map.at(node.sources.at(0));
     int layer_n = node.index;
@@ -213,6 +233,22 @@ namespace {
                                               {layers.at(layer_n)});
     }
     return new SequenceNode(stack_map.at(layer_n), source);
+  }
+  TimeDistributedNode* get_time_distributed_node(
+    const NodeConfig& node,
+    const std::vector<LayerConfig>& layers,
+    const std::unordered_map<size_t, ISequenceNode*>& node_map,
+    std::unordered_map<size_t, Stack*>& stack_map) {
+
+    // FIXME: merge this block with the FF block above
+    check_compute_node(node, layers.size());
+    ISequenceNode* source = node_map.at(node.sources.at(0));
+    int layer_n = node.index;
+    if (!stack_map.count(layer_n)) {
+      stack_map[layer_n] = new Stack(source->n_outputs(),
+                                     {layers.at(layer_n)});
+    }
+    return new TimeDistributedNode(stack_map.at(layer_n), source);
   }
 }
 
@@ -310,6 +346,9 @@ namespace lwt {
     if (node.type == NodeConfig::Type::FEED_FORWARD) {
       m_nodes[iii] = get_feedforward_node(node, layers,
                                           m_nodes, m_stacks);
+    } else if (node.type == NodeConfig::Type::TIME_DISTRIBUTED) {
+      m_seq_nodes[iii] = get_time_distributed_node(node, layers,
+                                                   m_seq_nodes, m_stacks);
     } else if (node.type == NodeConfig::Type::SEQUENCE) {
       std::unique_ptr<SequenceNode> seq_node(
         get_sequence_node(node, layers, m_seq_nodes, m_seq_stacks));
