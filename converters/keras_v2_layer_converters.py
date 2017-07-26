@@ -113,7 +113,6 @@ layer_converters = {
     'batchnormalization': _normalization_parameters,
     'lstm': _rnn_parameters,
     'gru': _rnn_parameters,
-    'merge': _get_merge_layer_parameters,
     'activation': _activation_parameters,
     'timedistributed': _time_distributed_parameters,
     }
