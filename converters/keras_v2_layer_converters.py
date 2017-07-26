@@ -100,50 +100,6 @@ def _rnn_parameters(h5, layer_config, n_in, layer_type):
             'activation': _activation_map[layer_config['activation']],
             'inner_activation': _activation_map[layer_config['recurrent_activation']]}, n_out
 
-def _get_merge_layer_parameters(h5, layer_config, n_in, layer_type):
-    """
-    Merge layer converter, currently only supports embedding, and only
-    for the first layer.
-    """
-    sys.exit("This layer has not yet been ported to Keras v2.\n"
-      "Please open an issue to hurry us along (https://github.com/lwtnn/lwtnn) \n")
-    sum_inputs = 0
-    sum_outputs = 0
-    sublayers = []
-    for sublayer in layer_config['layers']:
-        assert sublayer['class_name'].lower() == 'sequential'
-        assert len(sublayer['config']) == 1
-        subcfg = sublayer['config'][0]['config']
-        class_name = sublayer['config'][0]['class_name'].lower()
-
-        if class_name == 'embedding':
-            layers = _get_h5_layers(h5[subcfg['name']])
-            sublayer = {
-                'weights': layers['W'].T.flatten().tolist(),
-                'index': sum_inputs,
-                'n_out': subcfg['output_dim']
-                }
-            sublayers.append(sublayer)
-            sum_inputs += 1
-            sum_outputs += subcfg['output_dim']
-        elif class_name == 'activation':
-            if subcfg['activation'] != 'linear':
-                raise ValueError('we only support linear activation here')
-            dims = subcfg['batch_input_shape'][2]
-            sum_inputs += dims
-            sum_outputs += dims
-        elif class_name == 'masking':
-            dims = subcfg['batch_input_shape'][2]
-            sum_inputs += dims
-            sum_outputs += dims
-        else:
-            raise ValueError('unsupported merge layer {}'.format(class_name))
-
-    assert sum_inputs == n_in
-    return {'sublayers': sublayers, 'architecture': 'embedding',
-            'activation': 'linear'}, sum_outputs
-
-
 def _activation_parameters(h5, layer_config, n_in, layer_type):
     """Return dummy parameters"""
     return {'weights':[], 'bias':[], 'architecture':'dense',
