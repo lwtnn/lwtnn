@@ -15,48 +15,74 @@ What is this?
 The code comes in two parts:
 
  1. A set of scripts to convert saved neural networks to a JSON format
- 2. A set of classes which are used to reconstruct a neural network in a C++ framework from the JSON format.
+ 2. A set of classes which are used to reconstruct a neural network in
+    a C++ framework from the JSON format.
 
 The main design principles are:
 
- - **Minimal dependencies:** The core class only depends on
+ - **Minimal dependencies:** The C++ code only depends on
    C++11 and [Eigen][eg]. The JSON parser to read in NNs also requires
-   boost [PropertyTree][pt]. The converter requires Python3 and `h5py`.
+   boost [PropertyTree][pt]. The converter requires Python 3 and `h5py`.
+
  - **Easy to extend:** Should cover 95% of deep network architectures we
    would realistically consider.
+
  - **Hard to break:** The NN constructor checks the input NN for
    consistency and fails loudly if anything goes wrong.
+
 
 We also include converters from several popular formats to the `lwtnn`
 JSON format. Currently the following formats are supported:
  - [AGILEPack][ap]
  - [Keras][kr] (most popular, see below)
 
-<sup>Conversion requiring `h5py` and `python3` can be done in any offline environment.</sup>
-
 [eg]: http://eigen.tuxfamily.org
 [pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
 [ap]: https://github.com/lukedeo/AGILEPack
 [kr]: http://keras.io/
 
+Why are we doing this?
+----------------------
+
+Our underlying assumption is that _training_ and _inference_ happen in
+very different environments: we assume that the training environment
+is flexible enough to support modern and frequently-changing
+libraries, and that the inference environment is much less flexible.
+
+If you have the flexibility to run any framework in your production
+environment, this package is _not_ for you. If you want to apply a
+network you've trained with Keras in a 6M line C++ production
+framework that's only updated twice a year, you'll find this package
+very useful.
+
+
 Quick Start With Model API
------------
-The following instructions apply to the model/functional API in Keras. To see the instructions relevant to the sequential API, go to [Quick Start With sequential API][seqQuickStart].
+--------------------------
+
+The following instructions apply to the model/functional API in
+Keras. To see the instructions relevant to the sequential API, go to
+[Quick Start With sequential API][seqQuickStart].
 
 After running `make`, there are some required steps:
 
 ##### 1) Save your network output file
-Make sure you saved your architecture and weights file from Keras, and created your input variable
-file. See [the lwtnn Keras Converter wiki page][weightsInputs] for the _correct_ procedure in doing all of this.
+
+Make sure you saved your architecture and weights file from Keras, and
+created your input variable file. See [the lwtnn Keras Converter wiki
+page][weightsInputs] for the _correct_ procedure in doing all of this.
 
 Then
+
 ```
 lwtnn/converters/kerasfunc2json.py architecture.json weights.h5 inputs.json > neural_net.json
 ```
+
 <sup>Helpful hint: if you do `lwtnn/converters/kerasfunc2json.py architecture.json weights.h5` it creates a skeleton of an input file for you, which can be used in the above command!</sup>
 
 ##### 2) Test your saved output file
+
 A good idea is to test your converted network:
+
 ```
 ./lwtnn-test-lightweight-graph neural_net.json
 ```
@@ -93,12 +119,12 @@ inputs["another_input_node"] = {{"another_value", another_value}};
 std::map<std::string, double> outputs = graph.compute(inputs);
 ```
 
-After the constructor for the class `LightweightNeuralNetwork` is constructed,
-it has one method, `compute`, which
-takes a `map<string, double>` as an input and returns a `map` of named
-outputs (of the same type). It's fine to give `compute` a map with
-more arguments than the NN requires, but if some argument is _missing_
-it will throw an `NNEvaluationException`.
+After the constructor for the class `LightweightNeuralNetwork` is
+constructed, it has one method, `compute`, which takes a `map<string,
+double>` as an input and returns a `map` of named outputs (of the same
+type). It's fine to give `compute` a map with more arguments than the
+NN requires, but if some argument is _missing_ it will throw an
+`NNEvaluationException`.
 
 All inputs and outputs are stored in `std::map`s to prevent bugs with
 incorrectly ordered inputs and outputs. The strings used as keys in
@@ -110,16 +136,17 @@ the map are specified by the network configuration.
 In particular, the following layers are supported as implemented in the
 Keras sequential and functional models:
 
-|               | K sequential | K functional  |
-|---------------|--------------|---------------|
-| Dense         |  yes         |  yes          |
-| Normalization | See Note 1   | See Note 1    |
-| Maxout        |  yes         |  yes          |
-| Highway       |  yes         |  yes          |
-| LSTM          |  yes         |  yes          |
-| GRU           |  yes         |  yes          |
-| Embedding     | sorta        | [issue][ghie] |
-| Concatenate   |  no          |  yes          |
+|                 | K sequential | K functional  |
+|-----------------|--------------|---------------|
+| Dense           |  yes         |  yes          |
+| Normalization   | See Note 1   | See Note 1    |
+| Maxout          |  yes         |  yes          |
+| Highway         |  yes         |  yes          |
+| LSTM            |  yes         |  yes          |
+| GRU             |  yes         |  yes          |
+| Embedding       | sorta        | [issue][ghie] |
+| Concatenate     |  no          |  yes          |
+| TimeDistributed |  no          |  yes          |
 
 **Note 1:** Normalization layers (i.e. Batch Normalization) are only
 supported for Keras 1.0.8 and higher.
