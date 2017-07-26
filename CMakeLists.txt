@@ -48,6 +48,8 @@ src/lwtnn-test-graph.cxx
 src/lwtnn-test-rnn.cxx
 )
 
+# Build each exectuable and link lwtnn
+# Also set it's install path when make install is called
 foreach( exec_full ${EXECUTABLES} )
     # I used a simple string replace, to cut off .cpp.
     string( REPLACE "src/" ""  execname_temp ${exec_full} )
@@ -55,13 +57,30 @@ foreach( exec_full ${EXECUTABLES} )
     add_executable( ${execname} ${exec_full} )
     # Make sure YourLib is linked to each app
     target_link_libraries( ${execname} lwtnn )
+    install(TARGETS ${execname} 
+        RUNTIME DESTINATION bin 
+    )
 endforeach( exec_full ${EXECUTABLES} )
 
+# Install path for liblwtnn.so
 install(TARGETS lwtnn 
         LIBRARY DESTINATION lib
 )
+# Install path for lwtnn headers
 install(DIRECTORY include/lwtnn
         DESTINATION include)
 
-install(DIRECTORY converters
-        DESTINATION .)
+# Install path for converter scripts
+install(
+    FILES 
+    converters/keras2json.py  
+    converters/agile2json.py
+    converters/julian2json.py
+    converters/keras_layer_converters_common.py
+    converters/keras_v1_layer_converters.py
+    converters/keras_v2_layer_converters.py
+    converters/kerasfunc2json.py
+    PERMISSIONS OWNER_EXECUTE OWNER_READ
+    DESTINATION converters
+)
+
