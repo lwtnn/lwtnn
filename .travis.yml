@@ -11,9 +11,7 @@ env:
    # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
    #   via the "travis encrypt" command using the project repo's public key
     - secure: "JpBZGZhAtJtqL8mRo4nZ7btAH+kYrLvuBZvc08FQg5IBKZFGfMfl4weeZa2Z1v/eFI1ByDuotFeBGeKA93YSaRffXyWd1pr0uhdjsU8rR/8mD9OJDAytfai8N9gVmNMlnoRg4Fwy7PVy7qB47UhdIuymZXDpcFJd0bPeYjKc5vaLXlCHrsw+px/RZpHniBl4kd8WH586To4HN4SSwTESI2/S/8W19wOAGbmlUrzmFvjdFBs8Z77CpCf3wnwcMORPFuhx06FcPtAoxAmQvo7V/3G8/Ioh8sLnmVF1/CP7Qc/2s3aIe8cLTwGSQbtVtMAZrka0gkRK6dtELMBy9bQGmY9dXhZruT50q6bT4bgk+gouPgZvMHitqWx+0T5gH+Py1VxUfV7e2B+jJA4CrlTvhADaUIJN26vRplcZnghUma1O+2SedG4aJ3zilUZqOm3K9OpfCUM4mzn1FCAcmAslO3ZqqVteK6D612WPWO7Zt6ek4hCyABtrG6YreZ2xSAVYwhma/o4aqVBrGEfecpqMGb3aAZrXeLhA+7hq4leGKvpd3OYlpjhg1KRoM26G9dr6Ac/0EIPAnJ0tf2RGey+3U9D78B9yz3ymqBZLCpjyJ1BH2RjYpHxmU0A1Ud9gxKlIJaVJ5YK9UgOg2DQZDQz4rRhpfoTVIbtTSW2+NLLr1rk="
-
-matrix:
-  env:
+  matrix:
     - MAKE=make
     - MAKE=mkdir build; pushd .; cd build; cmake ..; mv bin ..; popd
 
