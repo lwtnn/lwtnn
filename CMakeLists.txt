@@ -7,13 +7,13 @@ add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
 # We search the standard places. If they don't exist, 
 # the user needs to supply the paths.
 # i.e. cmake -DEIGEN_INC=<> -DBOOST_INC=<>
-set(EIGEN_INC "/usr/local/include/eigen3" CACHE PATH "Path to Eigen headers")
+set(EIGEN_INC "/usr/include/eigen3" CACHE PATH "Path to Eigen headers")
 if( NOT EXISTS ${EIGEN_INC} )
     message( FATAL_ERROR "Please add the command -DEIGEN_INC=<path/to/eigen/headers>
     to the cmake configuration.")
 endif()
 
-set(BOOST_INC "/usr/local/include" CACHE PATH "Path to Boost headers")
+set(BOOST_INC "/usr/include" CACHE PATH "Path to Boost headers")
 if( NOT EXISTS ${BOOST_INC}/boost )
     message( FATAL_ERROR "Please add the command -DBOOST_INC=<path/to/boost/headers>
     to the cmake configuration.")
