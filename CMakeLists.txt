@@ -1,19 +1,24 @@
 cmake_minimum_required (VERSION 3.0)
 project(lwtnn)
-set(GCC_COVERAGE_COMPILE_FLAGS "-O2 -Wall -fPIC -g -std=c++11 -pedantic")
+set(GCC_COVERAGE_COMPILE_FLAGS "-O2 -fPIC -g -std=c++11")
 add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
 
 #Include the headers
-set( EIGEN_INC "$ENV{EIGEN_INC}" )
-if( NOT EIGEN_INC )
-    message( FATAL_ERROR "Please point the environment variable EIGEN_INC
-    to the include directory of your eigen3 installation.")
+# We search the standard places. If they don't exist, 
+# the user needs to supply the paths.
+# i.e. cmake -DEIGEN_INC=<> -DBOOST_INC=<>
+set(EIGEN_INC "/usr/local/include/eigen3" CACHE PATH "Path to Eigen headers")
+if( NOT EXISTS ${EIGEN_INC} )
+    message( FATAL_ERROR "Please add the command -DEIGEN_INC=<path/to/eigen/headers>
+    to the cmake configuration.")
 endif()
-set( BOOST_INC "$ENV{BOOST_INC}" )
-if( NOT BOOST_INC )
-    message( FATAL_ERROR "Please point the environment variable BOOST_INC
-    to the include directory of your Boost installation.")
+
+set(BOOST_INC "/usr/local/include" CACHE PATH "Path to Boost headers")
+if( NOT EXISTS ${BOOST_INC}/boost )
+    message( FATAL_ERROR "Please add the command -DBOOST_INC=<path/to/boost/headers>
+    to the cmake configuration.")
 endif()
+
 include_directories ( "${EIGEN_INC}" )
 include_directories ( "${BOOST_INC}" )
 include_directories(include)
@@ -48,14 +53,14 @@ src/lwtnn-test-graph.cxx
 src/lwtnn-test-rnn.cxx
 )
 
-# Build each exectuable and link lwtnn
+# Build each executable and link lwtnn
 # Also set it's install path when make install is called
 foreach( exec_full ${EXECUTABLES} )
-    # I used a simple string replace, to cut off .cpp.
+    # Use a simple string to remove .cxx and src/.
     string( REPLACE "src/" ""  execname_temp ${exec_full} )
     string( REPLACE ".cxx" ""  execname ${execname_temp} )
     add_executable( ${execname} ${exec_full} )
-    # Make sure YourLib is linked to each app
+    # Link lwtnn for each executable
     target_link_libraries( ${execname} lwtnn )
     install(TARGETS ${execname} 
         RUNTIME DESTINATION bin 
