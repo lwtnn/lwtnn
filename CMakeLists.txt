@@ -3,19 +3,11 @@ project(lwtnn)
 set(GCC_COVERAGE_COMPILE_FLAGS "-O2 -Wall -fPIC -g -std=c++11 -pedantic")
 add_definitions(${GCC_COVERAGE_COMPILE_FLAGS})
 
-#Include the headers
-set( EIGEN_INC "$ENV{EIGEN_INC}" )
-if( NOT EIGEN_INC )
-    message( FATAL_ERROR "Please point the environment variable EIGEN_INC
-    to the include directory of your eigen3 installation.")
-endif()
-set( BOOST_INC "$ENV{BOOST_INC}" )
-if( NOT BOOST_INC )
-    message( FATAL_ERROR "Please point the environment variable BOOST_INC
-    to the include directory of your Boost installation.")
-endif()
-include_directories ( "${EIGEN_INC}" )
-include_directories ( "${BOOST_INC}" )
+find_package(Eigen3 REQUIRED)
+find_package(Boost REQUIRED)
+
+include_directories (${EIGEN3_INCLUDE_DIR})
+include_directories (${BOOST_INCLUDE_DIR})
 include_directories(include)
 
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
