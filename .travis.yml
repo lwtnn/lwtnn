@@ -49,3 +49,4 @@ script:
   - ./tests/test-dense_dropout_functional.sh
   - ./tests/test-lstm_functional.sh
   - ./tests/test-merge-graph.sh
+  - ./tests/test-time-distributed-dense.sh
