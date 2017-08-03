@@ -1,10 +1,27 @@
 #!/usr/bin/env bash
-export BOOST_INC=/usr/include/boost
-export EIGEN_INC=/usr/include/eigen3
+
+if [[ $- == *i* ]]; then
+    echo "don't source me!" >&2
+    return 1
+fi
+
+set -eu
+
+if [[ -d build ]]; then
+    echo "removing old build directory" >&2
+    rm -r build
+fi
 mkdir build
+
 pushd .
 cd build
 cmake ..
 make -j 4
-mv bin ..
 popd
+
+if [[ -d bin ]]; then
+    echo "removing old bin directory" >&2
+    rm -r bin
+fi
+mv build/bin .
+
