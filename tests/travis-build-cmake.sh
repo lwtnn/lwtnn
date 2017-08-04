@@ -15,7 +15,11 @@ mkdir build
 
 pushd .
 cd build
-cmake ..
+ARGS=''
+if [[ ${MINIMAL+x} ]]; then
+    ARGS="-DBUILTIN_BOOST=TRUE -DBUILTIN_EIGEN=TRUE"
+fi
+cmake ${ARGS} ..
 make -j 4
 popd
 
