@@ -92,14 +92,14 @@ if( BUILTIN_EIGEN )
    install( DIRECTORY ${CMAKE_BINARY_DIR}/externals/Eigen/
       DESTINATION . USE_SOURCE_PERMISSIONS )
    # Set the include path to use.
-   set( Eigen_INCLUDE_DIRS
+   set( EIGEN3_INCLUDE_DIR
       $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/externals/Eigen/include/eigen3>
       $<INSTALL_INTERFACE:include/eigen3> )
    # Tell the user what will happen.
    message( STATUS "Using a privately downloaded Eigen version for the build" )
 else()
    # Look for Eigen on the build system.
-   find_package( Eigen REQUIRED )
+   find_package( Eigen3 REQUIRED )
 endif()
 
 # Public header files for the shared/static library.
@@ -118,7 +118,7 @@ set( lib_sources src/Exceptions.cxx src/Graph.cxx src/InputPreprocessor.cxx
 # Build the shared library.
 add_library( lwtnn SHARED ${lib_headers} ${lib_sources} )
 target_include_directories( lwtnn
-   PUBLIC ${Eigen_INCLUDE_DIRS}
+   PUBLIC ${EIGEN3_INCLUDE_DIR}
    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
    PRIVATE ${Boost_INCLUDE_DIRS} )
 set_property( TARGET lwtnn
@@ -133,7 +133,7 @@ endif()
 # Build the static library.
 add_library( lwtnn-stat ${lib_headers} ${lib_sources} )
 target_include_directories( lwtnn-stat
-   PUBLIC ${Eigen_INCLUDE_DIRS}
+   PUBLIC ${EIGEN3_INCLUDE_DIR}
    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
    PRIVATE ${Boost_INCLUDE_DIRS} )
 set_property( TARGET lwtnn-stat
