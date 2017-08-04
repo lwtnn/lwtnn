@@ -37,7 +37,7 @@ list( INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake )
 
 # Find the (necessary) Boost and Eigen headers.
 find_package( Boost REQUIRED )
-find_package( Eigen REQUIRED )
+find_package( Eigen3 REQUIRED )
 
 # Public header files for the shared/static library.
 set( lib_headers include/lwtnn/Exceptions.hh include/lwtnn/Graph.hh
@@ -55,7 +55,7 @@ set( lib_sources src/Exceptions.cxx src/Graph.cxx src/InputPreprocessor.cxx
 # Build the shared library.
 add_library( lwtnn SHARED ${lib_headers} ${lib_sources} )
 target_include_directories( lwtnn
-   PUBLIC ${Eigen_INCLUDE_DIRS}
+   PUBLIC ${EIGEN3_INCLUDE_DIR}
    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
    PRIVATE ${Boost_INCLUDE_DIRS} )
 set_property( TARGET lwtnn
@@ -64,7 +64,7 @@ set_property( TARGET lwtnn
 # Build the static library.
 add_library( lwtnn-stat ${lib_headers} ${lib_sources} )
 target_include_directories( lwtnn-stat
-   PUBLIC ${Eigen_INCLUDE_DIRS}
+   PUBLIC ${EIGEN3_INCLUDE_DIR}
    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
    PRIVATE ${Boost_INCLUDE_DIRS} )
 set_property( TARGET lwtnn-stat
