@@ -2,10 +2,17 @@
 # Set the minimum CMake version required to build the project.
 cmake_minimum_required( VERSION 3.1 )
 
+# Silence some warnings on macOS with new CMake versions.
+if( NOT ${CMAKE_VERSION} VERSION_LESS 3.9 )
+   cmake_policy( SET CMP0068 NEW )
+endif()
+
 # Set the project's name and version.
 project( lwtnn VERSION 1.0 )
 
 # Set up the "C++ version" to use.
+set( CMAKE_CXX_STANDARD_REQUIRED 11 CACHE STRING
+   "Minimum C++ standard required for the build" )
 set( CMAKE_CXX_STANDARD 11 CACHE STRING
    "C++ standard to use for the build" )
 set( CMAKE_CXX_EXTENSIONS FALSE CACHE BOOL
@@ -35,9 +42,65 @@ set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
 # Make the project's modules visible to CMake.
 list( INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake )
 
-# Find the (necessary) Boost and Eigen headers.
-find_package( Boost REQUIRED )
-find_package( Eigen3 REQUIRED )
+# Figure out where to take "externals" from. Either using externals already
+# available on the build system, or downloading the necessary code as part
+# of the build of this project.
+
+# Figure out what to do with Boost.
+option( BUILTIN_BOOST "Acquire Boost as part of building this project" OFF )
+if( BUILTIN_BOOST )
+   # Download and install the Boost headers using ExternalProject. Note that
+   # we don't need any of the Boost libraries, so we're not using Boost's own
+   # build system. And we only need the Boost headers during the build
+   # "privately", so the headers are not installed with the project.
+   include( ExternalProject )
+   ExternalProject_Add( Boost
+      PREFIX ${CMAKE_BINARY_DIR}/externals
+      INSTALL_DIR ${CMAKE_BINARY_DIR}/externals/Boost
+      URL
+      "https://dl.bintray.com/boostorg/release/1.64.0/source/boost_1_64_0.tar.gz"
+      URL_MD5 "319c6ffbbeccc366f14bb68767a6db79"
+      BUILD_IN_SOURCE 1
+      CONFIGURE_COMMAND ${CMAKE_COMMAND} -E echo "No configuration for Boost"
+      BUILD_COMMAND ${CMAKE_COMMAND} -E echo "No build step for Boost"
+      INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/boost
+      <INSTALL_DIR>/include/boost )
+   # Set the include path to use.
+   set( Boost_INCLUDE_DIRS
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/externals/Boost/include> )
+   # Tell the user what will happen.
+   message( STATUS "Using a privately downloaded Boost version for the build" )
+else()
+   # Look for Boost on the build system.
+   find_package( Boost REQUIRED )
+endif()
+
+# Figure out what to do with Eigen.
+option( BUILTIN_EIGEN "Acquire Eigen as part of building this project" OFF )
+if( BUILTIN_EIGEN )
+   # Download and install Eigen using ExternalProject.
+   include( ExternalProject )
+   ExternalProject_Add( Eigen
+      PREFIX ${CMAKE_BINARY_DIR}/externals
+      INSTALL_DIR ${CMAKE_BINARY_DIR}/externals/Eigen
+      URL "https://bitbucket.org/eigen/eigen/get/3.2.9.tar.bz2"
+      URL_MD5 "de11bfbfe2fd2dc4b32e8f416f58ee98"
+      DOWNLOAD_NAME "eigen-3.2.9.tar.bz2"
+      CMAKE_CACHE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> )
+   # The eigen headers are needed by clients of this project as well, so let's
+   # install them with the project.
+   install( DIRECTORY ${CMAKE_BINARY_DIR}/externals/Eigen/
+      DESTINATION . USE_SOURCE_PERMISSIONS )
+   # Set the include path to use.
+   set( EIGEN3_INCLUDE_DIR
+      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/externals/Eigen/include/eigen3>
+      $<INSTALL_INTERFACE:include/eigen3> )
+   # Tell the user what will happen.
+   message( STATUS "Using a privately downloaded Eigen version for the build" )
+else()
+   # Look for Eigen on the build system.
+   find_package( Eigen3 REQUIRED )
+endif()
 
 # Public header files for the shared/static library.
 set( lib_headers include/lwtnn/Exceptions.hh include/lwtnn/Graph.hh
@@ -60,6 +123,12 @@ target_include_directories( lwtnn
    PRIVATE ${Boost_INCLUDE_DIRS} )
 set_property( TARGET lwtnn
    PROPERTY PUBLIC_HEADER ${lib_headers} )
+if( BUILTIN_BOOST )
+   add_dependencies( lwtnn Boost )
+endif()
+if( BUILTIN_EIGEN )
+   add_dependencies( lwtnn Eigen )
+endif()
 
 # Build the static library.
 add_library( lwtnn-stat ${lib_headers} ${lib_sources} )
@@ -69,6 +138,12 @@ target_include_directories( lwtnn-stat
    PRIVATE ${Boost_INCLUDE_DIRS} )
 set_property( TARGET lwtnn-stat
    PROPERTY PUBLIC_HEADER ${lib_headers} )
+if( BUILTIN_BOOST )
+   add_dependencies( lwtnn-stat Boost )
+endif()
+if( BUILTIN_EIGEN )
+   add_dependencies( lwtnn-stat Eigen )
+endif()
 
 # Install the libraries.
 install( TARGETS lwtnn lwtnn-stat
