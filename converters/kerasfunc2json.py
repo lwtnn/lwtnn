@@ -293,6 +293,7 @@ _node_type_map = {
     'concatenate': 'concatenate', # <- v2
     'inputlayer': 'input',
     'dense': 'feed_forward',
+    'activation': 'feed_forward',
     'lstm': 'sequence',
     'gru': 'sequence',
     'timedistributed': 'time_distributed',
