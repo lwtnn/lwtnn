@@ -72,7 +72,7 @@ if( BUILTIN_BOOST )
    message( STATUS "Using a privately downloaded Boost version for the build" )
 else()
    # Look for Boost on the build system.
-   find_package( Boost REQUIRED )
+   find_package( Boost 1.54.0 REQUIRED )
 endif()
 
 # Figure out what to do with Eigen.
