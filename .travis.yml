@@ -59,3 +59,4 @@ script:
   - ./tests/test-lstm_functional.sh
   - ./tests/test-merge-graph.sh
   - ./tests/test-time-distributed-dense.sh
+  - ./tests/check-version-number.sh
