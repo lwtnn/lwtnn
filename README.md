@@ -14,15 +14,17 @@ What is this?
 
 The code comes in two parts:
 
- 1. A set of scripts to convert saved neural networks to a JSON format
- 2. A set of classes which are used to reconstruct a neural network in
-    a C++ framework from the JSON format.
+ 1. A set of scripts to convert saved neural networks to a standard
+    JSON format
+ 2. A set of classes which reconstruct the neural network for
+    application in a C++ production environment
 
 The main design principles are:
 
- - **Minimal dependencies:** The C++ code only depends on
-   C++11 and [Eigen][eg]. The JSON parser to read in NNs also requires
-   boost [PropertyTree][pt]. The converter requires Python 3 and `h5py`.
+ - **Minimal dependencies:** The C++ code depends on C++11,
+   [Eigen][eg], and boost [PropertyTree][pt]. The converters have
+   additional requirements (Python3 and h5py) but these can be run
+   outside the C++ production environment.
 
  - **Easy to extend:** Should cover 95% of deep network architectures we
    would realistically consider.
@@ -55,15 +57,48 @@ network you've trained with Keras in a 6M line C++ production
 framework that's only updated twice a year, you'll find this package
 very useful.
 
+Getting the code
+----------------
 
-Quick Start With Model API
---------------------------
+Clone the project from github:
+
+```bash
+git clone git@github.com:lwtnn/lwtnn.git
+```
+
+Then compile with `make`. If you have access to a relatively new
+version of Eigen and Boost everything should work without errors.
+
+If you have CMake, you can build with _no_ other dependencies:
+
+```bash
+mkdir build
+cmake -DBUILTIN_BOOST=true -DBUILTIN_EIGEN=true ..
+make -j 4
+```
+
+Running a full-chain test
+-------------------------
+
+If you have Python 3 and h5py installed you can run a test. Starting
+from the directory where you built the project, run
+
+```
+./tests/test-GRU.sh
+```
+
+(note that if you ran `cmake` this is `../tests/test-GRU.sh`)
+
+You should see some printouts that end with ` *** Success! *** `.
+
+Quick Start With Keras Functional API
+-------------------------------------
 
 The following instructions apply to the model/functional API in
 Keras. To see the instructions relevant to the sequential API, go to
 [Quick Start With sequential API][seqQuickStart].
 
-After running `make`, there are some required steps:
+After building, there are some required steps:
 
 ##### 1) Save your network output file
 
