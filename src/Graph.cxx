@@ -115,7 +115,7 @@ namespace lwt {
       output.segment(offset, n_elements) = input;
       offset += n_elements;
     }
-    assert(offset = m_n_outputs);
+    assert(offset == m_n_outputs);
     return output;
   }
   size_t ConcatenateNode::n_outputs() const {
@@ -261,9 +261,12 @@ namespace lwt {
     m_nodes[1] = new InputNode(1, 2);
     m_nodes[2] = new ConcatenateNode({m_nodes.at(0), m_nodes.at(1)});
     m_nodes[3] = new FeedForwardNode(m_stacks.at(0), m_nodes.at(2));
+    m_last_node = 3;
   }
   Graph::Graph(const std::vector<NodeConfig>& nodes,
-               const std::vector<LayerConfig>& layers) {
+               const std::vector<LayerConfig>& layers):
+    m_last_node(0)
+  {
     for (size_t iii = 0; iii < nodes.size(); iii++) {
       build_node(iii, nodes, layers);
     }
