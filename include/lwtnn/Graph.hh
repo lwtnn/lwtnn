@@ -113,6 +113,8 @@ namespace lwt {
     ~Graph();
     VectorXd compute(const ISource&, size_t node_number) const;
     VectorXd compute(const ISource&) const;
+    MatrixXd scan(const ISource&, size_t node_number) const;
+    MatrixXd scan(const ISource&) const;
   private:
     void build_node(const size_t,
                     const std::vector<NodeConfig>& nodes,

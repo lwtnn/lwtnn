@@ -295,14 +295,37 @@ namespace lwt {
   }
   VectorXd Graph::compute(const ISource& source, size_t node_number) const {
     if (!m_nodes.count(node_number)) {
-      throw NNEvaluationException(
-        "Graph: no output at " + std::to_string(node_number));
+      auto num = std::to_string(node_number);
+      if (m_seq_nodes.count(node_number)) {
+        throw OutputRankException(
+          "Graph: output at " + num + " not feed forward");
+      }
+      throw NNEvaluationException("Graph: no output at " + num);
     }
     return m_nodes.at(node_number)->compute(source);
   }
   VectorXd Graph::compute(const ISource& source) const {
-    assert(m_nodes.size() > 0);
+    if (!m_nodes.count(m_last_node)) {
+      throw OutputRankException("Graph: output is not a feed forward node");
+    }
     return m_nodes.at(m_last_node)->compute(source);
+  }
+  MatrixXd Graph::scan(const ISource& source, size_t node_number) const {
+    if (!m_seq_nodes.count(node_number)) {
+      auto num = std::to_string(node_number);
+      if (m_nodes.count(node_number)) {
+        throw OutputRankException(
+          "Graph: output at " + num + " not a sequence");
+      }
+      throw NNEvaluationException("Graph: no output at " + num);
+    }
+    return m_seq_nodes.at(node_number)->scan(source);
+  }
+  MatrixXd Graph::scan(const ISource& source) const {
+    if (!m_seq_nodes.count(m_last_node)) {
+      throw OutputRankException("Graph: output is not a sequence node");
+    }
+    return m_seq_nodes.at(m_last_node)->scan(source);
   }
 
   // ______________________________________________________________________

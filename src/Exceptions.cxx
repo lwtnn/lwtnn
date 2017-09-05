@@ -14,4 +14,7 @@ namespace lwt {
   NNEvaluationException::NNEvaluationException(std::string problem):
     LightweightNNException(problem)
   {}
+  OutputRankException::OutputRankException(std::string problem):
+    NNEvaluationException(problem)
+  {}
 }

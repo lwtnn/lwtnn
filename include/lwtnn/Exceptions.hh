@@ -24,6 +24,10 @@ namespace lwt {
   public:
     NNEvaluationException(std::string problem);
   };
+  class OutputRankException: public NNEvaluationException {
+  public:
+    OutputRankException(std::string problem);
+  };
 }
 
 #endif // EXCEPTIONS_HH

@@ -2,6 +2,7 @@
 
 #include "lwtnn/LightweightGraph.hh"
 #include "lwtnn/parse_json.hh"
+#include "lwtnn/Exceptions.hh"
 
 #include "test_utilities.hh"
 
@@ -72,10 +73,22 @@ namespace {
 
     // Loop over the output names and compute the output for each
     for (const auto& output: config.outputs) {
-      auto out_vals = tagger.compute(in_nodes, seq, output.first);
-      std::cout << output.first << ":" << std::endl;
-      for (const auto& out: out_vals) {
-        std::cout << out.first << " " << out.second << std::endl;
+      try {
+        auto out_vals = tagger.scan(in_nodes, seq, output.first);
+        std::cout << output.first << ":" << std::endl;
+        for (const auto& out: out_vals) {
+          std::cout << out.first;
+          for (const auto& val: out.second) {
+            std::cout << " " << val;
+          }
+          std::cout << std::endl;
+        }
+      } catch (lwt::OutputRankException& ex) {
+        auto out_vals = tagger.compute(in_nodes, seq, output.first);
+        std::cout << output.first << ":" << std::endl;
+        for (const auto& out: out_vals) {
+          std::cout << out.first << " " << out.second << std::endl;
+        }
       }
     }
     return 0;
