@@ -18,6 +18,7 @@ Use as follows:
 import argparse
 import json
 import sys
+from collections import Sequence
 
 def _get_args():
     parser = argparse.ArgumentParser(
@@ -81,8 +82,8 @@ def _get_output_node_dicts(infile):
             odict[node_key] = {}
             continue
 
-        key, val = line.split()
-        odict[node_key][key] = float(val)
+        key, *vals = line.split()
+        odict[node_key][key] = [float(val) for val in vals]
 
     return odict
 
@@ -94,7 +95,7 @@ def _get_dict(infile):
     odict = {}
     for line in infile:
         key, val = line.split()
-        odict[key] = float(val)
+        odict[key] = [float(val)]
     return odict
 
 
@@ -111,19 +112,22 @@ def _compare_equal(old, new, tolerance, warn_threshold=0.000001):
 
     fails = set()
     for var in old:
-        diff = old[var] - new[var]
-        avg = (old[var] + new[var]) / 2
-        rel = abs(diff) / abs(avg) if abs(avg) > 1 else abs(diff)
-        # first do warnings
-        if rel > warn_threshold:
-            sys.stderr.write(
-                'WARNING: "{}" is off in new version by {}\n'.format(
-                    var, diff))
-        if rel > tolerance:
-            sys.stderr.write(
-                'ERROR: change in "{}" is over threshold {}\n'.format(
-                    var, tolerance))
-            fails.add(var)
+        oldseq = old[var] if isinstance(old[var], Sequence) else [old[var]]
+        for idx, oldvar in enumerate(oldseq):
+            newvar = new[var][idx]
+            diff = oldvar - newvar
+            avg = (oldvar + newvar) / 2
+            rel = abs(diff) / abs(avg) if abs(avg) > 1 else abs(diff)
+            # first do warnings
+            if rel > warn_threshold:
+                sys.stderr.write(
+                    'WARNING: "{}" is off in new version by {}\n'.format(
+                        var, diff))
+            if rel > tolerance:
+                sys.stderr.write(
+                    'ERROR: change in "{}" is over threshold {}\n'.format(
+                        var, tolerance))
+                fails.add(var)
     if fails:
         return False
     return True

@@ -113,4 +113,32 @@ namespace lwt {
     return output;
   }
 
+  VectorMap LightweightGraph::scan(const NodeMap& nodes,
+                                     const SeqNodeMap& seq) const {
+    return scan(nodes, seq, m_default_output);
+  }
+  VectorMap LightweightGraph::scan(const NodeMap& nodes,
+                                     const SeqNodeMap& seq,
+                                     const std::string& output) const {
+    if (!m_output_indices.count(output)) {
+      throw NNEvaluationException("no output node " + output);
+    }
+    return scan(nodes, seq, m_output_indices.at(output));
+  }
+  VectorMap LightweightGraph::scan(const NodeMap& nodes,
+                                     const SeqNodeMap& seq,
+                                     size_t idx) const {
+    VectorSource source(get_input_vectors(nodes, m_preprocs),
+                        get_input_seq(seq, m_vec_preprocs));
+    MatrixXd result = m_graph->scan(source, m_outputs.at(idx).first);
+    const std::vector<std::string>& labels = m_outputs.at(idx).second;
+    std::map<std::string, std::vector<double> > output;
+    for (size_t iii = 0; iii < labels.size(); iii++) {
+      VectorXd row = result.row(iii);
+      std::vector<double> out_vector(row.data(), row.data() + row.size());
+      output[labels.at(iii)] = out_vector;
+    }
+    return output;
+  }
+
 }

@@ -90,6 +90,17 @@ namespace lwt {
     const ISequenceNode* m_source;
   };
 
+  class TimeDistributedNode: public ISequenceNode
+  {
+  public:
+    TimeDistributedNode(const Stack*, const ISequenceNode* source);
+    virtual MatrixXd scan(const ISource&) const;
+    virtual size_t n_outputs() const;
+  private:
+    const Stack* m_stack;
+    const ISequenceNode* m_source;
+  };
+
   // Graph class, owns the nodes
   class Graph
   {
@@ -102,6 +113,8 @@ namespace lwt {
     ~Graph();
     VectorXd compute(const ISource&, size_t node_number) const;
     VectorXd compute(const ISource&) const;
+    MatrixXd scan(const ISource&, size_t node_number) const;
+    MatrixXd scan(const ISource&) const;
   private:
     void build_node(const size_t,
                     const std::vector<NodeConfig>& nodes,

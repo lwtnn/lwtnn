@@ -81,6 +81,15 @@ namespace lwt {
     // output nodes and need to specify the non-default ones
     ValueMap compute(const NodeMap&, const SeqNodeMap&,
                      const std::string& output) const;
+
+    // The simpler "scan" function
+    VectorMap scan(const NodeMap&, const SeqNodeMap& = {}) const;
+
+    // More complicated version, only needed when you have multiple
+    // output nodes and need to specify the non-default ones
+    VectorMap scan(const NodeMap&, const SeqNodeMap&,
+                   const std::string& output) const;
+
   private:
     typedef InputPreprocessor IP;
     typedef InputVectorPreprocessor IVP;
@@ -88,6 +97,7 @@ namespace lwt {
     typedef std::vector<std::pair<std::string, IVP*> > VecPreprocs;
 
     ValueMap compute(const NodeMap&, const SeqNodeMap&, size_t) const;
+    VectorMap scan(const NodeMap&, const SeqNodeMap&, size_t) const;
     Graph* m_graph;
     Preprocs m_preprocs;
     VecPreprocs m_vec_preprocs;

@@ -115,7 +115,7 @@ namespace lwt {
       output.segment(offset, n_elements) = input;
       offset += n_elements;
     }
-    assert(offset = m_n_outputs);
+    assert(offset == m_n_outputs);
     return output;
   }
   size_t ConcatenateNode::n_outputs() const {
@@ -163,6 +163,25 @@ namespace lwt {
   size_t SequenceNode::n_outputs() const {
     return m_stack->n_outputs();
   }
+
+  TimeDistributedNode::TimeDistributedNode(const Stack* stack,
+                                           const ISequenceNode* source):
+    m_stack(stack),
+    m_source(source)
+  {
+  }
+  MatrixXd TimeDistributedNode::scan(const ISource& source) const {
+    MatrixXd input = m_source->scan(source);
+    MatrixXd output(m_stack->n_outputs(), input.cols());
+    size_t n_columns = input.cols();
+    for (size_t col_n = 0; col_n < n_columns; col_n++) {
+      output.col(col_n) = m_stack->compute(input.col(col_n));
+    }
+    return output;
+  }
+  size_t TimeDistributedNode::n_outputs() const {
+    return m_stack->n_outputs();
+  }
 }
 
 namespace {
@@ -190,6 +209,7 @@ namespace {
     const std::unordered_map<size_t, INode*>& node_map,
     std::unordered_map<size_t, Stack*>& stack_map) {
 
+    // FIXME: merge this block with the time distributed one later on
     check_compute_node(node, layers.size());
     INode* source = node_map.at(node.sources.at(0));
     int layer_n = node.index;
@@ -214,6 +234,22 @@ namespace {
     }
     return new SequenceNode(stack_map.at(layer_n), source);
   }
+  TimeDistributedNode* get_time_distributed_node(
+    const NodeConfig& node,
+    const std::vector<LayerConfig>& layers,
+    const std::unordered_map<size_t, ISequenceNode*>& node_map,
+    std::unordered_map<size_t, Stack*>& stack_map) {
+
+    // FIXME: merge this block with the FF block above
+    check_compute_node(node, layers.size());
+    ISequenceNode* source = node_map.at(node.sources.at(0));
+    int layer_n = node.index;
+    if (!stack_map.count(layer_n)) {
+      stack_map[layer_n] = new Stack(source->n_outputs(),
+                                     {layers.at(layer_n)});
+    }
+    return new TimeDistributedNode(stack_map.at(layer_n), source);
+  }
 }
 
 namespace lwt {
@@ -225,9 +261,12 @@ namespace lwt {
     m_nodes[1] = new InputNode(1, 2);
     m_nodes[2] = new ConcatenateNode({m_nodes.at(0), m_nodes.at(1)});
     m_nodes[3] = new FeedForwardNode(m_stacks.at(0), m_nodes.at(2));
+    m_last_node = 3;
   }
   Graph::Graph(const std::vector<NodeConfig>& nodes,
-               const std::vector<LayerConfig>& layers) {
+               const std::vector<LayerConfig>& layers):
+    m_last_node(0)
+  {
     for (size_t iii = 0; iii < nodes.size(); iii++) {
       build_node(iii, nodes, layers);
     }
@@ -256,14 +295,37 @@ namespace lwt {
   }
   VectorXd Graph::compute(const ISource& source, size_t node_number) const {
     if (!m_nodes.count(node_number)) {
-      throw NNEvaluationException(
-        "Graph: no output at " + std::to_string(node_number));
+      auto num = std::to_string(node_number);
+      if (m_seq_nodes.count(node_number)) {
+        throw OutputRankException(
+          "Graph: output at " + num + " not feed forward");
+      }
+      throw NNEvaluationException("Graph: no output at " + num);
     }
     return m_nodes.at(node_number)->compute(source);
   }
   VectorXd Graph::compute(const ISource& source) const {
-    assert(m_nodes.size() > 0);
+    if (!m_nodes.count(m_last_node)) {
+      throw OutputRankException("Graph: output is not a feed forward node");
+    }
     return m_nodes.at(m_last_node)->compute(source);
+  }
+  MatrixXd Graph::scan(const ISource& source, size_t node_number) const {
+    if (!m_seq_nodes.count(node_number)) {
+      auto num = std::to_string(node_number);
+      if (m_nodes.count(node_number)) {
+        throw OutputRankException(
+          "Graph: output at " + num + " not a sequence");
+      }
+      throw NNEvaluationException("Graph: no output at " + num);
+    }
+    return m_seq_nodes.at(node_number)->scan(source);
+  }
+  MatrixXd Graph::scan(const ISource& source) const {
+    if (!m_seq_nodes.count(m_last_node)) {
+      throw OutputRankException("Graph: output is not a sequence node");
+    }
+    return m_seq_nodes.at(m_last_node)->scan(source);
   }
 
   // ______________________________________________________________________
@@ -310,6 +372,9 @@ namespace lwt {
     if (node.type == NodeConfig::Type::FEED_FORWARD) {
       m_nodes[iii] = get_feedforward_node(node, layers,
                                           m_nodes, m_stacks);
+    } else if (node.type == NodeConfig::Type::TIME_DISTRIBUTED) {
+      m_seq_nodes[iii] = get_time_distributed_node(node, layers,
+                                                   m_seq_nodes, m_stacks);
     } else if (node.type == NodeConfig::Type::SEQUENCE) {
       std::unique_ptr<SequenceNode> seq_node(
         get_sequence_node(node, layers, m_seq_nodes, m_seq_stacks));

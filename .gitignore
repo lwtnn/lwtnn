@@ -14,3 +14,6 @@
 
 # except in the tests
 !/tests/data/*
+
+# include the .zenodo file
+!.zenodo.json

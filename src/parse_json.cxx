@@ -119,7 +119,8 @@ namespace {
     typedef NodeConfig::Type Type;
     if (cfg.type == Type::INPUT || cfg.type == Type::INPUT_SEQUENCE) {
       cfg.index = v.second.get<int>("size");
-    } else if (cfg.type == Type::FEED_FORWARD || cfg.type == Type::SEQUENCE) {
+    } else if (cfg.type == Type::FEED_FORWARD || cfg.type == Type::SEQUENCE ||
+               cfg.type == Type::TIME_DISTRIBUTED) {
       cfg.index = v.second.get<int>("layer_index");
     } else if (cfg.type == Type::CONCATENATE){
       cfg.index = -1;
@@ -147,6 +148,7 @@ namespace {
     if (type == "input") return Type::INPUT;
     if (type == "input_sequence") return Type::INPUT_SEQUENCE;
     if (type == "concatenate") return Type::CONCATENATE;
+    if (type == "time_distributed") return Type::TIME_DISTRIBUTED;
     throw std::logic_error("no node type '" + type + "'");
   }
 

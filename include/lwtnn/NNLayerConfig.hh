@@ -54,7 +54,7 @@ namespace lwt {
   struct NodeConfig
   {
     enum class Type { INPUT, INPUT_SEQUENCE, FEED_FORWARD,
-        CONCATENATE, SEQUENCE};
+        CONCATENATE, SEQUENCE, TIME_DISTRIBUTED};
     Type type;
     std::vector<size_t> sources;
     int index;                  // input node size, or layer number
