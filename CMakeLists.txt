@@ -10,6 +10,9 @@ endif()
 # Set the project's name and version.
 project( lwtnn VERSION 2.4 )
 
+# Enable using CTest in the project.
+include( CTest )
+
 # Set up the "C++ version" to use.
 set( CMAKE_CXX_STANDARD_REQUIRED 11 CACHE STRING
    "Minimum C++ standard required for the build" )
@@ -183,6 +186,22 @@ install( FILES
    converters/kerasfunc2json.py
    PERMISSIONS OWNER_EXECUTE OWNER_READ
    DESTINATION converters )
+
+# Helper macro for building the project's unit tests.
+macro( lwtnn_add_test name )
+   # Build the unit-test executable:
+   add_executable( ${name} ${ARGN} )
+   target_link_libraries( ${name} lwtnn-stat )
+   set_target_properties( ${name} PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test-bin" )
+   # Set up the test itself:
+   add_test( NAME ${name}_ctest
+      COMMAND ${CMAKE_BINARY_DIR}/test-bin/${name}
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test-bin )
+endmacro( lwtnn_add_test )
+
+# Set up the test(s) of the project.
+lwtnn_add_test( test-nn-streamers tests/test-nn-streamers.cxx )
 
 # Install the CMake description of the project.
 install( EXPORT lwtnnTargets
