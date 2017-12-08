@@ -6,9 +6,9 @@
 namespace lwt {
   struct LayerConfig;
   struct Input;
-}
 
-std::ostream& operator<<(std::ostream&, const lwt::LayerConfig&);
-std::ostream& operator<<(std::ostream&, const lwt::Input&);
+  std::ostream& operator<<(std::ostream&, const LayerConfig&);
+  std::ostream& operator<<(std::ostream&, const Input&);
+}
 
 #endif
