@@ -19,8 +19,10 @@ ARGS=''
 if [[ ${MINIMAL+x} ]]; then
     ARGS="-DBUILTIN_BOOST=TRUE -DBUILTIN_EIGEN=TRUE"
 fi
+export MAKEFLAGS="-j`nproc` -l`nproc`"
 cmake ${ARGS} ..
-make -j 4
+cmake --build .
+ctest --output-on-failure -j`nproc`
 popd
 
 if [[ -d bin ]]; then
