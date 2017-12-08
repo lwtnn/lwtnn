@@ -10,6 +10,9 @@ endif()
 # Set the project's name and version.
 project( lwtnn VERSION 2.4 )
 
+# Enable using CTest in the project.
+include( CTest )
+
 # Set up the "C++ version" to use.
 set( CMAKE_CXX_STANDARD_REQUIRED 11 CACHE STRING
    "Minimum C++ standard required for the build" )
