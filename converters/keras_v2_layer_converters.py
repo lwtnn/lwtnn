@@ -13,6 +13,7 @@
 import numpy as np
 import sys
 from keras_layer_converters_common import _activation_map
+import h5py
 
 def _send_recieve_meta_info(backend):
     global BACKEND_SUFFIX
@@ -123,11 +124,19 @@ layer_converters = {
 def _get_h5_layers(layer_group):
     """
     Keras: v2:
-    An extra level is added, then the datasets we need. I.e., no stripping
-    is needed, but one more iteration is.
+    Recursively loop over the groups until a dataset is found
     """
-    layers = {}
     for long_name, ds in layer_group.items():
-        for long_name1, ds1 in ds.items():
-            layers[long_name1] = np.asarray(ds1)
-    return layers
+        layer_info = _get_h5_layers_recursively(ds)
+    return layer_info
+
+
+def _get_h5_layers_recursively(dataset):
+        layers={}
+        for long_name1, ds1 in dataset.items():
+            is_dataset = isinstance(ds1, h5py.Dataset)
+            if is_dataset==True:
+                layers[long_name1] = np.asarray(ds1)
+            else:
+                return _get_h5_layers_recursively(ds1)
+        return layers
