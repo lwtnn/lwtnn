@@ -574,6 +574,7 @@ namespace lwt {
     case Activation::HARD_SIGMOID: return nn_hard_sigmoid;
     case Activation::TANH: return nn_tanh;
     case Activation::RECTIFIED: return nn_relu;
+    case Activation::ELU: return nn_elu;
     case Activation::LINEAR: return [](double x){return x;};
     default: {
       throw NNConfigurationException("Got undefined activation function");
@@ -604,6 +605,15 @@ namespace lwt {
   double nn_relu( double x) {
     if (std::isnan(x)) return x;
     else return x > 0 ? x : 0;
+  }
+
+  double nn_elu( double x ){
+    /* ELU function : https://arxiv.org/pdf/1511.07289.pdf
+       f(x)=(x>=0)*x + ( (x<0)*alpha*(exp(x)-1) )
+    */
+    double alpha(1.0); // need support from any alpha param
+    double exp_term = alpha * (std::exp(x)-1);
+    return x>=0 ? x : exp_term;
   }
 
 
