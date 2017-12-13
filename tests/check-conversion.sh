@@ -53,17 +53,6 @@ cd $(dirname ${BASH_SOURCE[0]})
 # ________________________________________________________________________
 # main test logic
 
-# Function to check if file is empty (as it should be) or not
-function getFileSize(){
-  if [[ -s $1 ]];
-  then
-    echo "ERROR!  Diff file is NOT empty"
-  else
-    echo "Success! Diff file is empty";
-  fi;
-}
-
-
 # If you're adding another test other tests, I'd recommend downloading
 # or otherwise acquiring the input files by running `wget` within this
 # block. Make sure you set the input path outside the block, it will
@@ -95,13 +84,15 @@ INPUT_FILE_NEW=$TMPDIR/intermediate_inputs.json
 echo " -- Creating inputs $CONVERT $ARCH $HDF5 > $INPUT_FILE_NEW --"
 $CONVERT $TMPDIR/$ARCH $TMPDIR/$HDF5 > $INPUT_FILE_NEW
 # Now compare the $INPUT_FILE_NEW to the $VARIABLES_ORIGINAL
-diff -u $INPUT_FILE_NEW $TMPDIR/$VARIABLES_ORIGINAL > $TMPDIR/input_differences.txt
-getFileSize $TMPDIR/input_differences.txt
+diff $INPUT_FILE_NEW $TMPDIR/$VARIABLES_ORIGINAL > $TMPDIR/input_differences.txt \
+        && echo "Success: Input file is empty" \
+        || (echo "ERROR: Input file is NOT empty" ; exit 1);
 
 echo " -- Creating networks $CONVERT $ARCH $HDF5 $INPUT_FILE_NEW > $JSON_FILE_NEW --"
 $CONVERT $TMPDIR/$ARCH $TMPDIR/$HDF5 $INPUT_FILE_NEW  > $JSON_FILE_NEW
 # Now compare the $JSON_FILE_NEW to the $JSON_FILE_BENCHMARK
-diff -u $JSON_FILE_NEW $TMPDIR/$JSON_FILE_BENCHMARK  > $TMPDIR/neural_network_differences.txt
-getFileSize $TMPDIR/neural_network_differences.txt
+diff -u $JSON_FILE_NEW $TMPDIR/$JSON_FILE_BENCHMARK  > $TMPDIR/neural_network_differences.txt \
+        && echo "Success: Network file is empty" \
+        || (echo "ERROR: Network file is NOT empty" ; exit 1);
 
 echo " *** Success! ***"
