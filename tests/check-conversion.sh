@@ -15,12 +15,12 @@
 # If to add another test you'll probably have to edit this
 
 # Trained network to convert and test
-INPUT=https://github.com/lwtnn/lwtnn-test-data/raw/v3/lstm_functional.tgz
+INPUT=https://github.com/lwtnn/lwtnn-test-data/raw/v2.2/lstm_functional.tgz
 ARCH=model.json
 VARIABLES_ORIGINAL=inputs.json
 HDF5=weights.h5
 #Correct file
-JSON_FILE_OLD=data/converter_data/basic_lstm_network_output.json
+JSON_FILE_BENCHMARK=basic_lstm_network_benchmark.json
 
 # Conversion routine
 CONVERT=./convert/kerasfunc2json.py
@@ -53,12 +53,6 @@ cd $(dirname ${BASH_SOURCE[0]})
 # ________________________________________________________________________
 # main test logic
 
-# make sure the NN to compare to is there
-if [[ ! -f $JSON_FILE_OLD ]]; then
-    echo "no comparison NN found" >&2
-    exit 1
-fi
-
 # Function to check if file is empty (as it should be) or not
 function getFileSize(){
   if [[ -s $1 ]];
@@ -87,6 +81,12 @@ function getFileSize(){
     fi
 )
 
+# make sure the NN to compare to is there
+if [[ ! -f $TMPDIR/$JSON_FILE_BENCHMARK ]]; then
+    echo "no comparison NN found" >&2
+    exit 1
+fi
+
 # intermediate file name (make sure it's in the temp dir)
 JSON_FILE_NEW=$TMPDIR/intermediate_model.json
 INPUT_FILE_NEW=$TMPDIR/intermediate_inputs.json
@@ -100,8 +100,8 @@ getFileSize $TMPDIR/input_differences.txt
 
 echo " -- Creating networks $CONVERT $ARCH $HDF5 $INPUT_FILE_NEW > $JSON_FILE_NEW --"
 $CONVERT $TMPDIR/$ARCH $TMPDIR/$HDF5 $INPUT_FILE_NEW  > $JSON_FILE_NEW
-# Now compare the $JSON_FILE_NEW to the $JSON_FILE_OLD
-diff -u $JSON_FILE_NEW $JSON_FILE_OLD  > $TMPDIR/neural_network_differences.txt
+# Now compare the $JSON_FILE_NEW to the $JSON_FILE_BENCHMARK
+diff -u $JSON_FILE_NEW $TMPDIR/$JSON_FILE_BENCHMARK  > $TMPDIR/neural_network_differences.txt
 getFileSize $TMPDIR/neural_network_differences.txt
 
 echo " *** Success! ***"
