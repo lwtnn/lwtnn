@@ -188,7 +188,8 @@ def _get_merge_layer_parameters(h5, layer_config, n_in, layer_type):
 
 
 def _get_elu_activation_parameters(h5, layer_config, n_in):
-    """Return dummy parameters for ELU activation"""
+    """Return dummy parameters for ELU activation. Assert the alpha parameter is 1.0"""
+    assert np.fabs(layer_config["alpha"]-1.0) < 1e-6
     return {'weights':[], 'bias':[], 'architecture':'dense','alpha':layer_config["alpha"],
             'activation':_activation_map['elu']}, n_in
 
