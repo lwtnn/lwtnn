@@ -5,7 +5,7 @@
 #include <string>
 #include <stdexcept>
 
-namespace {
+namespace lwt {
   std::ostream& operator<<(std::ostream& out,
 			   const std::vector<double>& vec) {
     size_t nentry = vec.size();
@@ -61,7 +61,7 @@ namespace {
 }
 
 
-std::ostream& operator<<(std::ostream& out, const lwt::LayerConfig& cfg){
+std::ostream& lwt::operator<<(std::ostream& out, const lwt::LayerConfig& cfg){
   using namespace lwt;
   out << "architecture: " << cfg.architecture << "\n";
   out << "activation: " << activation_as_string(cfg.activation) << "\n";
@@ -95,7 +95,7 @@ std::ostream& operator<<(std::ostream& out, const lwt::LayerConfig& cfg){
   }
   return out;
 }
-std::ostream& operator<<(std::ostream& out, const lwt::Input& input) {
+std::ostream& lwt::operator<<(std::ostream& out, const lwt::Input& input) {
   out << input.name << " -- offset: " << input.offset << " scale: "
       << input.scale;
   return out;
