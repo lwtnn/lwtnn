@@ -15,17 +15,20 @@
             "orcid": "0000-0003-4102-8002"
         },
         {
-            "name": "Michael Kagan"
+            "name": "Michael Kagan",
+            "affiliation": "SLAC"
         },
         {
             "name": "Marie Lanfermann"
         },
         {
-            "name": "Attila Krasznahorkay"
+            "name": "Attila Krasznahorkay",
+            "affiliation": "CERN"
         },
         {
             "name": "Daniel Edison Marley",
-            "affiliation": "Texas A&M University"
+            "affiliation": "Texas A&M University",
+            "orcid": "0000-0002-6290-078X"
         }
     ]
 }
