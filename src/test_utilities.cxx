@@ -28,11 +28,12 @@ lwt::VectorMap get_values_vec(const std::vector<lwt::Input>& inputs,
 
   // ramp through the input multiplier
   const size_t total_inputs = inputs.size();
-  for (size_t jjj = 0; jjj < n_patterns; jjj++) {
-    for (size_t nnn = 0; nnn < total_inputs; nnn++) {
-      const auto& input = inputs.at(nnn);
+  for (size_t nnn = 0; nnn < total_inputs; nnn++) {
+    const auto& input = inputs.at(nnn);
+    out[input.name] = {};
+    for (size_t jjj = 0; jjj < n_patterns; jjj++) {
       double ramp_val = ramp(input, nnn, jjj, total_inputs, n_patterns);
-      out[input.name].push_back(ramp_val);
+      out.at(input.name).push_back(ramp_val);
     }
   }
   return out;
