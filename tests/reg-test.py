@@ -25,7 +25,7 @@ def _get_args():
         description=__doc__,
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('saved_variables', nargs='?')
-    parser.add_argument('-t', '--tolerance', type=float, default=0.0001)
+    parser.add_argument('-t', '--tolerance', type=float, default=0.00001)
     parser.add_argument('-g', '--graph', action='store_true',
                         help="expect a graph regression test")
     return parser.parse_args()
@@ -43,6 +43,10 @@ def _run():
         print(json.dumps(in_dict, indent=2, sort_keys=True))
         sys.exit(1)
 
+    if not in_dict:
+        sys.stderr.write('Failure: Inputs were empty!\n')
+        sys.exit(1)
+
     with open(args.saved_variables) as old_file:
         old_dict = json.load(old_file)
 
@@ -52,8 +56,8 @@ def _run():
         old_dict = {'dummy': old_dict}
 
     good_nodes = set()
-    for node_name, input_node in in_dict.items():
-        old_node = old_dict[node_name]
+    for node_name, old_node in old_dict.items():
+        input_node = in_dict[node_name]
         if _compare_equal(old_node, input_node, args.tolerance):
             good_nodes.add(node_name)
         else:
@@ -99,7 +103,7 @@ def _get_dict(infile):
     return odict
 
 
-def _compare_equal(old, new, tolerance, warn_threshold=0.000001):
+def _compare_equal(old, new, tolerance, warn_threshold=0.0000001):
     """
     For values of x where abs(x) < 1, the threshold is absolute.
     For larger values, use a relative threshold.
