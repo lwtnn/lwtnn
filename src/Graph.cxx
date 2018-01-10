@@ -130,9 +130,8 @@ namespace lwt {
   }
   MatrixXd InputSequenceNode::scan(const ISource& source) const {
     MatrixXd output = source.matrix_at(m_index);
-    assert(output.rows() > 0);
-    if (output.cols() == 0) {
-      throw NNEvaluationException("zero length input sequence");
+    if (output.rows() == 0) {
+      throw NNEvaluationException("empty input sequence");
     }
     if (static_cast<size_t>(output.rows()) != m_n_outputs) {
       std::string len = std::to_string(output.rows());
@@ -158,6 +157,10 @@ namespace lwt {
   VectorXd SequenceNode::compute(const ISource& src) const {
     MatrixXd mat = scan(src);
     size_t n_cols = mat.cols();
+    // special handling for empty sequence
+    if (n_cols == 0) {
+      return MatrixXd::Zero(mat.rows(), 1);
+    }
     return mat.col(n_cols - 1);
   }
   size_t SequenceNode::n_outputs() const {

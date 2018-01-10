@@ -63,14 +63,14 @@ namespace lwt {
         throw NNEvaluationException("can't find input: " + in_name);
       }
       const auto& invec = in.at(in_name);
-      if (invec.size() == 0) {
-        throw NNEvaluationException("Input vector of zero length");
-      }
       if (invec.size() != n_cols) {
         throw NNEvaluationException("Input vector size mismatch");
       }
       inmat.row(in_num) = Map<const VectorXd>(invec.data(), invec.size());
       in_num++;
+    }
+    if (n_cols == 0) {
+        return MatrixXd(m_names.size(), 0);
     }
     return m_scales.asDiagonal() * (inmat.colwise() + m_offsets);
   }
