@@ -106,6 +106,13 @@ def _activation_parameters(h5, layer_config, n_in, layer_type):
     return {'weights':[], 'bias':[], 'architecture':'dense',
             'activation':_activation_map[layer_config['activation']]}, n_in
 
+def _activation_func(activation_name):
+    def func(h5, layer_config, n_in, layer_type):
+        """Return dummy parameters"""
+        return {'weights':[], 'bias':[], 'architecture':'dense',
+                'activation': activation_name}, n_in
+    return func
+
 # _________________________________________________________________________
 # master list of converters
 
@@ -115,6 +122,7 @@ layer_converters = {
     'lstm': _rnn_parameters,
     'gru': _rnn_parameters,
     'activation': _activation_parameters,
+    'softmax': _activation_func('softmax'),
     'timedistributed': _time_distributed_parameters,
     }
 # __________________________________________________________________________
