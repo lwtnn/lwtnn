@@ -297,6 +297,7 @@ _node_type_map = {
     'lstm': 'sequence',
     'gru': 'sequence',
     'timedistributed': 'time_distributed',
+    'softmax': 'sequence',
 }
 
 def _build_node_list(node_dict, input_layer_arch):
