@@ -35,12 +35,11 @@ The main design principles are:
 
 We also include converters from several popular formats to the `lwtnn`
 JSON format. Currently the following formats are supported:
- - [AGILEPack][ap]
+ - Scikit Learn
  - [Keras][kr] (most popular, see below)
 
 [eg]: http://eigen.tuxfamily.org
 [pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
-[ap]: https://github.com/lukedeo/AGILEPack
 [kr]: http://keras.io/
 
 Why are we doing this?

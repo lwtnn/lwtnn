@@ -177,14 +177,15 @@ lwtnn_add_executable( lwtnn-test-rnn )
 
 # Install the converter scripts.
 install( FILES
-   converters/keras2json.py
-   converters/agile2json.py
-   converters/julian2json.py
    converters/keras_layer_converters_common.py
    converters/keras_v1_layer_converters.py
    converters/keras_v2_layer_converters.py
+   DESTINATION converters )
+install( PROGRAMS
+   converters/keras2json.py
+   converters/sequential2graph.py
    converters/kerasfunc2json.py
-   PERMISSIONS OWNER_EXECUTE OWNER_READ
+   converters/sklearn2json.py
    DESTINATION converters )
 
 # Helper macro for building the project's unit tests.
