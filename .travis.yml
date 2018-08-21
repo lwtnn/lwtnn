@@ -51,7 +51,6 @@ install:
 # TODO: add some regression tests
 script:
   - $BUILD
-  - ./tests/test-agilepack.sh
   - ./tests/test-highway.sh
   - ./tests/test-GRU.sh
   - ./tests/test-BatchNorm.sh
