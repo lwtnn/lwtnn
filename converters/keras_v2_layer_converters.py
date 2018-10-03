@@ -113,6 +113,20 @@ def _activation_func(activation_name):
                 'activation': activation_name}, n_in
     return func
 
+def _alpha_activation_func(activation_name):
+    def func(h5, layer_config, n_in, layer_type):
+        """Store activation parameters, including alpha"""
+        pars = {
+            'weights':[], 'bias':[],'architecture':'dense',
+            'activation':{
+                'function': activation_name,
+                'alpha': layer_config['alpha']
+            }
+        }
+        return pars, n_in
+    return func
+
+
 # _________________________________________________________________________
 # master list of converters
 
@@ -123,6 +137,7 @@ layer_converters = {
     'gru': _rnn_parameters,
     'activation': _activation_parameters,
     'softmax': _activation_func('softmax'),
+    'leakyrelu': _alpha_activation_func('leakyrelu'),
     'timedistributed': _time_distributed_parameters,
     }
 # __________________________________________________________________________

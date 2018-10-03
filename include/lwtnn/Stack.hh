@@ -304,11 +304,19 @@ namespace lwt {
   double nn_hard_sigmoid( double x );
   double nn_tanh( double x );
   double nn_relu( double x );
-  class NNElu
+  class ELU
   {
   public:
-    NNElu(double alpha);
-    double operator()(double);
+    ELU(double alpha);
+    double operator()(double) const;
+  private:
+    double m_alpha;
+  };
+  class LeakyReLU
+  {
+  public:
+    LeakyReLU(double alpha);
+    double operator()(double) const;
   private:
     double m_alpha;
   };

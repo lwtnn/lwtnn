@@ -298,6 +298,7 @@ _node_type_map = {
     'gru': 'sequence',
     'timedistributed': 'time_distributed',
     'softmax': 'feed_forward',
+    'leakyrelu': 'feed_forward',
 }
 
 def _build_node_list(node_dict, input_layer_arch):

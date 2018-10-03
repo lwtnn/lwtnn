@@ -203,6 +203,7 @@ namespace {
     if (str == "tanh") return Activation::TANH;
     if (str == "hard_sigmoid") return Activation::HARD_SIGMOID;
     if (str == "elu") return Activation::ELU;
+    if (str == "leakyrelu") return Activation::LEAKY_RELU;
     throw std::logic_error("activation function " + str + " not recognized");
     return Activation::LINEAR;
   }

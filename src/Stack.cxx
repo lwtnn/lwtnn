@@ -576,7 +576,8 @@ namespace lwt {
     case Activation::HARD_SIGMOID: return nn_hard_sigmoid;
     case Activation::TANH: return nn_tanh;
     case Activation::RECTIFIED: return nn_relu;
-    case Activation::ELU: return NNElu(act.alpha);
+    case Activation::ELU: return ELU(act.alpha);
+    case Activation::LEAKY_RELU: return LeakyReLU(act.alpha);
     case Activation::LINEAR: return [](double x){return x;};
     default: {
       throw NNConfigurationException("Got undefined activation function");
@@ -609,10 +610,10 @@ namespace lwt {
     else return x > 0 ? x : 0;
   }
 
-  NNElu::NNElu(double alpha):
+  ELU::ELU(double alpha):
     m_alpha(alpha)
   {}
-  double NNElu::operator()( double x ){
+  double ELU::operator()( double x ) const {
     /* ELU function : https://arxiv.org/pdf/1511.07289.pdf
        f(x)=(x>=0)*x + ( (x<0)*alpha*(exp(x)-1) )
     */
@@ -620,6 +621,12 @@ namespace lwt {
     return x>=0 ? x : exp_term;
   }
 
+  LeakyReLU::LeakyReLU(double alpha):
+    m_alpha(alpha)
+  {}
+  double LeakyReLU::operator()(double x) const {
+    return x > 0 ? x : m_alpha * x;
+  }
 
   // ________________________________________________________________________
   // utility functions
