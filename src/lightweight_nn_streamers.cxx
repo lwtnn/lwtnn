@@ -15,9 +15,9 @@ namespace lwt {
     }
     return out;
   }
-  std::string activation_as_string(lwt::Activation act) {
+  std::string activation_as_string(lwt::ActivationConfig act) {
     using namespace lwt;
-    switch (act) {
+    switch (act.function) {
     case Activation::NONE: return "none";
     case Activation::LINEAR: return "linear";
     case Activation::SIGMOID: return "sigmoid";
@@ -64,8 +64,9 @@ namespace lwt {
 std::ostream& lwt::operator<<(std::ostream& out, const lwt::LayerConfig& cfg){
   using namespace lwt;
   out << "architecture: " << cfg.architecture << "\n";
-  out << "activation: " << activation_as_string(cfg.activation) << "\n";
-  if (cfg.inner_activation != Activation::NONE) {
+  out << "activation: " << activation_as_string(cfg.activation)
+      << "\n";
+  if (cfg.inner_activation.function != Activation::NONE) {
     out << "inner activation: "
         << activation_as_string(cfg.inner_activation) << "\n";
   }

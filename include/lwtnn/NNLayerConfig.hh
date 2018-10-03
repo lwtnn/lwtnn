@@ -30,6 +30,12 @@ namespace lwt {
     int n_out;
   };
 
+  struct ActivationConfig
+  {
+    Activation function;
+    double alpha;
+  };
+
   // main layer configuration
   struct LayerConfig
   {
@@ -37,8 +43,8 @@ namespace lwt {
     std::vector<double> weights;
     std::vector<double> bias;
     std::vector<double> U;      // TODO: what is this thing called in LSTMs?
-    Activation activation;
-    Activation inner_activation; // for LSTMs and GRUs
+    ActivationConfig activation;
+    ActivationConfig inner_activation; // for LSTMs and GRUs
 
     // additional info for sublayers
     std::vector<LayerConfig> sublayers;

@@ -16,7 +16,7 @@ namespace lwt {
   // dummy construction routine
   Stack::Stack() {
     m_layers.push_back(new DummyLayer);
-    m_layers.push_back(new UnaryActivationLayer(Activation::SIGMOID));
+    m_layers.push_back(new UnaryActivationLayer({Activation::SIGMOID}));
     m_layers.push_back(new BiasLayer(std::vector<double>{1, 1, 1, 1}));
     MatrixXd mat(4, 4);
     mat <<
@@ -97,7 +97,7 @@ namespace lwt {
     }
 
     // add activation layer
-    if (layer.activation != Activation::LINEAR) {
+    if (layer.activation.function != Activation::LINEAR) {
       m_layers.push_back(get_raw_activation_layer(layer.activation));
     }
 
@@ -167,7 +167,7 @@ namespace lwt {
   }
 
   // activation functions
-  UnaryActivationLayer::UnaryActivationLayer(Activation act):
+  UnaryActivationLayer::UnaryActivationLayer(ActivationConfig act):
     m_func(get_activation(act))
   {
   }
@@ -249,7 +249,7 @@ namespace lwt {
                              const VectorXd& b,
                              const MatrixXd& W_carry,
                              const VectorXd& b_carry,
-                             Activation activation):
+                             ActivationConfig activation):
     m_w_t(W), m_b_t(b), m_w_c(W_carry), m_b_c(b_carry),
     m_act(get_activation(activation))
   {
@@ -420,11 +420,12 @@ namespace lwt {
 
 
   // LSTM layer
-  LSTMLayer::LSTMLayer(Activation activation, Activation inner_activation,
-           MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
-           MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
-           MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
-           MatrixXd W_c, MatrixXd U_c, VectorXd b_c):
+  LSTMLayer::LSTMLayer(ActivationConfig activation,
+                       ActivationConfig inner_activation,
+                       MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
+                       MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
+                       MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
+                       MatrixXd W_c, MatrixXd U_c, VectorXd b_c):
     m_W_i(W_i),
     m_U_i(U_i),
     m_b_i(b_i),
@@ -490,10 +491,11 @@ namespace lwt {
 
 
   // GRU layer
-  GRULayer::GRULayer(Activation activation, Activation inner_activation,
-           MatrixXd W_z, MatrixXd U_z, VectorXd b_z,
-           MatrixXd W_r, MatrixXd U_r, VectorXd b_r,
-           MatrixXd W_h, MatrixXd U_h, VectorXd b_h):
+  GRULayer::GRULayer(ActivationConfig activation,
+                     ActivationConfig inner_activation,
+                     MatrixXd W_z, MatrixXd U_z, VectorXd b_z,
+                     MatrixXd W_r, MatrixXd U_r, VectorXd b_r,
+                     MatrixXd W_h, MatrixXd U_h, VectorXd b_h):
     m_W_z(W_z),
     m_U_z(U_z),
     m_b_z(b_z),
@@ -557,24 +559,24 @@ namespace lwt {
 
   // Note that in the first case you own this layer! It's your
   // responsibility to delete it.
-  ILayer* get_raw_activation_layer(Activation activation) {
+  ILayer* get_raw_activation_layer(ActivationConfig activation) {
     // Check for special cases. If it's not one, use
     // UnaryActivationLayer
-    switch (activation) {
+    switch (activation.function) {
     case Activation::SOFTMAX: return new SoftmaxLayer;
     default: return new UnaryActivationLayer(activation);
     }
   }
 
   // Most activation functions should be handled here.
-  std::function<double(double)> get_activation(lwt::Activation act) {
+  std::function<double(double)> get_activation(lwt::ActivationConfig act) {
     using namespace lwt;
-    switch (act) {
+    switch (act.function) {
     case Activation::SIGMOID: return nn_sigmoid;
     case Activation::HARD_SIGMOID: return nn_hard_sigmoid;
     case Activation::TANH: return nn_tanh;
     case Activation::RECTIFIED: return nn_relu;
-    case Activation::ELU: return nn_elu;
+    case Activation::ELU: return NNElu(act.alpha);
     case Activation::LINEAR: return [](double x){return x;};
     default: {
       throw NNConfigurationException("Got undefined activation function");
@@ -607,12 +609,14 @@ namespace lwt {
     else return x > 0 ? x : 0;
   }
 
-  double nn_elu( double x ){
+  NNElu::NNElu(double alpha):
+    m_alpha(alpha)
+  {}
+  double NNElu::operator()( double x ){
     /* ELU function : https://arxiv.org/pdf/1511.07289.pdf
        f(x)=(x>=0)*x + ( (x<0)*alpha*(exp(x)-1) )
     */
-    double alpha(1.0); // need support from any alpha param
-    double exp_term = alpha * (std::exp(x)-1);
+    double exp_term = m_alpha * (std::exp(x)-1);
     return x>=0 ? x : exp_term;
   }
 
@@ -653,7 +657,7 @@ namespace lwt {
     bool wt_ok = layer.weights.size() == 0;
     bool bias_ok = layer.bias.size() == 0;
     bool maxout_ok = layer.sublayers.size() > 0;
-    bool act_ok = layer.activation == Activation::NONE;
+    bool act_ok = layer.activation.function == Activation::NONE;
     if (wt_ok && bias_ok && maxout_ok && act_ok) return;
     throw NNConfigurationException("layer has wrong info for maxout");
   }

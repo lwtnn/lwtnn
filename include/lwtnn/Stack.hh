@@ -86,7 +86,7 @@ namespace lwt {
   class UnaryActivationLayer: public ILayer
   {
   public:
-    UnaryActivationLayer(Activation);
+    UnaryActivationLayer(ActivationConfig);
     virtual VectorXd compute(const VectorXd&) const;
   private:
     std::function<double(double)> m_func;
@@ -152,7 +152,7 @@ namespace lwt {
                  const VectorXd& b,
                  const MatrixXd& W_carry,
                  const VectorXd& b_carry,
-                 Activation activation);
+                 ActivationConfig activation);
     virtual VectorXd compute(const VectorXd&) const;
   private:
     MatrixXd m_w_t;
@@ -227,7 +227,8 @@ namespace lwt {
   class LSTMLayer : public IRecurrentLayer
   {
   public:
-    LSTMLayer(Activation activation, Activation inner_activation,
+    LSTMLayer(ActivationConfig activation,
+              ActivationConfig inner_activation,
               MatrixXd W_i, MatrixXd U_i, VectorXd b_i,
               MatrixXd W_f, MatrixXd U_f, VectorXd b_f,
               MatrixXd W_o, MatrixXd U_o, VectorXd b_o,
@@ -265,7 +266,8 @@ namespace lwt {
   class GRULayer : public IRecurrentLayer
   {
   public:
-    GRULayer(Activation activation, Activation inner_activation,
+    GRULayer(ActivationConfig activation,
+             ActivationConfig inner_activation,
              MatrixXd W_z, MatrixXd U_z, VectorXd b_z,
              MatrixXd W_r, MatrixXd U_r, VectorXd b_r,
              MatrixXd W_h, MatrixXd U_h, VectorXd b_h);
@@ -302,11 +304,18 @@ namespace lwt {
   double nn_hard_sigmoid( double x );
   double nn_tanh( double x );
   double nn_relu( double x );
-  double nn_elu( double x );
-  std::function<double(double)> get_activation(lwt::Activation);
+  class NNElu
+  {
+  public:
+    NNElu(double alpha);
+    double operator()(double);
+  private:
+    double m_alpha;
+  };
+  std::function<double(double)> get_activation(lwt::ActivationConfig);
 
   // WARNING: you own this pointer! Only call when assigning to member data!
-  ILayer* get_raw_activation_layer(Activation);
+  ILayer* get_raw_activation_layer(ActivationConfig);
 
   // ______________________________________________________________________
   // utility functions

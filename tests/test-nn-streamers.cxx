@@ -41,9 +41,10 @@ int main() {
    std::cout << stream1.str() << std::endl;
 
    // Print a dumm lwt::LayerConfig object:
-   const lwt::LayerConfig dummy2{ { 1.0, 2.0 }, { 1.0, 2.0 }, { 1.0, 2.0 },
-                                  lwt::Activation::NONE, lwt::Activation::NONE,
-                                  {}, {}, {}, lwt::Architecture::NONE };
+   const lwt::LayerConfig dummy2 {
+     { 1.0, 2.0 }, { 1.0, 2.0 }, { 1.0, 2.0 },
+     {lwt::Activation::NONE}, {lwt::Activation::NONE},
+     {}, {}, {}, lwt::Architecture::NONE };
    TestStream stream2;
    stream2 << "lwt::LayerConfig: " << dummy2;
    std::cout << stream2.str() << std::endl;

@@ -14,7 +14,8 @@ namespace {
   NodeConfig get_node(const ptree::value_type& pt);
   OutputNodeConfig get_output_node(const ptree::value_type& v);
   NodeConfig::Type get_node_type(const std::string&);
-  Activation get_activation(const std::string&);
+  ActivationConfig get_activation(const ptree&);
+  Activation get_activation_function(const std::string&);
   Architecture get_architecture(const std::string&);
   void set_defaults(LayerConfig& lc);
   void add_dense_info(LayerConfig& lc, const ptree::value_type& pt);
@@ -178,7 +179,22 @@ namespace {
     return layer;
   }
 
-  lwt::Activation get_activation(const std::string& str) {
+  lwt::ActivationConfig get_activation(const ptree& v) {
+    // check if this is an "advanced" activation function, in which
+    // case it should store the values slightly differently
+    lwt::ActivationConfig cfg;
+    if (v.size() > 0) {
+      cfg.function = get_activation_function(
+        v.get<std::string>("function"));
+      cfg.alpha = v.get<double>("alpha");
+    } else {
+      cfg.function = get_activation_function(v.data());
+      cfg.alpha = NAN;
+    }
+    return cfg;
+  }
+
+  lwt::Activation get_activation_function(const std::string& str) {
     using namespace lwt;
     if (str == "linear") return Activation::LINEAR;
     if (str == "sigmoid") return Activation::SIGMOID;
@@ -205,8 +221,8 @@ namespace {
   }
 
   void set_defaults(LayerConfig& layer) {
-    layer.activation = Activation::NONE;
-    layer.inner_activation = Activation::NONE;
+    layer.activation.function = Activation::NONE;
+    layer.inner_activation.function = Activation::NONE;
     layer.architecture = Architecture::NONE;
   }
 
@@ -225,8 +241,7 @@ namespace {
     }
 
     if (v.second.count("activation") != 0) {
-      layer.activation = get_activation(
-        v.second.get<std::string>("activation"));
+      layer.activation = get_activation(v.second.get_child("activation"));
     }
 
   }
@@ -262,11 +277,10 @@ namespace {
       add_dense_info(cfg, comp);
       layer.components[component_map.at(comp.first)] = cfg;
     }
-    layer.activation = get_activation(
-      v.second.get<std::string>("activation"));
+    layer.activation = get_activation(v.second.get_child("activation"));
     if (v.second.count("inner_activation") != 0) {
       layer.inner_activation = get_activation(
-        v.second.get<std::string>("inner_activation"));
+        v.second.get_child("inner_activation"));
     }
   }
 

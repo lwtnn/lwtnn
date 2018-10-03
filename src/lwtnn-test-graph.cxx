@@ -82,7 +82,7 @@ namespace {
     // Simple dense layer, inverts the input vector
     LayerConfig dense {
       {0, 0, 0, 1,  0, 0, 1, 0,  0, 1, 0, 0,  1, 0, 0, 0}};
-    dense.activation = Activation::LINEAR;
+    dense.activation.function = Activation::LINEAR;
     dense.architecture = Architecture::DENSE;
     config.layers.push_back(dense);
     return config;
