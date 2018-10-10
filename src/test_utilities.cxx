@@ -5,7 +5,7 @@
 
 double ramp(const lwt::Input& in, size_t pos, size_t n_entries) {
   double step = 2.0 / (n_entries - 1);
-  double x = ( (n_entries == 1) ? 0 : (-1 + pos * step) );
+  double x = ( (n_entries == 1) ? -1 : (-1 + pos * step) );
   return x / in.scale - in.offset;
 }
 
