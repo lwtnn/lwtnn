@@ -4,6 +4,7 @@
 #include <boost/property_tree/json_parser.hpp>
 #include <cassert>
 #include <string>
+#include <cmath> // for NAN
 
 namespace {
   using namespace boost::property_tree;
