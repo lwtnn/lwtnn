@@ -197,14 +197,11 @@ supported for Keras 1.0.8 and higher.
 | Hard Sigmoid  | Yes          |
 | Tanh          | Yes          |
 | Softmax       | Yes          |
-| ELU           | See Note 2   |
+| ELU           | Yes          |
+| LeakyReLU     | Yes          |
 
 The converter scripts can be found in `converters/`. Run them with
-`-h` for more information.  
-**Note 2:** The `ELU` activation function is only _partially_ supported.
-The `alpha` parameter is hard-coded to a value of 1.0.
-See [here](https://github.com/lwtnn/lwtnn/issues/77) for more details.
-
+`-h` for more information.
 
 Have problems?
 --------------
