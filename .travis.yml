@@ -61,3 +61,4 @@ script:
   - ./tests/test-gru-sequence.sh
   - ./tests/check-version-number.sh
   - ./tests/check-conversion.sh
+  - ./tests/test-leaky-relu.sh
