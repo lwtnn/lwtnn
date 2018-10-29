@@ -304,7 +304,6 @@ namespace lwt {
   double nn_hard_sigmoid( double x );
   double nn_tanh( double x );
   double nn_relu( double x );
-  double nn_swish( double x );
   class ELU
   {
   public:
@@ -317,6 +316,14 @@ namespace lwt {
   {
   public:
     LeakyReLU(double alpha);
+    double operator()(double) const;
+  private:
+    double m_alpha;
+  };
+  class Swish
+  {
+  public:
+    Swish(double alpha);
     double operator()(double) const;
   private:
     double m_alpha;
