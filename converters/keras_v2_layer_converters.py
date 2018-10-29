@@ -126,6 +126,23 @@ def _alpha_activation_func(activation_name):
         return pars, n_in
     return func
 
+def _trainable_alpha_activation_function(activation_name, alpha_parameter_name='alpha'):
+    def func(h5, layer_config, n_in, layer_type):
+        """Store single trainable activation parameter"""
+        layer_group = h5[layer_config['name']]
+        layers = _get_h5_layers(layer_group)
+        alpha = layers[alpha_parameter_name+BACKEND_SUFFIX]
+        pars = {
+            'weights':[], 'bias':[],'architecture':'dense',
+            'activation':{
+                'function': activation_name,
+                'alpha': alpha.flatten('C').tolist()[0],
+
+            }
+        }
+        return pars, n_in
+    return func
+
 
 # _________________________________________________________________________
 # master list of converters
@@ -138,6 +155,7 @@ layer_converters = {
     'activation': _activation_parameters,
     'softmax': _activation_func('softmax'),
     'leakyrelu': _alpha_activation_func('leakyrelu'),
+    'swish': _trainable_alpha_activation_function('swish', alpha_parameter_name='beta'),
     'timedistributed': _time_distributed_parameters,
     }
 # __________________________________________________________________________

@@ -320,6 +320,14 @@ namespace lwt {
   private:
     double m_alpha;
   };
+  class Swish
+  {
+  public:
+    Swish(double alpha);
+    double operator()(double) const;
+  private:
+    double m_alpha;
+  };
   std::function<double(double)> get_activation(lwt::ActivationConfig);
 
   // WARNING: you own this pointer! Only call when assigning to member data!

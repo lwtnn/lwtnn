@@ -574,6 +574,7 @@ namespace lwt {
     switch (act.function) {
     case Activation::SIGMOID: return nn_sigmoid;
     case Activation::HARD_SIGMOID: return nn_hard_sigmoid;
+    case Activation::SWISH: return Swish(act.alpha);
     case Activation::TANH: return nn_tanh;
     case Activation::RECTIFIED: return nn_relu;
     case Activation::ELU: return ELU(act.alpha);
@@ -599,6 +600,13 @@ namespace lwt {
     if (out < 0) return 0.0;
     if (out > 1) return 1.0;
     return out;
+  }
+
+  Swish::Swish(double alpha):
+    m_alpha(alpha)
+  {}
+  double Swish::operator()(double x) const {
+    return x * nn_sigmoid(m_alpha * x);
   }
 
   double nn_tanh( double x ){

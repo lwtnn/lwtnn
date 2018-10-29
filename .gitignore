@@ -17,3 +17,6 @@
 
 # include the .zenodo file
 !.zenodo.json
+
+# .pyc files
+*.pyc

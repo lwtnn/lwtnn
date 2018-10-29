@@ -299,6 +299,7 @@ _node_type_map = {
     'timedistributed': 'time_distributed',
     'softmax': 'feed_forward',
     'leakyrelu': 'feed_forward',
+    'swish': 'feed_forward',
 }
 
 def _build_node_list(node_dict, input_layer_arch):
