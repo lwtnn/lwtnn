@@ -11,6 +11,9 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from numpy import linspace
 import numpy as np
 import json
+from CustomLayers import Swish
+from keras.utils.generic_utils import get_custom_objects
+get_custom_objects().update({'swish': Swish(beta=1.)})
 
 def _get_args():
     parser = ArgumentParser(
