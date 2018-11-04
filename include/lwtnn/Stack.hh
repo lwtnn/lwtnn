@@ -323,10 +323,10 @@ namespace lwt {
   class SwishBeta
   {
   public:
-    SwishBeta(double beta);
+    SwishBeta(double alpha);
     double operator()(double) const;
   private:
-    double m_beta;
+    double m_alpha;
   };
   std::function<double(double)> get_activation(lwt::ActivationConfig);
 
