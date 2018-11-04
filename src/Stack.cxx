@@ -603,7 +603,7 @@ namespace lwt {
   }
 
   SwishBeta::SwishBeta(double beta):
-    m_alpha(beta)
+    m_beta(beta)
   {}
   double SwishBeta::operator()(double x) const {
     return x * nn_sigmoid(m_beta * x);
