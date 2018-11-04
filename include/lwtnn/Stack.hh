@@ -320,13 +320,13 @@ namespace lwt {
   private:
     double m_alpha;
   };
-  class Swish
+  class SwishBeta
   {
   public:
-    Swish(double alpha);
+    SwishBeta(double beta);
     double operator()(double) const;
   private:
-    double m_alpha;
+    double m_beta;
   };
   std::function<double(double)> get_activation(lwt::ActivationConfig);
 

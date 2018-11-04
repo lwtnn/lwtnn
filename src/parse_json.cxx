@@ -205,7 +205,7 @@ namespace {
     if (str == "hard_sigmoid") return Activation::HARD_SIGMOID;
     if (str == "elu") return Activation::ELU;
     if (str == "leakyrelu") return Activation::LEAKY_RELU;
-    if (str == "swish") return Activation::SWISH;
+    if (str == "swishbeta") return Activation::SWISHBETA;
     throw std::logic_error("activation function " + str + " not recognized");
     return Activation::LINEAR;
   }
