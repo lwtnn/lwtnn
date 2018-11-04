@@ -126,18 +126,18 @@ def _alpha_activation_func(activation_name):
         return pars, n_in
     return func
 
-def fake_alpha_activation_func(activation_name):
-    def func(h5, layer_config, n_in, layer_type):
-        """Store activation parameters, including alpha"""
-        pars = {
-            'weights':[], 'bias':[],'architecture':'dense',
-            'activation':{
-                'function': activation_name,
-                'alpha': 1.
-            }
-        }
-        return pars, n_in
-    return func
+def _swishBeta_parameters(h5, layer_config, n_in, layer_type):
+    """Get beta for swish layer"""
+    layer_group = h5[layer_config['name']]
+    layers = _get_h5_layers(layer_group)
+    beta = layers['beta'+BACKEND_SUFFIX]
+    # Do some checks
+    #assert 'activation' in layer_config
+    return_dict = {
+        'beta': beta.flatten('C').tolist(),
+        'architecture': 'swishBeta',
+    }
+    return return_dict, n_in
 
 
 # _________________________________________________________________________
@@ -151,7 +151,7 @@ layer_converters = {
     'activation': _activation_parameters,
     'softmax': _activation_func('softmax'),
     'leakyrelu': _alpha_activation_func('leakyrelu'),
-    'swish': fake_alpha_activation_func('swish'),
+    'swishbeta': _swishBeta_parameters,
     'timedistributed': _time_distributed_parameters,
     }
 # __________________________________________________________________________
