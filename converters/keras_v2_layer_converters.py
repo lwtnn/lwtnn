@@ -135,7 +135,7 @@ def _swishBeta_parameters(h5, layer_config, n_in, layer_type):
     #assert 'activation' in layer_config
     return_dict = {
         'beta': beta.flatten('C').tolist(),
-        'architecture': 'swishBeta',
+        'architecture': 'swishbeta',
     }
     return return_dict, n_in
 
