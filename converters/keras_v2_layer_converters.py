@@ -126,18 +126,22 @@ def _alpha_activation_func(activation_name):
         return pars, n_in
     return func
 
-def _swishBeta_parameters(h5, layer_config, n_in, layer_type):
-    """Get beta for swish layer"""
-    layer_group = h5[layer_config['name']]
-    layers = _get_h5_layers(layer_group)
-    beta = layers['beta'+BACKEND_SUFFIX]
-    # Do some checks
-    #assert 'activation' in layer_config
-    return_dict = {
-        'beta': beta.flatten('C').tolist(),
-        'architecture': 'swishbeta',
-    }
-    return return_dict, n_in
+def fake_alpha_activation_func(activation_name):
+    def func(h5, layer_config, n_in, layer_type):
+        """Store activation parameters, including alpha"""
+        layer_group = h5[layer_config['name']]
+        layers = _get_h5_layers(layer_group)
+        alpha = layers['beta'+BACKEND_SUFFIX]
+        pars = {
+            'weights':[], 'bias':[],'architecture':'dense',
+            'activation':{
+                'function': activation_name,
+                'alpha': alpha.flatten('C').tolist()[0],
+
+            }
+        }
+        return pars, n_in
+    return func
 
 
 # _________________________________________________________________________
@@ -151,7 +155,7 @@ layer_converters = {
     'activation': _activation_parameters,
     'softmax': _activation_func('softmax'),
     'leakyrelu': _alpha_activation_func('leakyrelu'),
-    'swishbeta': _swishBeta_parameters,
+    'swishbeta': fake_alpha_activation_func("swishbeta"),
     'timedistributed': _time_distributed_parameters,
     }
 # __________________________________________________________________________
