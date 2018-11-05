@@ -18,5 +18,5 @@ _activation_map = {
     'tanh': 'tanh',
     'hard_sigmoid': 'hard_sigmoid',
     'elu':'elu',
-    'swishbeta':'swishbeta',
+    'swish':'swish',
 }

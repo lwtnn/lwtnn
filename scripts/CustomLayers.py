@@ -4,9 +4,12 @@ from keras.layers import Layer
 from keras import backend as K
 from keras.layers import initializers, InputSpec
 
-class SwishBeta(Layer):
+class Swish(Layer):
+    """
+    Swish activation function with a trainable parameter referred to as 'beta' in https://arxiv.org/abs/1710.05941
+    but as 'alpha' here."""
     def __init__(self, trainable_beta = True, beta_initializer = 'ones', **kwargs):
-        super(SwishBeta, self).__init__(**kwargs)
+        super(Swish, self).__init__(**kwargs)
         self.supports_masking = True
         self.trainable = trainable_beta
         self.beta_initializer = initializers.get(beta_initializer)
@@ -24,5 +27,5 @@ class SwishBeta(Layer):
     def get_config(self):
         config = {'trainable_beta': self.trainable, 
                   'beta_initializer': initializers.serialize(self.beta_initializer)}
-        base_config = super(SwishBeta, self).get_config()
+        base_config = super(Swish, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))

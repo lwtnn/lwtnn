@@ -128,7 +128,7 @@ def _alpha_activation_func(activation_name):
 
 def fake_alpha_activation_func(activation_name):
     def func(h5, layer_config, n_in, layer_type):
-        """Store activation parameters, including alpha"""
+        """Store activation 'beta' parameter of swish, referred to as 'alpha' in lwtnn"""
         layer_group = h5[layer_config['name']]
         layers = _get_h5_layers(layer_group)
         alpha = layers['beta'+BACKEND_SUFFIX]
@@ -155,7 +155,7 @@ layer_converters = {
     'activation': _activation_parameters,
     'softmax': _activation_func('softmax'),
     'leakyrelu': _alpha_activation_func('leakyrelu'),
-    'swishbeta': fake_alpha_activation_func("swishbeta"),
+    'swish': fake_alpha_activation_func("swish"),
     'timedistributed': _time_distributed_parameters,
     }
 # __________________________________________________________________________

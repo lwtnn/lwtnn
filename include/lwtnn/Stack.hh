@@ -320,10 +320,10 @@ namespace lwt {
   private:
     double m_alpha;
   };
-  class SwishBeta
+  class Swish
   {
   public:
-    SwishBeta(double alpha);
+    Swish(double alpha);
     double operator()(double) const;
   private:
     double m_alpha;
