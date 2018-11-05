@@ -6,8 +6,7 @@ from keras.layers import initializers, InputSpec
 
 class Swish(Layer):
     """
-    Swish activation function with a trainable parameter referred to as 'beta' in https://arxiv.org/abs/1710.05941
-    but as 'alpha' here."""
+    Swish activation function with a trainable parameter referred to as 'beta' in https://arxiv.org/abs/1710.05941"""
     def __init__(self, trainable_beta = True, beta_initializer = 'ones', **kwargs):
         super(Swish, self).__init__(**kwargs)
         self.supports_masking = True
