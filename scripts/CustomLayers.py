@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 from keras.layers import Layer
 from keras import backend as K
 from keras.layers import initializers, InputSpec
