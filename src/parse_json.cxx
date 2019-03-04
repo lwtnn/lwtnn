@@ -191,6 +191,12 @@ namespace {
     } else {
       cfg.function = get_activation_function(v.data());
       cfg.alpha = NAN;
+      // special case: kerasfunc2json converter used to pass through
+      // the elu activation function. For cases where this has been
+      // saved in JSON files we assume an alpha parameter of 1.
+      if (cfg.function == Activation::ELU) {
+        cfg.alpha = 1.0;
+      }
     }
     return cfg;
   }

@@ -62,3 +62,4 @@ script:
   - ./tests/check-version-number.sh
   - ./tests/check-conversion.sh
   - ./tests/test-leaky-relu.sh
+  - ./tests/test-elu.sh
