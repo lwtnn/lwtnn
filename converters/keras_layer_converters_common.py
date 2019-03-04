@@ -17,6 +17,9 @@ _activation_map = {
     'softmax': 'softmax',
     'tanh': 'tanh',
     'hard_sigmoid': 'hard_sigmoid',
-    'elu':'elu',
-    'swish':'swish',
+    # these are more advanced activation functions which include an
+    # alpha parameter. Keras sometimes saves them without this
+    # information, in which case we assume it's 1.
+    'elu': {'alpha': 1.0, 'function': 'elu'},
+    'swish': {'alpha': 1.0, 'function': 'swish'}
 }
