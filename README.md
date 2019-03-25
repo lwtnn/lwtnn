@@ -199,6 +199,7 @@ supported for Keras 1.0.8 and higher.
 | Softmax       | Yes          |
 | ELU           | Yes          |
 | LeakyReLU     | Yes          |
+| Swish         | Yes          |
 
 The converter scripts can be found in `converters/`. Run them with
 `-h` for more information.
