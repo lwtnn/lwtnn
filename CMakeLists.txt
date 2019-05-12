@@ -16,7 +16,7 @@ include( CTest )
 # Set up the "C++ version" to use.
 set( CMAKE_CXX_STANDARD_REQUIRED 11 CACHE STRING
    "Minimum C++ standard required for the build" )
-set( CMAKE_CXX_STANDARD 11 CACHE STRING
+set( CMAKE_CXX_STANDARD 17 CACHE STRING
    "C++ standard to use for the build" )
 set( CMAKE_CXX_EXTENSIONS FALSE CACHE BOOL
    "(Dis)allow using compiler extensions" )
@@ -29,7 +29,7 @@ endif()
 message( STATUS "Using build type: ${CMAKE_BUILD_TYPE}" )
 
 # Set the warning flag(s) to use.
-set( CMAKE_CXX_FLAGS "-Wall -pedantic" )
+set( CMAKE_CXX_FLAGS "-Wall -pedantic -Wextra -Wunused-value -Wsuggest-override" )
 
 # Turn off the usage of RPATH completely:
 set( CMAKE_SKIP_RPATH ON )
@@ -121,9 +121,9 @@ set( lib_sources src/Exceptions.cxx src/Graph.cxx src/InputPreprocessor.cxx
 # Build the shared library.
 add_library( lwtnn SHARED ${lib_headers} ${lib_sources} )
 target_include_directories( lwtnn
-   PUBLIC ${EIGEN3_INCLUDE_DIR}
+   SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR}
    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
-   PRIVATE ${Boost_INCLUDE_DIRS} )
+   SYSTEM PRIVATE ${Boost_INCLUDE_DIRS} )
 set_property( TARGET lwtnn
    PROPERTY PUBLIC_HEADER ${lib_headers} )
 if( BUILTIN_BOOST )
@@ -136,9 +136,9 @@ endif()
 # Build the static library.
 add_library( lwtnn-stat ${lib_headers} ${lib_sources} )
 target_include_directories( lwtnn-stat
-   PUBLIC ${EIGEN3_INCLUDE_DIR}
+   SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR}
    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
-   PRIVATE ${Boost_INCLUDE_DIRS} )
+   SYSTEM PRIVATE ${Boost_INCLUDE_DIRS} )
 set_property( TARGET lwtnn-stat
    PROPERTY PUBLIC_HEADER ${lib_headers} )
 if( BUILTIN_BOOST )
@@ -161,7 +161,7 @@ macro( lwtnn_add_executable name )
    add_executable( ${name} src/${name}.cxx )
    # Set its properties.
    target_link_libraries( ${name} lwtnn-stat )
-   target_include_directories( ${name} PRIVATE ${Boost_INCLUDE_DIRS} )
+   target_include_directories( ${name} SYSTEM PRIVATE ${Boost_INCLUDE_DIRS} )
    # Install it.
    install( TARGETS ${name}
       EXPORT lwtnnTargets
