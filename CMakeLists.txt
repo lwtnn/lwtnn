@@ -29,7 +29,7 @@ endif()
 message( STATUS "Using build type: ${CMAKE_BUILD_TYPE}" )
 
 # Set the warning flag(s) to use.
-set( CMAKE_CXX_FLAGS "-Wall -pedantic -Wextra -Wunused-value -Wsuggest-override" )
+set( CMAKE_CXX_FLAGS "-Wall -pedantic -Wextra -Wcomment -Wunused-value -Wsuggest-override" )
 
 # Turn off the usage of RPATH completely:
 set( CMAKE_SKIP_RPATH ON )
@@ -121,9 +121,9 @@ set( lib_sources src/Exceptions.cxx src/Graph.cxx src/InputPreprocessor.cxx
 # Build the shared library.
 add_library( lwtnn SHARED ${lib_headers} ${lib_sources} )
 target_include_directories( lwtnn
-   SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR}
+   PUBLIC ${EIGEN3_INCLUDE_DIR}
    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
-   SYSTEM PRIVATE ${Boost_INCLUDE_DIRS} )
+   PRIVATE ${Boost_INCLUDE_DIRS} )
 set_property( TARGET lwtnn
    PROPERTY PUBLIC_HEADER ${lib_headers} )
 if( BUILTIN_BOOST )
@@ -136,9 +136,9 @@ endif()
 # Build the static library.
 add_library( lwtnn-stat ${lib_headers} ${lib_sources} )
 target_include_directories( lwtnn-stat
-   SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR}
+   PUBLIC ${EIGEN3_INCLUDE_DIR}
    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
-   SYSTEM PRIVATE ${Boost_INCLUDE_DIRS} )
+   PRIVATE ${Boost_INCLUDE_DIRS} )
 set_property( TARGET lwtnn-stat
    PROPERTY PUBLIC_HEADER ${lib_headers} )
 if( BUILTIN_BOOST )
