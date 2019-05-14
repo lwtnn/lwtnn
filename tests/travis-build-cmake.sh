@@ -15,9 +15,9 @@ mkdir build
 
 pushd .
 cd build
-ARGS=''
+ARGS="-DCMAKE_CXX_STANDARD=${STANDARD-11}"
 if [[ ${MINIMAL+x} ]]; then
-    ARGS="-DBUILTIN_BOOST=TRUE -DBUILTIN_EIGEN=TRUE"
+    ARGS+=" -DBUILTIN_BOOST=TRUE -DBUILTIN_EIGEN=TRUE"
 fi
 export MAKEFLAGS="-j`nproc` -l`nproc`"
 cmake ${ARGS} ..
