@@ -15,6 +15,7 @@ env:
   matrix:
     - BUILD=make
     - BUILD=./tests/travis-build-cmake.sh
+    - STANDARD=17 BUILD=./tests/travis-build-cmake.sh
 
 matrix:
   include:
