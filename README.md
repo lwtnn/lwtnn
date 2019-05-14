@@ -72,6 +72,7 @@ If you have CMake, you can build with _no_ other dependencies:
 
 ```bash
 mkdir build
+cd build
 cmake -DBUILTIN_BOOST=true -DBUILTIN_EIGEN=true ..
 make -j 4
 ```

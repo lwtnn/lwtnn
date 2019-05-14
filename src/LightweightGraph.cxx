@@ -21,8 +21,8 @@ namespace {
   public:
     LazySource(const NodeMap&, const SeqNodeMap&,
                const Preprocs&, const VecPreprocs&);
-    virtual VectorXd at(size_t index) const;
-    virtual MatrixXd matrix_at(size_t index) const;
+    virtual VectorXd at(size_t index) const override;
+    virtual MatrixXd matrix_at(size_t index) const override;
   private:
     const NodeMap& m_nodes;
     const SeqNodeMap& m_seqs;

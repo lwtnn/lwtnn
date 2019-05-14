@@ -29,7 +29,7 @@ endif()
 message( STATUS "Using build type: ${CMAKE_BUILD_TYPE}" )
 
 # Set the warning flag(s) to use.
-set( CMAKE_CXX_FLAGS "-Wall -pedantic" )
+set( CMAKE_CXX_FLAGS "-Wall -pedantic -Wextra -Wcomment -Wunused-value" )
 
 # Turn off the usage of RPATH completely:
 set( CMAKE_SKIP_RPATH ON )
@@ -161,7 +161,7 @@ macro( lwtnn_add_executable name )
    add_executable( ${name} src/${name}.cxx )
    # Set its properties.
    target_link_libraries( ${name} lwtnn-stat )
-   target_include_directories( ${name} PRIVATE ${Boost_INCLUDE_DIRS} )
+   target_include_directories( ${name} SYSTEM PRIVATE ${Boost_INCLUDE_DIRS} )
    # Install it.
    install( TARGETS ${name}
       EXPORT lwtnnTargets
