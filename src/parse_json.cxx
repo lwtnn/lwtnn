@@ -5,6 +5,7 @@
 #include <cassert>
 #include <string>
 #include <cmath> // for NAN
+#include <set>
 
 namespace {
   using namespace boost::property_tree;

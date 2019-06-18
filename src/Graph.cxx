@@ -405,6 +405,9 @@ namespace lwt {
       }
       m_nodes[iii] = new ConcatenateNode(in_nodes);
     } else if (node.type == NodeConfig::Type::SUM) {
+      if (node.sources.size() != 1) {
+        throw NNConfigurationException("Sum node needs exactly 1 source");
+      }
       m_nodes[iii] = new SumNode(m_seq_nodes.at(node.sources.at(0)));
     } else {
       throw NNConfigurationException("unknown node type");
