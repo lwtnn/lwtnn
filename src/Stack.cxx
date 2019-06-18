@@ -581,6 +581,7 @@ namespace lwt {
     case Activation::ELU: return ELU(act.alpha);
     case Activation::LEAKY_RELU: return LeakyReLU(act.alpha);
     case Activation::LINEAR: return [](double x){return x;};
+    case Activation::ABS: return [](double x){return std::abs(x);};
     default: {
       throw NNConfigurationException("Got undefined activation function");
     }
