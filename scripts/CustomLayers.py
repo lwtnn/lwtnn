@@ -26,3 +26,30 @@ class Swish(Layer):
                   'beta_initializer': initializers.serialize(self.beta_initializer)}
         base_config = super(Swish, self).get_config()
         return dict(list(base_config.items()) + list(config.items()))
+
+
+class Sum(Layer):
+    """Simple sum layer.
+
+    This could theoretically be provided by a lambda function as well,
+    but it's provided here to encourage a consistent nameing
+    convention.
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.supports_masking = True
+
+    def build(self, input_shape):
+        pass
+
+    def call(self, x, mask=None):
+        if mask is not None:
+            x = x * K.cast(mask, K.dtype(x))[:,:,None]
+        return K.sum(x, axis=1)
+
+    def compute_output_shape(self, input_shape):
+        return input_shape[0], input_shape[2]
+
+    def compute_mask(self, inputs, mask):
+        return None

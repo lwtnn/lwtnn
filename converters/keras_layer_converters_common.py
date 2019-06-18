@@ -16,6 +16,7 @@ _activation_map = {
     'linear': 'linear',
     'softmax': 'softmax',
     'tanh': 'tanh',
+    # 'abs': 'rectified', #TODO: add this one
     'hard_sigmoid': 'hard_sigmoid',
     # these are more advanced activation functions which include an
     # alpha parameter. Keras sometimes saves them without this

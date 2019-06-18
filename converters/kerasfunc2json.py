@@ -249,6 +249,10 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
     else:
         assert len(node.sources) == 1, "in {}".format(node.layer_type)
 
+    if node.layer_type == 'sum':
+        node.n_outputs = node.sources[0].n_outputs
+        return
+
     # if this layer is already defined, just add the node count and
     # continue
     if node.name in layer_dict:
@@ -296,6 +300,7 @@ _node_type_map = {
     'activation': 'feed_forward',
     'lstm': 'sequence',
     'gru': 'sequence',
+    'sum': 'sum',
     'timedistributed': 'time_distributed',
     'softmax': 'feed_forward',
     'leakyrelu': 'feed_forward',
