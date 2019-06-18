@@ -185,6 +185,18 @@ namespace lwt {
   size_t TimeDistributedNode::n_outputs() const {
     return m_stack->n_outputs();
   }
+
+  SumNode::SumNode(const ISequenceNode* source):
+    m_source(source)
+  {
+  }
+  VectorXd SumNode::compute(const ISource& source) const {
+    return m_source->scan(source).rowwise().sum();
+  }
+  size_t SumNode::n_outputs() const {
+    return m_source->n_outputs();
+  }
+
 }
 
 namespace {
@@ -392,6 +404,8 @@ namespace lwt {
         in_nodes.push_back(m_nodes.at(source_node));
       }
       m_nodes[iii] = new ConcatenateNode(in_nodes);
+    } else if (node.type == NodeConfig::Type::SUM) {
+      m_nodes[iii] = new SumNode(m_seq_nodes.at(node.sources.at(0)));
     } else {
       throw NNConfigurationException("unknown node type");
     }

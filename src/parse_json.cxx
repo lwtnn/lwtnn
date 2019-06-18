@@ -106,6 +106,8 @@ namespace {
     return cfg;
   }
 
+  const std::set<NodeConfig::Type> layerless_nodes {
+    NodeConfig::Type::CONCATENATE, NodeConfig::Type::SUM };
   NodeConfig get_node(const ptree::value_type& v) {
     NodeConfig cfg;
 
@@ -124,7 +126,7 @@ namespace {
     } else if (cfg.type == Type::FEED_FORWARD || cfg.type == Type::SEQUENCE ||
                cfg.type == Type::TIME_DISTRIBUTED) {
       cfg.index = v.second.get<int>("layer_index");
-    } else if (cfg.type == Type::CONCATENATE){
+    } else if (layerless_nodes.count(cfg.type)){
       cfg.index = -1;
     } else {
       throw std::logic_error("unknown node type");
@@ -151,6 +153,7 @@ namespace {
     if (type == "input_sequence") return Type::INPUT_SEQUENCE;
     if (type == "concatenate") return Type::CONCATENATE;
     if (type == "time_distributed") return Type::TIME_DISTRIBUTED;
+    if (type == "sum") return Type::SUM;
     throw std::logic_error("no node type '" + type + "'");
   }
 

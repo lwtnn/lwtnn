@@ -100,6 +100,15 @@ namespace lwt {
     const Stack* m_stack;
     const ISequenceNode* m_source;
   };
+  class SumNode: public INode
+  {
+  public:
+    SumNode(const ISequenceNode* source);
+    virtual VectorXd compute(const ISource&) const override;
+    virtual size_t n_outputs() const override;
+  private:
+    const ISequenceNode* m_source;
+  };
 
   // Graph class, owns the nodes
   class Graph
