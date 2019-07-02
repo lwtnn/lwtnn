@@ -16,7 +16,8 @@ namespace lwt {
   // dummy construction routine
   Stack::Stack() {
     m_layers.push_back(new DummyLayer);
-    m_layers.push_back(new UnaryActivationLayer({Activation::SIGMOID}));
+    m_layers.push_back(new UnaryActivationLayer({ Activation::SIGMOID, 0.0 }));
+
     m_layers.push_back(new BiasLayer(std::vector<double>{1, 1, 1, 1}));
     MatrixXd mat(4, 4);
     mat <<
@@ -580,6 +581,7 @@ namespace lwt {
     case Activation::ELU: return ELU(act.alpha);
     case Activation::LEAKY_RELU: return LeakyReLU(act.alpha);
     case Activation::LINEAR: return [](double x){return x;};
+    case Activation::ABS: return [](double x){return std::abs(x);};
     default: {
       throw NNConfigurationException("Got undefined activation function");
     }

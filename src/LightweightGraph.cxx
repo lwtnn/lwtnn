@@ -7,36 +7,51 @@ namespace {
   using namespace Eigen;
   using namespace lwt;
 
-  // utility functions
   typedef LightweightGraph::NodeMap NodeMap;
   typedef InputPreprocessor IP;
   typedef std::vector<std::pair<std::string, IP*> > Preprocs;
-  std::vector<VectorXd> get_input_vectors(const NodeMap& nodes,
-                                          const Preprocs& preprocs) {
-    std::vector<VectorXd> input_vectors;
-    for (const auto& proc: preprocs) {
-      if (!nodes.count(proc.first)) {
-        throw NNEvaluationException("Can't find node " + proc.first);
-      }
-      const auto& preproc = *proc.second;
-      input_vectors.emplace_back(preproc(nodes.at(proc.first)));
-    }
-    return input_vectors;
-  }
   typedef LightweightGraph::SeqNodeMap SeqNodeMap;
   typedef InputVectorPreprocessor IVP;
   typedef std::vector<std::pair<std::string, IVP*> > VecPreprocs;
-  std::vector<MatrixXd> get_input_seq(const SeqNodeMap& nodes,
-                                      const VecPreprocs& preprocs) {
-    std::vector<MatrixXd> input_mats;
-    for (const auto& proc: preprocs) {
-      if (!nodes.count(proc.first)) {
-        throw NNEvaluationException("Can't find node " + proc.first);
-      }
-      const auto& preproc = *proc.second;
-      input_mats.emplace_back(preproc(nodes.at(proc.first)));
+
+  // this is used internally to ensure that we only look up map inputs
+  // when the network asks for them.
+  class LazySource: public ISource
+  {
+  public:
+    LazySource(const NodeMap&, const SeqNodeMap&,
+               const Preprocs&, const VecPreprocs&);
+    virtual VectorXd at(size_t index) const override;
+    virtual MatrixXd matrix_at(size_t index) const override;
+  private:
+    const NodeMap& m_nodes;
+    const SeqNodeMap& m_seqs;
+    const Preprocs& m_preprocs;
+    const VecPreprocs& m_vec_preprocs;
+  };
+
+  LazySource::LazySource(const NodeMap& n, const SeqNodeMap& s,
+                         const Preprocs& p, const VecPreprocs& v):
+    m_nodes(n), m_seqs(s), m_preprocs(p), m_vec_preprocs(v)
+  {
+  }
+  VectorXd LazySource::at(size_t index) const
+  {
+    const auto& proc = m_preprocs.at(index);
+    if (!m_nodes.count(proc.first)) {
+      throw NNEvaluationException("Can't find node " + proc.first);
     }
-    return input_mats;
+    const auto& preproc = *proc.second;
+    return preproc(m_nodes.at(proc.first));
+  }
+  MatrixXd LazySource::matrix_at(size_t index) const
+  {
+    const auto& proc = m_vec_preprocs.at(index);
+    if (!m_seqs.count(proc.first)) {
+      throw NNEvaluationException("Can't find sequence node " + proc.first);
+    }
+    const auto& preproc = *proc.second;
+    return preproc(m_seqs.at(proc.first));
   }
 
 }
@@ -102,8 +117,7 @@ namespace lwt {
   ValueMap LightweightGraph::compute(const NodeMap& nodes,
                                      const SeqNodeMap& seq,
                                      size_t idx) const {
-    VectorSource source(get_input_vectors(nodes, m_preprocs),
-                        get_input_seq(seq, m_vec_preprocs));
+    LazySource source(nodes, seq, m_preprocs, m_vec_preprocs);
     VectorXd result = m_graph->compute(source, m_outputs.at(idx).first);
     const std::vector<std::string>& labels = m_outputs.at(idx).second;
     std::map<std::string, double> output;
@@ -128,8 +142,7 @@ namespace lwt {
   VectorMap LightweightGraph::scan(const NodeMap& nodes,
                                      const SeqNodeMap& seq,
                                      size_t idx) const {
-    VectorSource source(get_input_vectors(nodes, m_preprocs),
-                        get_input_seq(seq, m_vec_preprocs));
+    LazySource source(nodes, seq, m_preprocs, m_vec_preprocs);
     MatrixXd result = m_graph->scan(source, m_outputs.at(idx).first);
     const std::vector<std::string>& labels = m_outputs.at(idx).second;
     std::map<std::string, std::vector<double> > output;

@@ -72,6 +72,7 @@ If you have CMake, you can build with _no_ other dependencies:
 
 ```bash
 mkdir build
+cd build
 cmake -DBUILTIN_BOOST=true -DBUILTIN_EIGEN=true ..
 make -j 4
 ```
@@ -181,12 +182,14 @@ Keras sequential and functional models:
 | Embedding       | sorta        | [issue][ghie] |
 | Concatenate     |  no          |  yes          |
 | TimeDistributed |  no          |  yes          |
+| [Sum][deepset]  |  no          |  yes          |
 
 **Note 1:** Normalization layers (i.e. Batch Normalization) are only
 supported for Keras 1.0.8 and higher.
 
 [ghie]: https://github.com/lwtnn/lwtnn/issues/39
 [ghkeras2]: https://github.com/lwtnn/lwtnn/issues/40
+[deepset]: https://arxiv.org/abs/1703.06114
 
 #### Supported Activation Functions ####
 

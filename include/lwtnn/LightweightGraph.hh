@@ -1,46 +1,46 @@
 #ifndef LIGHTWEIGHT_GRAPH_HH
 #define LIGHTWEIGHT_GRAPH_HH
 
-// Lightweight Graph
-//
-// The lightweightGraph class is a more flexible version of the
-// LightweightNeuralNetwork class. This flexibility comes from the
-// ability to read from multiple inputs, merge them, and then expose
-// multiple outputs.
-//
-// For example, a conventional feed-forward network may be structured
-// as follows:
-//
-//  I  <-- simple input vector
-//  |
-//  D  <-- dense feed-forward layer
-//  |
-//  O  <-- output activation function
-//
-// A graph is more flexible, allowing structures like the following:
-//
-//  I_s  <-- sequential input
-//   |
-//  GRU   I_v  <-- simple input vector
-//     \ /
-//      M  <-- merge layer
-//      |
-//      D  <-- dense layer
-//     / \
-//   D2   D3
-//    |   |
-//    |   O_c  <-- multiclass output (softmax activation)
-//    |
-//   O_r  <-- regression output (linnear output)
-//
-// i.e. a graph can combine any number of sequential and "standard"
-// rank-1 inputs, and can use the same internal features to infer many
-// different attributes from the input pattern.
-//
-// Like the LightweightNeuralNetwork, it contains no Eigen code: it
-// only serves as a high-level wrapper to convert std::map objects to
-// Eigen objects and Eigen objects back to std::maps. For the
-// underlying implementation, see Graph.hh.
+/* Lightweight Graph
+
+ The lightweightGraph class is a more flexible version of the
+ LightweightNeuralNetwork class. This flexibility comes from the
+ ability to read from multiple inputs, merge them, and then expose
+ multiple outputs.
+
+ For example, a conventional feed-forward network may be structured
+ as follows:
+
+  I  <-- simple input vector
+  |
+  D  <-- dense feed-forward layer
+  |
+  O  <-- output activation function
+
+ A graph is more flexible, allowing structures like the following:
+
+  I_s  <-- sequential input
+   |
+  GRU   I_v  <-- simple input vector
+     \ /
+      M  <-- merge layer
+      |
+      D  <-- dense layer
+     / \
+   D2   D3
+    |   |
+    |   O_c  <-- multiclass output (softmax activation)
+    |
+   O_r  <-- regression output (linnear output)
+
+ i.e. a graph can combine any number of sequential and "standard"
+ rank-1 inputs, and can use the same internal features to infer many
+ different attributes from the input pattern.
+
+ Like the LightweightNeuralNetwork, it contains no Eigen code: it
+ only serves as a high-level wrapper to convert std::map objects to
+ Eigen objects and Eigen objects back to std::maps. For the
+ underlying implementation, see Graph.hh. */
 
 #include "lightweight_network_config.hh"
 

@@ -102,6 +102,12 @@ def _get_args():
 def _get_layers(network, inputs, h5):
     layers = []
     in_layers = network['config']
+
+    # at some point the keras format must have changed or something,
+    # the layers seem to be nested more deeply than before in 2.2
+    if 'layers' in in_layers:
+        in_layers = in_layers['layers']
+
     n_out = len(inputs['inputs'])
 
     # Determine which layer version we should use

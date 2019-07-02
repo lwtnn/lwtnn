@@ -80,14 +80,14 @@ namespace lwt {
   class DummyLayer: public ILayer
   {
   public:
-    virtual VectorXd compute(const VectorXd&) const;
+    virtual VectorXd compute(const VectorXd&) const override;
   };
 
   class UnaryActivationLayer: public ILayer
   {
   public:
     UnaryActivationLayer(ActivationConfig);
-    virtual VectorXd compute(const VectorXd&) const;
+    virtual VectorXd compute(const VectorXd&) const override;
   private:
     std::function<double(double)> m_func;
   };
@@ -95,7 +95,7 @@ namespace lwt {
   class SoftmaxLayer: public ILayer
   {
   public:
-    virtual VectorXd compute(const VectorXd&) const;
+    virtual VectorXd compute(const VectorXd&) const override;
   };
 
   class BiasLayer: public ILayer
@@ -103,7 +103,7 @@ namespace lwt {
   public:
     BiasLayer(const VectorXd& bias);
     BiasLayer(const std::vector<double>& bias);
-    virtual VectorXd compute(const VectorXd&) const;
+    virtual VectorXd compute(const VectorXd&) const override;
   private:
     VectorXd m_bias;
   };
@@ -112,7 +112,7 @@ namespace lwt {
   {
   public:
     MatrixLayer(const MatrixXd& matrix);
-    virtual VectorXd compute(const VectorXd&) const;
+    virtual VectorXd compute(const VectorXd&) const override;
   private:
     MatrixXd m_matrix;
   };
@@ -122,7 +122,7 @@ namespace lwt {
   public:
     typedef std::pair<MatrixXd, VectorXd> InitUnit;
     MaxoutLayer(const std::vector<InitUnit>& maxout_tensor);
-    virtual VectorXd compute(const VectorXd&) const;
+    virtual VectorXd compute(const VectorXd&) const override;
   private:
     std::vector<MatrixXd> m_matrices;
     MatrixXd m_bias;
@@ -136,7 +136,7 @@ namespace lwt {
 
   public:
     NormalizationLayer(const VectorXd& W,const VectorXd& b);
-    virtual VectorXd compute(const VectorXd&) const;
+    virtual VectorXd compute(const VectorXd&) const override;
 
   private:
     VectorXd _W;
@@ -153,7 +153,7 @@ namespace lwt {
                  const MatrixXd& W_carry,
                  const VectorXd& b_carry,
                  ActivationConfig activation);
-    virtual VectorXd compute(const VectorXd&) const;
+    virtual VectorXd compute(const VectorXd&) const override;
   private:
     MatrixXd m_w_t;
     VectorXd m_b_t;
@@ -215,7 +215,7 @@ namespace lwt {
   public:
     EmbeddingLayer(int var_row_index, MatrixXd W);
     virtual ~EmbeddingLayer() {};
-    virtual MatrixXd scan( const MatrixXd&) const;
+    virtual MatrixXd scan( const MatrixXd&) const override;
 
   private:
     int m_var_row_index;
@@ -235,7 +235,7 @@ namespace lwt {
               MatrixXd W_c, MatrixXd U_c, VectorXd b_c);
 
     virtual ~LSTMLayer() {};
-    virtual MatrixXd scan( const MatrixXd&) const;
+    virtual MatrixXd scan( const MatrixXd&) const override;
     void step( const VectorXd& input, LSTMState& ) const;
 
   private:
@@ -273,7 +273,7 @@ namespace lwt {
              MatrixXd W_h, MatrixXd U_h, VectorXd b_h);
 
     virtual ~GRULayer() {};
-    virtual MatrixXd scan( const MatrixXd&) const;
+    virtual MatrixXd scan( const MatrixXd&) const override;
     void step( const VectorXd& input, GRUState& ) const;
 
   private:

@@ -29,8 +29,8 @@ namespace lwt {
   {
   public:
     InputNode(size_t index, size_t n_outputs);
-    virtual VectorXd compute(const ISource&) const;
-    virtual size_t n_outputs() const;
+    virtual VectorXd compute(const ISource&) const override;
+    virtual size_t n_outputs() const override;
   private:
     size_t m_index;
     size_t m_n_outputs;
@@ -40,8 +40,8 @@ namespace lwt {
   {
   public:
     FeedForwardNode(const Stack*, const INode* source);
-    virtual VectorXd compute(const ISource&) const;
-    virtual size_t n_outputs() const;
+    virtual VectorXd compute(const ISource&) const override;
+    virtual size_t n_outputs() const override;
   private:
     const Stack* m_stack;
     const INode* m_source;
@@ -51,8 +51,8 @@ namespace lwt {
   {
   public:
     ConcatenateNode(const std::vector<const INode*>&);
-    virtual VectorXd compute(const ISource&) const;
-    virtual size_t n_outputs() const;
+    virtual VectorXd compute(const ISource&) const override;
+    virtual size_t n_outputs() const override;
   private:
     std::vector<const INode*> m_sources;
     size_t m_n_outputs;
@@ -71,8 +71,8 @@ namespace lwt {
   {
   public:
     InputSequenceNode(size_t index, size_t n_outputs);
-    virtual MatrixXd scan(const ISource&) const;
-    virtual size_t n_outputs() const;
+    virtual MatrixXd scan(const ISource&) const override;
+    virtual size_t n_outputs() const override;
   private:
     size_t m_index;
     size_t m_n_outputs;
@@ -82,9 +82,9 @@ namespace lwt {
   {
   public:
     SequenceNode(const RecurrentStack*, const ISequenceNode* source);
-    virtual MatrixXd scan(const ISource&) const;
-    virtual VectorXd compute(const ISource&) const;
-    virtual size_t n_outputs() const;
+    virtual MatrixXd scan(const ISource&) const override;
+    virtual VectorXd compute(const ISource&) const override;
+    virtual size_t n_outputs() const override;
   private:
     const RecurrentStack* m_stack;
     const ISequenceNode* m_source;
@@ -94,10 +94,19 @@ namespace lwt {
   {
   public:
     TimeDistributedNode(const Stack*, const ISequenceNode* source);
-    virtual MatrixXd scan(const ISource&) const;
-    virtual size_t n_outputs() const;
+    virtual MatrixXd scan(const ISource&) const override;
+    virtual size_t n_outputs() const override;
   private:
     const Stack* m_stack;
+    const ISequenceNode* m_source;
+  };
+  class SumNode: public INode
+  {
+  public:
+    SumNode(const ISequenceNode* source);
+    virtual VectorXd compute(const ISource&) const override;
+    virtual size_t n_outputs() const override;
+  private:
     const ISequenceNode* m_source;
   };
 
