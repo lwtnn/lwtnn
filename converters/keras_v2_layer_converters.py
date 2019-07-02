@@ -129,14 +129,11 @@ def _alpha_activation_func(activation_name):
 def _trainable_alpha_activation_function(activation_name, alpha_parameter_name='alpha'):
     def func(h5, layer_config, n_in, layer_type):
         """Store single trainable activation parameter"""
-        layer_group = h5[layer_config['name']]
-        layers = _get_h5_layers(layer_group)
-        alpha = layers[alpha_parameter_name+BACKEND_SUFFIX]
         pars = {
             'weights':[], 'bias':[],'architecture':'dense',
             'activation':{
                 'function': activation_name,
-                'alpha': alpha.flatten('C').tolist()[0],
+                'alpha': layer_config[alpha_parameter_name],
 
             }
         }
