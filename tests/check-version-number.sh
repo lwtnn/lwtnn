@@ -31,7 +31,7 @@ trap print_bad_exit EXIT
 ################### Git tag parsing  #############################
 
 # get the git tag
-GIT_TAG=$(git describe --abbrev=0)
+GIT_TAG=$(git describe --tags --abbrev=0)
 
 # parse out the number
 ERROR="git tag ${GIT_TAG} contains no number"
