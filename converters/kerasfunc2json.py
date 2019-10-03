@@ -45,6 +45,9 @@ def _run():
     input_layer_arch = arch['config']['input_layers']
     nodes = _build_node_list(node_dict, input_layer_arch)
 
+    # deal with the nodes that need a type based on their source
+    _resolve_inheriting_types(nodes)
+
     vars_per_input = _get_vars_per_input(input_layer_arch, node_dict)
     out_dict = {
         'layers': layers, 'nodes': nodes,
@@ -60,6 +63,21 @@ def _run():
             node_dict),
     }
     print(json.dumps(out_dict, indent=2, sort_keys=True))
+
+def _resolve_inheriting_types(nodes):
+    """
+    Sometimes we're not sure what the type of node it is when we parse
+    the graph. In these cases we have to inhrit from the source node.
+    """
+    sequence_types = {'sequence', 'input_sequences','time_distributed'}
+    for node in nodes:
+        if node['type'] == 'INHERIT_FROM_SOURCE':
+            assert len(node['sources']) == 1
+            parent_type = nodes[node['sources'][0]]['type']
+            if parent_type in sequence_types:
+                node['type'] = 'time_distributed'
+            else:
+                node['type'] = 'feed_forward'
 
 def _check_version(arch):
     if arch["class_name"] != "Model":
@@ -297,7 +315,9 @@ _node_type_map = {
     'concatenate': 'concatenate', # <- v2
     'inputlayer': 'input',
     'dense': 'feed_forward',
-    'activation': 'feed_forward',
+    # we don't know what type of node based on the activation type
+    # instead we tell the node to inherit from its source
+    'activation': 'INHERIT_FROM_SOURCE',
     'lstm': 'sequence',
     'gru': 'sequence',
     'sum': 'sum',
@@ -312,6 +332,8 @@ def _build_node_list(node_dict, input_layer_arch):
     no effort is made to sort this list in any way, but the ordering
     is important because each node contains indices for other nodes
     """
+    nodes_with_layers = {
+        'feed_forward', 'sequence', 'time_distributed', 'INHERIT_FROM_SOURCE'}
     node_list = []
     input_map = {}
     for kname, kid, ks in input_layer_arch:
@@ -331,7 +353,7 @@ def _build_node_list(node_dict, input_layer_arch):
             out_node['size'] = node.n_outputs
             if node.dims > 1:
                 out_node['type'] = 'input_sequence'
-        elif node_type in ['feed_forward', 'sequence', 'time_distributed']:
+        elif node_type in nodes_with_layers:
             out_node['layer_index'] = node.layer_number
         node_list.append(out_node)
     return node_list
