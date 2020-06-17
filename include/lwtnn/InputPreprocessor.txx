@@ -5,10 +5,16 @@ namespace lwt {
   // Input preprocessors
 
   // simple feed-forwared version
-  InputPreprocessor::InputPreprocessor(const std::vector<Input>& inputs):
+  
+  template<typename T>
+  InputPreprocessorT<T>::InputPreprocessorT(const std::vector<Input>& inputs):
     m_offsets(inputs.size()),
     m_scales(inputs.size())
   {
+    static_assert( std::is_same<T, double>::value ||
+                   std::is_assignable<T, double>::value, 
+                   "double cannot be implicitly assigned to T" );
+    
     size_t in_num = 0;
     for (const auto& input: inputs) {
       m_offsets(in_num) = input.offset;
@@ -17,14 +23,16 @@ namespace lwt {
       in_num++;
     }
   }
-  VectorXd InputPreprocessor::operator()(const ValueMap& in) const {
-    VectorXd invec(m_names.size());
+  
+  template<typename T>
+  VectorX<T> InputPreprocessorT<T>::operator()(const ValueMap& in) const {
+    VectorX<T> invec(m_names.size());
     size_t input_number = 0;
     for (const auto& in_name: m_names) {
       if (!in.count(in_name)) {
         throw NNEvaluationException("can't find input: " + in_name);
       }
-      invec(input_number) = in.at(in_name);
+      invec(input_number) = static_cast<T>(in.at(in_name));
       input_number++;
     }
     return (invec + m_offsets).cwiseProduct(m_scales);
@@ -32,11 +40,16 @@ namespace lwt {
 
 
   // Input vector preprocessor
-  InputVectorPreprocessor::InputVectorPreprocessor(
+  template<typename T>
+  InputVectorPreprocessorT<T>::InputVectorPreprocessorT(
     const std::vector<Input>& inputs):
     m_offsets(inputs.size()),
     m_scales(inputs.size())
   {
+    static_assert( std::is_same<T, double>::value ||
+                   std::is_assignable<T, double>::value, 
+                   "double cannot be implicitly assigned to T" );
+    
     size_t in_num = 0;
     for (const auto& input: inputs) {
       m_offsets(in_num) = input.offset;
@@ -50,13 +63,15 @@ namespace lwt {
       throw NNConfigurationException("need at least one input");
     }
   }
-  MatrixXd InputVectorPreprocessor::operator()(const VectorMap& in) const {
+  
+  template<typename T>
+  MatrixX<T> InputVectorPreprocessorT<T>::operator()(const VectorMap& in) const {
     using namespace Eigen;
     if (in.size() == 0) {
       throw NNEvaluationException("Empty input map");
     }
     size_t n_cols = in.begin()->second.size();
-    MatrixXd inmat(m_names.size(), n_cols);
+    MatrixX<T> inmat(m_names.size(), n_cols);
     size_t in_num = 0;
     for (const auto& in_name: m_names) {
       if (!in.count(in_name)) {

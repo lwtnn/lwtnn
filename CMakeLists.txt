@@ -113,7 +113,7 @@ set( lib_headers include/lwtnn/Exceptions.hh include/lwtnn/Graph.hh
    include/lwtnn/Stack.hh include/lwtnn/lightweight_network_config.hh
    include/lwtnn/lightweight_nn_streamers.hh include/lwtnn/parse_json.hh )
 # Source files for the shared/static library.
-set( lib_sources src/Exceptions.cxx src/Graph.cxx src/InputPreprocessor.cxx
+set( lib_sources src/Exceptions.cxx src/Graph.cxx
    src/LightweightGraph.cxx src/LightweightNeuralNetwork.cxx src/NanReplacer.cxx
    src/Stack.cxx src/lightweight_nn_streamers.cxx src/parse_json.cxx
    src/test_utilities.hh src/test_utilities.cxx )
