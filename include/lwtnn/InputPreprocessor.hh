@@ -10,8 +10,11 @@
 
 namespace lwt {
 
-  using Eigen::VectorXd;
-  using Eigen::MatrixXd;
+  template<typename T>
+  using VectorX = Eigen::Matrix<T, Eigen::Dynamic, 1>;
+  
+  template<typename T>
+  using MatrixX = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 
   // use a normal map externally, since these are more common in user
   // code.  TODO: is it worth changing to unordered_map?
@@ -22,29 +25,37 @@ namespace lwt {
   // ______________________________________________________________________
   // input preprocessor (handles normalization and packing into Eigen)
 
-  class InputPreprocessor
+  template<typename T>
+  class InputPreprocessorT
   {
   public:
-    InputPreprocessor(const std::vector<Input>& inputs);
-    VectorXd operator()(const ValueMap&) const;
+    InputPreprocessorT(const std::vector<Input>& inputs);
+    VectorX<T> operator()(const ValueMap&) const;
   private:
     // input transformations
-    VectorXd m_offsets;
-    VectorXd m_scales;
+    VectorX<T> m_offsets;
+    VectorX<T> m_scales;
     std::vector<std::string> m_names;
   };
+  
+  using InputPreprocessor = InputPreprocessorT<double>;
 
-  class InputVectorPreprocessor
+  template<typename T>
+  class InputVectorPreprocessorT
   {
   public:
-    InputVectorPreprocessor(const std::vector<Input>& inputs);
-    MatrixXd operator()(const VectorMap&) const;
+    InputVectorPreprocessorT(const std::vector<Input>& inputs);
+    MatrixX<T> operator()(const VectorMap&) const;
   private:
     // input transformations
-    VectorXd m_offsets;
-    VectorXd m_scales;
+    VectorX<T> m_offsets;
+    VectorX<T> m_scales;
     std::vector<std::string> m_names;
   };
+  
+  using InputVectorPreprocessor = InputVectorPreprocessorT<double>;
 }
+
+#include "InputPreprocessor.txx"
 
 #endif
