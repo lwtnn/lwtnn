@@ -1,4 +1,4 @@
-#include "lwtnn/LightweightNeuralNetwork.hh"
+#include "lwtnn/LightweightNeuralNetworkT.hh"
 #include "lwtnn/InputPreprocessor.hh"
 #include "lwtnn/Stack.hh"
 #include <Eigen/Dense>
@@ -115,5 +115,8 @@ namespace lwt {
     return out;
   }
 
+  // force instatiation for type double
+  template class LightweightRNNT<double>;
+  template class LightweightNeuralNetworkT<double>;
 
 }

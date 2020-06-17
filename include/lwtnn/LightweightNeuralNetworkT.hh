@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_NEURAL_NETWORK_HH
-#define LIGHTWEIGHT_NEURAL_NETWORK_HH
+#ifndef LIGHTWEIGHT_NEURAL_NETWORK_T_HH
+#define LIGHTWEIGHT_NEURAL_NETWORK_T_HH
 
 // Lightweight Neural Networks
 //
@@ -23,14 +23,8 @@ namespace lwt {
   template<typename T> class StackT;
   template<typename T> class ReductionStackT;
   
-  using Stack = StackT<double>;
-  using ReductionStack = ReductionStackT<double>;
-  
   template<typename T> class InputPreprocessorT;
   template<typename T> class InputVectorPreprocessorT;
-  
-  using InputPreprocessor = InputPreprocessorT<double>;
-  using InputVectorPreprocessor = InputVectorPreprocessorT<double>;
 
   // use a normal map externally, since these are more common in user
   // code.
@@ -68,8 +62,6 @@ namespace lwt {
     // output labels
     std::vector<std::string> m_outputs;
   };
-  
-  using LightweightNeuralNetwork = LightweightNeuralNetworkT<double>;
 
   // recurrent version
   template<typename T>
@@ -92,10 +84,8 @@ namespace lwt {
     std::vector<std::string> m_outputs;
     size_t m_n_inputs;
   };
-
-  using LightweightRNN = LightweightRNNT<double>;
 }
 
-#include "LightweightNeuralNetwork.txx"
+#include "LightweightNeuralNetworkT.txx"
 
 #endif
