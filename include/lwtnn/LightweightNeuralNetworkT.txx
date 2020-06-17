@@ -114,9 +114,4 @@ namespace lwt {
     }
     return out;
   }
-
-  // force instatiation for type double
-  template class LightweightRNNT<double>;
-  template class LightweightNeuralNetworkT<double>;
-
 }
