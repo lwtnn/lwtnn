@@ -12,9 +12,15 @@
 
 namespace lwt {
 
-  class Stack;
-  class RecurrentStack;
-
+  template<typename T>
+  class StackT;
+  
+  using Stack = StackT<double>;
+  
+  template<typename T>
+  class RecurrentStackT;
+  
+  using RecurrentStack = RecurrentStackT<double>;
 
   // node class: will return a VectorXd from ISource
   class INode

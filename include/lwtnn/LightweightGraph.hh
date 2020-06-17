@@ -47,8 +47,12 @@
 namespace lwt {
 
   class Graph;
-  class InputPreprocessor;
-  class InputVectorPreprocessor;
+  
+  template<typename T> class InputPreprocessorT;
+  template<typename T> class InputVectorPreprocessorT;
+  
+  using InputPreprocessor = InputPreprocessorT<double>;
+  using InputVectorPreprocessor = InputVectorPreprocessorT<double>;
 
   // We currently allow several input types
   // The "ValueMap" is for simple rank-1 inputs
