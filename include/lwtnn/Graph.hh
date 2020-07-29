@@ -11,6 +11,16 @@
 #include <set>
 
 namespace lwt {
+    
+  template<typename T>
+  using VectorX = Eigen::Matrix<T, Eigen::Dynamic, 1>;
+  
+  template<typename T>
+  using MatrixX = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+  
+  template<typename T>
+  using ArrayX = Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic>;
+  
 
   template<typename T>
   class StackT;
@@ -23,127 +33,159 @@ namespace lwt {
   using RecurrentStack = RecurrentStackT<double>;
 
   // node class: will return a VectorXd from ISource
-  class INode
+  
+  template<typename T>
+  class INodeT
   {
   public:
-    virtual ~INode() {}
-    virtual VectorXd compute(const ISource&) const = 0;
+    virtual ~INodeT() {}
+    virtual VectorX<T> compute(const ISourceT<T>&) const = 0;
     virtual size_t n_outputs() const = 0;
   };
+  
+  using INode = INodeT<double>;
 
-  class InputNode: public INode
+  template<typename T>
+  class InputNodeT: public INodeT<T>
   {
   public:
-    InputNode(size_t index, size_t n_outputs);
-    virtual VectorXd compute(const ISource&) const override;
+    InputNodeT(size_t index, size_t n_outputs);
+    virtual VectorX<T> compute(const ISourceT<T>&) const override;
     virtual size_t n_outputs() const override;
   private:
     size_t m_index;
     size_t m_n_outputs;
   };
+  
+  using InputNode = InputNodeT<double>;
 
-  class FeedForwardNode: public INode
+  template<typename T>
+  class FeedForwardNodeT: public INodeT<T>
   {
   public:
-    FeedForwardNode(const Stack*, const INode* source);
-    virtual VectorXd compute(const ISource&) const override;
+    FeedForwardNodeT(const StackT<T>*, const INodeT<T>* source);
+    virtual VectorX<T> compute(const ISourceT<T>&) const override;
     virtual size_t n_outputs() const override;
   private:
-    const Stack* m_stack;
-    const INode* m_source;
+    const StackT<T>* m_stack;
+    const INodeT<T>* m_source;
   };
+  
+  using FeedForwardNode = FeedForwardNodeT<double>;
 
-  class ConcatenateNode: public INode
+  template<typename T>
+  class ConcatenateNodeT: public INodeT<T>
   {
   public:
-    ConcatenateNode(const std::vector<const INode*>&);
-    virtual VectorXd compute(const ISource&) const override;
+    ConcatenateNodeT(const std::vector<const INodeT<T>*>&);
+    virtual VectorX<T> compute(const ISourceT<T>&) const override;
     virtual size_t n_outputs() const override;
   private:
-    std::vector<const INode*> m_sources;
+    std::vector<const INodeT<T>*> m_sources;
     size_t m_n_outputs;
   };
+  
+  using ConcatenateNode = ConcatenateNodeT<double>;
 
   // sequence nodes
-  class ISequenceNode
+  template<typename T>
+  class ISequenceNodeT
   {
   public:
-    virtual ~ISequenceNode() {}
-    virtual MatrixXd scan(const ISource&) const = 0;
+    virtual ~ISequenceNodeT() {}
+    virtual MatrixX<T> scan(const ISource&) const = 0;
     virtual size_t n_outputs() const = 0;
   };
+  
+  using ISequenceNode = ISequenceNodeT<double>;
 
-  class InputSequenceNode: public ISequenceNode
+  template<typename T>
+  class InputSequenceNodeT: public ISequenceNodeT<T>
   {
   public:
-    InputSequenceNode(size_t index, size_t n_outputs);
-    virtual MatrixXd scan(const ISource&) const override;
+    InputSequenceNodeT(size_t index, size_t n_outputs);
+    virtual MatrixX<T> scan(const ISourceT<T>&) const override;
     virtual size_t n_outputs() const override;
   private:
     size_t m_index;
     size_t m_n_outputs;
   };
+  
+  using InputSequenceNode = InputSequenceNodeT<double>;
 
-  class SequenceNode: public ISequenceNode, public INode
+  template<typename T>
+  class SequenceNodeT: public ISequenceNodeT<T>, public INodeT<T>
   {
   public:
-    SequenceNode(const RecurrentStack*, const ISequenceNode* source);
-    virtual MatrixXd scan(const ISource&) const override;
-    virtual VectorXd compute(const ISource&) const override;
+    SequenceNodeT(const RecurrentStackT<T>*, const ISequenceNodeT<T>* source);
+    virtual MatrixX<T> scan(const ISource&) const override;
+    virtual VectorX<T> compute(const ISource&) const override;
     virtual size_t n_outputs() const override;
   private:
-    const RecurrentStack* m_stack;
-    const ISequenceNode* m_source;
+    const RecurrentStackT<T>* m_stack;
+    const ISequenceNodeT<T>* m_source;
   };
-
-  class TimeDistributedNode: public ISequenceNode
+  
+  using SequenceNode = SequenceNodeT<double>;
+  
+  template<typename T>
+  class TimeDistributedNodeT: public ISequenceNodeT<T>
   {
   public:
-    TimeDistributedNode(const Stack*, const ISequenceNode* source);
-    virtual MatrixXd scan(const ISource&) const override;
+    TimeDistributedNodeT(const StackT<T>*, const ISequenceNodeT<T>* source);
+    virtual MatrixX<T> scan(const ISource&) const override;
     virtual size_t n_outputs() const override;
   private:
-    const Stack* m_stack;
-    const ISequenceNode* m_source;
+    const StackT<T>* m_stack;
+    const ISequenceNodeT<T>* m_source;
   };
-  class SumNode: public INode
+  
+  using TimeDistributedNode = TimeDistributedNodeT<double>;
+  
+  template<typename T>
+  class SumNodeT : public INodeT<T>
   {
   public:
-    SumNode(const ISequenceNode* source);
-    virtual VectorXd compute(const ISource&) const override;
+    SumNodeT(const ISequenceNodeT<T>* source);
+    virtual VectorX<T> compute(const ISourceT<T>&) const override;
     virtual size_t n_outputs() const override;
   private:
-    const ISequenceNode* m_source;
+    const ISequenceNodeT<T>* m_source;
   };
 
   // Graph class, owns the nodes
-  class Graph
+  template<typename T>
+  class GraphT
   {
   public:
-    Graph();                    // dummy constructor
-    Graph(const std::vector<NodeConfig>& nodes,
+    GraphT();                    // dummy constructor
+    GraphT(const std::vector<NodeConfig>& nodes,
           const std::vector<LayerConfig>& layers);
-    Graph(Graph&) = delete;
-    Graph& operator=(Graph&) = delete;
-    ~Graph();
-    VectorXd compute(const ISource&, size_t node_number) const;
-    VectorXd compute(const ISource&) const;
-    MatrixXd scan(const ISource&, size_t node_number) const;
-    MatrixXd scan(const ISource&) const;
+    GraphT(GraphT&) = delete;
+    GraphT& operator=(GraphT&) = delete;
+    ~GraphT();
+    VectorX<T> compute(const ISourceT<T>&, size_t node_number) const;
+    VectorX<T> compute(const ISourceT<T>&) const;
+    MatrixX<T> scan(const ISourceT<T>&, size_t node_number) const;
+    MatrixX<T> scan(const ISourceT<T>&) const;
   private:
     void build_node(const size_t,
                     const std::vector<NodeConfig>& nodes,
                     const std::vector<LayerConfig>& layers,
                     std::set<size_t> cycle_check = {});
 
-    std::unordered_map<size_t, INode*> m_nodes;
+    std::unordered_map<size_t, INodeT<T>*> m_nodes;
     size_t m_last_node; // <-- convenience for graphs with one output
-    std::unordered_map<size_t, Stack*> m_stacks;
-    std::unordered_map<size_t, ISequenceNode*> m_seq_nodes;
-    std::unordered_map<size_t, RecurrentStack*> m_seq_stacks;
+    std::unordered_map<size_t, StackT<T>*> m_stacks;
+    std::unordered_map<size_t, ISequenceNodeT<T>*> m_seq_nodes;
+    std::unordered_map<size_t, RecurrentStackT<T>*> m_seq_stacks;
     // At some point maybe also convolutional nodes, but we'd have to
     // have a use case for that first.
   };
+  
+  using Graph = GraphT<double>;
 }
+
+#include "Graph.txx"
 
 #endif // GRAPH_HH

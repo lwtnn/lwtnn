@@ -6,40 +6,53 @@
 #include <vector>
 
 namespace lwt {
-  using Eigen::VectorXd;
-  using Eigen::MatrixXd;
+    
+  template<typename T>
+  using VectorX = Eigen::Matrix<T, Eigen::Dynamic, 1>;
+  
+  template<typename T>
+  using MatrixX = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
 
   // this is called by input nodes to get the inputs
-  class ISource
+  template<typename T>
+  class ISourceT
   {
   public:
-    virtual ~ISource() = default;
-    virtual VectorXd at(size_t index) const = 0;
-    virtual MatrixXd matrix_at(size_t index) const = 0;
+    virtual ~ISourceT() = default;
+    virtual VectorX<T> at(size_t index) const = 0;
+    virtual MatrixX<T> matrix_at(size_t index) const = 0;
   };
+  
+  using ISource = ISourceT<double>;
 
-  class VectorSource: public ISource
+  template<typename T>
+  class VectorSourceT: public ISourceT<T>
   {
   public:
-    VectorSource(std::vector<VectorXd>&&, std::vector<MatrixXd>&& = {});
-    virtual VectorXd at(size_t index) const override;
-    virtual MatrixXd matrix_at(size_t index) const override;
+    VectorSourceT(std::vector<VectorX<T>>&&, std::vector<MatrixX<T>>&& = {});
+    virtual VectorX<T> at(size_t index) const override;
+    virtual MatrixX<T> matrix_at(size_t index) const override;
   private:
-    std::vector<VectorXd> m_inputs;
-    std::vector<MatrixXd> m_matrix_inputs;
+    std::vector<VectorX<T>> m_inputs;
+    std::vector<MatrixX<T>> m_matrix_inputs;
   };
+  
+  using VectorSource = VectorSourceT<double>;
 
-  class DummySource: public ISource
+  template<typename T>
+  class DummySourceT: public ISourceT<T>
   {
   public:
-    DummySource(const std::vector<size_t>& input_sizes,
+    DummySourceT(const std::vector<size_t>& input_sizes,
                 const std::vector<std::pair<size_t, size_t> >& = {});
-    virtual VectorXd at(size_t index) const override;
-    virtual MatrixXd matrix_at(size_t index) const override;
+    virtual VectorX<T> at(size_t index) const override;
+    virtual MatrixX<T> matrix_at(size_t index) const override;
   private:
     std::vector<size_t> m_sizes;
     std::vector<std::pair<size_t, size_t> > m_matrix_sizes;
   };
+  
+  using DummySource = DummySourceT<double>;
 }
 
 #endif //SOURCE_HH

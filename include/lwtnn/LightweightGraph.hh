@@ -46,7 +46,10 @@
 
 namespace lwt {
 
-  class Graph;
+  template<typename T>
+  class GraphT;
+  
+  using Graph = GraphT<double>;
   
   template<typename T> class InputPreprocessorT;
   template<typename T> class InputVectorPreprocessorT;
