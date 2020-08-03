@@ -1,5 +1,5 @@
-#ifndef STACK_HH
-#define STACK_HH
+#ifndef LWTNN_GENERIC_STACK_HH
+#define LWTNN_GENERIC_STACK_HH
 
 // 2020: Changes by Benjamin Huth
 // - templated all classes
@@ -17,7 +17,7 @@
 // The ordering of classes is as follows:
 //  - Feed-forward Stack class
 //  - Feed-forward Layer classes
-//  - RecurrentStackT class
+//  - Recurrent Stack class
 //  - Recurrent layers
 //  - Activation functions
 //  - Various utility functions
@@ -183,7 +183,7 @@ namespace generic
     VectorX<T> m_b_t;
     MatrixX<T> m_w_c;
     VectorX<T> m_b_c;
-    std::function<(T)> m_act;
+    std::function<T(T)> m_act;
   };
 
   // ______________________________________________________________________
@@ -269,8 +269,8 @@ namespace generic
     void step( const VectorX<T>& input, LSTMState<T>& ) const;
 
   private:
-    std::function<(T)> m_activation_fun;
-    std::function<(T)> m_inner_activation_fun;
+    std::function<T(T)> m_activation_fun;
+    std::function<T(T)> m_inner_activation_fun;
 
     MatrixX<T> m_W_i;
     MatrixX<T> m_U_i;
@@ -310,8 +310,8 @@ namespace generic
     void step( const VectorX<T>& input, GRUState<T>& ) const;
 
   private:
-    std::function<(T)> m_activation_fun;
-    std::function<(T)> m_inner_activation_fun;
+    std::function<T(T)> m_activation_fun;
+    std::function<T(T)> m_inner_activation_fun;
 
     MatrixX<T> m_W_z;
     MatrixX<T> m_U_z;
@@ -337,11 +337,6 @@ namespace generic
   template<typename T> T nn_hard_sigmoid( T x );
   template<typename T> T nn_tanh( T x );
   template<typename T> T nn_relu( T x );
-  
-  double nn_sigmoid( double x );
-  double nn_hard_sigmoid( double x );
-  double nn_tanh( double x );
-  double nn_relu( double x );
   
   template<typename T>
   class ELU
@@ -374,8 +369,7 @@ namespace generic
     T m_alpha;
   };
   
-  template<typename T> std::function<(T)> get_activation(lwt::ActivationConfig);
-  std::function<double(double)> get_activation(lwt::ActivationConfig);
+  template<typename T> std::function<T(T)> get_activation(lwt::ActivationConfig);
 
   // WARNING: you own this pointer! Only call when assigning to member data!
   template<typename T> ILayer<T>* get_raw_activation_layer(ActivationConfig);
@@ -387,11 +381,6 @@ namespace generic
   template<typename T1, typename T2> MatrixX<T1> build_matrix(const std::vector<T2>& weights, size_t n_inputs);
   template<typename T1, typename T2> VectorX<T1> build_vector(const std::vector<T2>& bias);
 
-  // consistency checks
-  void throw_if_not_maxout(const LayerConfig& layer);
-  void throw_if_not_dense(const LayerConfig& layer);
-  void throw_if_not_normalization(const LayerConfig& layer);
-
   // LSTM component for convenience in some layers
   template<typename T>
   struct DenseComponents
@@ -402,37 +391,13 @@ namespace generic
   };
   
   template<typename T> DenseComponents<T> get_component(const lwt::LayerConfig& layer, size_t n_in);
-
     
-} // namespace generic  
-  
-  // typedefs for double
-  using ILayer = generic::ILayer<double>;
-  using DummyLayer = generic::DummyLayer<double>;
-  using UnaryActivationLayer = generic::UnaryActivationLayer<double>;
-  using SoftmaxLayer = generic::SoftmaxLayer<double>;
-  using BiasLayer = generic::BiasLayer<double>;
-  using MatrixLayer = generic::MatrixLayer<double>;
-  using MaxoutLayer = generic::MaxoutLayer<double>;
-  using NormalizationLayer = generic::NormalizationLayer<double>;
-  using HighwayLayer = generic::HighwayLayer<double>;
-  using RecurrentStack = generic::RecurrentStack<double>;
-  using ReductionStack = generic::ReductionStack<double>;
-  using IRecurrentLayer = generic::IRecurrentLayer<double>;
-  using EmbeddingLayer = generic::EmbeddingLayer<double>;
-  using LSTMLayer = generic::LSTMLayer<double>;
-  using GRULayer = generic::GRULayer<double>;
-  using ELU = generic::ELU<double>;
-  using LeakyReLU = generic::LeakyReLU<double>;
-  using Swish = generic::Swish<double>;
-  using DenseComponents = generic::DenseComponents<double>;
-  using Stack = generic::Stack<double>;
-  
-  // functions for double
-  MatrixX<double> build_matrix(const std::vector<double>& weights, size_t n_inputs);
-  VectorX<double> build_vector(const std::vector<double>& bias);
-  
-  DenseComponents get_component(const lwt::LayerConfig& layer, size_t n_in);
+} // namespace generic    
+
+  // consistency checks
+  void throw_if_not_maxout(const LayerConfig& layer);
+  void throw_if_not_dense(const LayerConfig& layer);
+  void throw_if_not_normalization(const LayerConfig& layer);
   
 } // namespace lwt
 

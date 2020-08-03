@@ -61,9 +61,9 @@ namespace generic {
   LightweightRNN<T>::LightweightRNN(const std::vector<Input>& inputs,
                                  const std::vector<LayerConfig>& layers,
                                  const std::vector<std::string>& outputs):
-    m_stack(new ReductionStack(inputs.size(), layers)),
-    m_preproc(new InputPreprocessor(inputs)),
-    m_vec_preproc(new InputVectorPreprocessor(inputs)),
+    m_stack(new generic::ReductionStack<T>(inputs.size(), layers)),
+    m_preproc(new generic::InputPreprocessor<T>(inputs)),
+    m_vec_preproc(new generic::InputVectorPreprocessor<T>(inputs)),
     m_outputs(outputs.begin(), outputs.end()),
     m_n_inputs(inputs.size())
   {
@@ -83,7 +83,7 @@ namespace generic {
   template<typename T>
   ValueMap LightweightRNN<T>::reduce(const std::vector<ValueMap>& in) const {
     const auto& preproc = *m_preproc;
-    MatrixXd inputs(m_n_inputs, in.size());
+    MatrixX<T> inputs(m_n_inputs, in.size());
     for (size_t iii = 0; iii < in.size(); iii++) {
       inputs.col(iii) = preproc(in.at(iii));
     }

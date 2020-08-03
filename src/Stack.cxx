@@ -4,41 +4,40 @@
 namespace lwt
 {
   // Definitions for double overloads
-    
   ILayer* get_raw_activation_layer(ActivationConfig activation) {
-    return get_raw_activation_layerT<double>(activation);
+    return generic::get_raw_activation_layer<double>(activation);
   }
   
   std::function<double(double)> get_activation(lwt::ActivationConfig act) {
-    return get_activationT<double>(act);
+    return generic::get_activation<double>(act);
   }
   
   double nn_sigmoid( double x ) {
-    return nn_sigmoidT<double>(x);
+    return generic::nn_sigmoid<double>(x);
   }
 
   double nn_hard_sigmoid( double x ) {
-    return nn_hard_sigmoidT<double>(x);
+    return generic::nn_hard_sigmoid<double>(x);
   }
   
   double nn_tanh( double x ) {
-    return nn_tanhT<double>(x);
+    return generic::nn_tanh<double>(x);
   }
 
   double nn_relu( double x) {
-    return nn_reluT<double>(x);
+    return generic::nn_relu<double>(x);
   }
     
   MatrixX<double> build_matrix(const std::vector<double>& weights, size_t n_inputs) {
-    return build_matrixT<double, double>(weights, n_inputs);
+    return generic::build_matrix<double, double>(weights, n_inputs);
   }
   
   VectorX<double> build_vector(const std::vector<double>& bias) {
-    return build_vectorT<double, double>(bias);
+    return generic::build_vector<double, double>(bias);
   }
   
   DenseComponents get_component(const lwt::LayerConfig& layer, size_t n_in) {
-    return get_componentT<double>(layer, n_in);
+    return generic::get_component<double>(layer, n_in);
   }
 
   // consistency checks

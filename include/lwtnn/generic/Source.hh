@@ -19,7 +19,7 @@ namespace generic {
   };
   
   template<typename T>
-  class VectorSourceT: public ISource<T>
+  class VectorSource: public ISource<T>
   {
   public:
     VectorSource(std::vector<VectorX<T>>&&, std::vector<MatrixX<T>>&& = {});

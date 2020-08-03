@@ -31,8 +31,10 @@ namespace lwt {
   // ______________________________________________________________________
   // high-level wrappers
 
-  template<typename T>
-  class LightweightNeuralNetworkT;
+  namespace generic {
+    template<typename T> class LightweightNeuralNetwork;
+    template<typename T> class LightweightRNN;
+  }
   
   // feed-forward variant
   class LightweightNeuralNetwork
@@ -54,11 +56,8 @@ namespace lwt {
     ValueMap compute(const ValueMap&) const;
 
   private:
-    std::unique_ptr<LightweightNeuralNetworkT<double>> m_impl;
+    std::unique_ptr<generic::LightweightNeuralNetwork<double>> m_impl;
   };
-
-  template<typename T>
-  class LightweightRNNT;
   
   // recurrent version
   class LightweightRNN
@@ -76,7 +75,7 @@ namespace lwt {
     ValueMap reduce(const std::vector<ValueMap>&) const;
     ValueMap reduce(const VectorMap&) const;
   private:
-    std::unique_ptr<LightweightRNNT<double>> m_impl;
+    std::unique_ptr<generic::LightweightRNN<double>> m_impl;
   };
 
 

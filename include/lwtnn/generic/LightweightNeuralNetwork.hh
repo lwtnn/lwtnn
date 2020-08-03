@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_NEURAL_NETWORK_T_HH
-#define LIGHTWEIGHT_NEURAL_NETWORK_T_HH
+#ifndef GENERIC_LIGHTWEIGHT_NEURAL_NETWORK_HH
+#define GENERIC_LIGHTWEIGHT_NEURAL_NETWORK_HH
 
 // Lightweight Neural Networks
 //
@@ -43,7 +43,7 @@ namespace generic {
   class LightweightNeuralNetwork
   {
   public:
-    LightweightNeuralNetworkT(const std::vector<Input>& inputs,
+    LightweightNeuralNetwork(const std::vector<Input>& inputs,
                              const std::vector<LayerConfig>& layers,
                              const std::vector<std::string>& outputs);
     ~LightweightNeuralNetwork();
@@ -90,6 +90,6 @@ namespace generic {
 }
 }
 
-#include "LightweightNeuralNetworkT.txx"
+#include "LightweightNeuralNetwork.txx"
 
 #endif
