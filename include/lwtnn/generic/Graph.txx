@@ -1,9 +1,6 @@
-#ifndef GENERIC_GRAPH_TXX
-#define GENERIC_GRAPH_TXX
-
-#include "lwtnn/generic/Stack.hh"
-#include "lwtnn/generic/Graph.hh"
-#include "lwtnn/Exceptions.hh"
+#include <lwtnn/generic/Stack.hh>
+#include <lwtnn/generic/Graph.hh>
+#include <lwtnn/Exceptions.hh>
 
 #include <set>
 #include <memory>
@@ -473,5 +470,3 @@ namespace generic {
 
 } // namespace generic
 } // namespace lwt
-
-#endif
