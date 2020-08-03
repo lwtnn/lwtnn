@@ -1,10 +1,6 @@
 #ifndef LWTNN_GENERIC_STACK_HH
 #define LWTNN_GENERIC_STACK_HH
 
-// 2020: Changes by Benjamin Huth
-// - templated all classes
-
-
 // Stack classes
 //
 // These are the low-level classes that implement feed-forward and
@@ -403,4 +399,4 @@ namespace generic
 
 #include "Stack.txx"
 
-#endif // STACK_HH
+#endif // LWTNN_GENERIC_STACK_HH

@@ -114,4 +114,4 @@ namespace generic {
 
 #include "LightweightGraph.txx"
 
-#endif
+#endif // LWTNN_GENERIC_LIGHTWEIGHT_GRAPH_HH
