@@ -1,35 +1,28 @@
-#ifndef SOURCE_HH
-#define SOURCE_HH
+#ifndef GENERIC_SOURCE_HH
+#define GENERIC_SOURCE_HH
 
-#include <Eigen/Dense>
+#include "lwtnn/generic/eigen_typedefs.hh"
 
 #include <vector>
 
 namespace lwt {
-    
-  template<typename T>
-  using VectorX = Eigen::Matrix<T, Eigen::Dynamic, 1>;
-  
-  template<typename T>
-  using MatrixX = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
+namespace generic {
 
   // this is called by input nodes to get the inputs
   template<typename T>
-  class ISourceT
+  class ISource
   {
   public:
-    virtual ~ISourceT() = default;
+    virtual ~ISource() = default;
     virtual VectorX<T> at(size_t index) const = 0;
     virtual MatrixX<T> matrix_at(size_t index) const = 0;
   };
   
-  using ISource = ISourceT<double>;
-
   template<typename T>
-  class VectorSourceT: public ISourceT<T>
+  class VectorSourceT: public ISource<T>
   {
   public:
-    VectorSourceT(std::vector<VectorX<T>>&&, std::vector<MatrixX<T>>&& = {});
+    VectorSource(std::vector<VectorX<T>>&&, std::vector<MatrixX<T>>&& = {});
     virtual VectorX<T> at(size_t index) const override;
     virtual MatrixX<T> matrix_at(size_t index) const override;
   private:
@@ -37,13 +30,11 @@ namespace lwt {
     std::vector<MatrixX<T>> m_matrix_inputs;
   };
   
-  using VectorSource = VectorSourceT<double>;
-
   template<typename T>
-  class DummySourceT: public ISourceT<T>
+  class DummySource: public ISource<T>
   {
   public:
-    DummySourceT(const std::vector<size_t>& input_sizes,
+    DummySource(const std::vector<size_t>& input_sizes,
                 const std::vector<std::pair<size_t, size_t> >& = {});
     virtual VectorX<T> at(size_t index) const override;
     virtual MatrixX<T> matrix_at(size_t index) const override;
@@ -52,7 +43,12 @@ namespace lwt {
     std::vector<std::pair<size_t, size_t> > m_matrix_sizes;
   };
   
-  using DummySource = DummySourceT<double>;
-}
+} // namespace generic
+
+  using ISource = generic::ISource<double>;
+  using VectorSource = generic::VectorSource<double>;
+  using DummySource = generic::DummySource<double>;
+
+} // namespace lwt
 
 #endif //SOURCE_HH

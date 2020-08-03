@@ -1,24 +1,19 @@
 #include "Stack.hh"
-#include <Eigen/Dense>
 
 #include <set>
 
-// internal utility functions
-namespace {
-  using namespace Eigen;
-  using namespace lwt;
-}
 namespace lwt {
+namespace generic {
 
   // ______________________________________________________________________
   // Feed forward Stack class
 
   // dummy construction routine
   template<typename T>
-  StackT<T>::StackT() {
-    m_layers.push_back(new DummyLayerT<T>);
-    m_layers.push_back(new UnaryActivationLayerT<T>({ Activation::SIGMOID, 0.0 }));
-    m_layers.push_back(new BiasLayerT<T>(std::vector<T>{1, 1, 1, 1}));
+  Stack<T>::Stack() {
+    m_layers.push_back(new DummyLayer<T>);
+    m_layers.push_back(new UnaryActivationLayer<T>({ Activation::SIGMOID, 0.0 }));
+    m_layers.push_back(new BiasLayer<T>(std::vector<T>{1, 1, 1, 1}));
     
     MatrixX<T> mat(4, 4);
     mat <<
@@ -26,13 +21,13 @@ namespace lwt {
       0, 0, 1, 0,
       0, 1, 0, 0,
       1, 0, 0, 0;
-    m_layers.push_back(new MatrixLayerT<T>(mat));
+    m_layers.push_back(new MatrixLayer<T>(mat));
     m_n_outputs = 4;
   }
 
   // construct from LayerConfig
   template<typename T>
-  StackT<T>::StackT(size_t n_inputs, const std::vector<LayerConfig>& layers,
+  Stack<T>::Stack(size_t n_inputs, const std::vector<LayerConfig>& layers,
                size_t skip) {
     for (size_t nnn = skip; nnn < layers.size(); nnn++) {
       n_inputs = add_layers(n_inputs, layers.at(nnn));
@@ -42,7 +37,7 @@ namespace lwt {
   }
 
   template<typename T>
-  StackT<T>::~StackT() {
+  Stack<T>::~Stack() {
     for (auto& layer: m_layers) {
       delete layer;
       layer = 0;
@@ -50,7 +45,7 @@ namespace lwt {
   }
   
   template<typename T>
-  VectorX<T> StackT<T>::compute(VectorX<T> in) const {
+  VectorX<T> Stack<T>::compute(VectorX<T> in) const {
     for (const auto& layer: m_layers) {
       in = layer->compute(in);
     }
@@ -58,7 +53,7 @@ namespace lwt {
   }
   
   template<typename T>
-  size_t StackT<T>::n_outputs() const {
+  size_t Stack<T>::n_outputs() const {
     return m_n_outputs;
   }
 
@@ -70,7 +65,7 @@ namespace lwt {
   
   
   template<typename T>
-  size_t StackT<T>::add_layers(size_t n_inputs, const LayerConfig& layer) {
+  size_t Stack<T>::add_layers(size_t n_inputs, const LayerConfig& layer) {
     if (layer.architecture == Architecture::DENSE) {
       return add_dense_layers(n_inputs, layer);
     } else if (layer.architecture == Architecture::NORMALIZATION){
@@ -84,7 +79,7 @@ namespace lwt {
   }
 
   template<typename T>
-  size_t StackT<T>::add_dense_layers(size_t n_inputs, const LayerConfig& layer) {
+  size_t Stack<T>::add_dense_layers(size_t n_inputs, const LayerConfig& layer) {
     assert(layer.architecture == Architecture::DENSE);
     throw_if_not_dense(layer);
 
@@ -92,9 +87,9 @@ namespace lwt {
 
     // add matrix layer
     if (layer.weights.size() > 0) {
-      MatrixX<T> matrix = build_matrixT<T>(layer.weights, n_inputs);
+      MatrixX<T> matrix = build_matrix<T>(layer.weights, n_inputs);
       n_outputs = matrix.rows();
-      m_layers.push_back(new MatrixLayerT<T>(matrix));
+      m_layers.push_back(new MatrixLayer<T>(matrix));
     };
 
     // add bias layer
@@ -105,19 +100,19 @@ namespace lwt {
           " had " + std::to_string(n_outputs) + " outputs";
         throw NNConfigurationException(problem);
       }
-      m_layers.push_back(new BiasLayerT<T>(layer.bias));
+      m_layers.push_back(new BiasLayer<T>(layer.bias));
     }
 
     // add activation layer
     if (layer.activation.function != Activation::LINEAR) {
-      m_layers.push_back(get_raw_activation_layerT<T>(layer.activation));
+      m_layers.push_back(get_raw_activation_layer<T>(layer.activation));
     }
 
     return n_outputs;
   }
 
   template<typename T>
-  size_t StackT<T>::add_normalization_layers(size_t n_inputs, const LayerConfig& layer) {
+  size_t Stack<T>::add_normalization_layers(size_t n_inputs, const LayerConfig& layer) {
     assert(layer.architecture == Architecture::NORMALIZATION);
     throw_if_not_normalization(layer);
 
@@ -134,28 +129,28 @@ namespace lwt {
     VectorX<T> v_bias = build_vector(layer.bias);
 
     m_layers.push_back(
-      new NormalizationLayerT<T>(v_weights, v_bias));
+      new NormalizationLayer<T>(v_weights, v_bias));
     return n_inputs;
   }
 
 
   template<typename T>
-  size_t StackT<T>::add_highway_layers(size_t n_inputs, const LayerConfig& layer) {
+  size_t Stack<T>::add_highway_layers(size_t n_inputs, const LayerConfig& layer) {
     auto& comps = layer.components;
     const auto& t = get_component(comps.at(Component::T), n_inputs);
     const auto& c = get_component(comps.at(Component::CARRY), n_inputs);
 
     m_layers.push_back(
-      new HighwayLayerT<T>(t.W, t.b, c.W, c.b, layer.activation));
+      new HighwayLayer<T>(t.W, t.b, c.W, c.b, layer.activation));
     return n_inputs;
   }
 
 
   template<typename T>
-  size_t StackT<T>::add_maxout_layers(size_t n_inputs, const LayerConfig& layer) {
+  size_t Stack<T>::add_maxout_layers(size_t n_inputs, const LayerConfig& layer) {
     assert(layer.architecture == Architecture::MAXOUT);
     throw_if_not_maxout(layer);
-    std::vector<typename MaxoutLayerT<T>::InitUnit> matrices;
+    std::vector<typename MaxoutLayer<T>::InitUnit> matrices;
     std::set<size_t> n_outputs;
     for (const auto& sublayer: layer.sublayers) {
       MatrixX<T> matrix = build_matrix(sublayer.weights, n_inputs);
@@ -169,7 +164,7 @@ namespace lwt {
     else if (n_outputs.size() != 1) {
       throw NNConfigurationException("uneven matrices for maxout");
     }
-    m_layers.push_back(new MaxoutLayerT<T>(matrices));
+    m_layers.push_back(new MaxoutLayer<T>(matrices));
     return *n_outputs.begin();
   }
 
@@ -178,24 +173,24 @@ namespace lwt {
   // Feed-forward layers
 
   template<typename T>
-  VectorX<T> DummyLayerT<T>::compute(const VectorX<T>& in) const {
+  VectorX<T> DummyLayer<T>::compute(const VectorX<T>& in) const {
     return in;
   }
 
   // activation functions
   template<typename T>
-  UnaryActivationLayerT<T>::UnaryActivationLayerT(ActivationConfig act):
-    m_func(get_activationT<T>(act))
+  UnaryActivationLayer<T>::UnaryActivationLayer(ActivationConfig act):
+    m_func(get_activation<T>(act))
   {
   }
   
   template<typename T>
-  VectorX<T> UnaryActivationLayerT<T>::compute(const VectorX<T>& in) const {
+  VectorX<T> UnaryActivationLayer<T>::compute(const VectorX<T>& in) const {
     return in.unaryExpr(m_func);
   }
 
   template<typename T>
-  VectorX<T> SoftmaxLayerT<T>::compute(const VectorX<T>& in) const {
+  VectorX<T> SoftmaxLayer<T>::compute(const VectorX<T>& in) const {
     // More numerically stable softmax, as suggested in
     // http://stackoverflow.com/a/34969389
     size_t n_elements = in.rows();
@@ -211,37 +206,37 @@ namespace lwt {
 
   // bias layer
   template<typename T>
-  BiasLayerT<T>::BiasLayerT(const VectorX<T>& bias): m_bias(bias)
+  BiasLayer<T>::BiasLayer(const VectorX<T>& bias): m_bias(bias)
   {
   }
   
   template<typename T> 
   template<typename U>
-  BiasLayerT<T>::BiasLayerT(const std::vector<U>& bias):
-    m_bias(build_vectorT<T,U>(bias))
+  BiasLayer<T>::BiasLayer(const std::vector<U>& bias):
+    m_bias(build_vector<T,U>(bias))
   {
   }
   
   template<typename T>
-  VectorX<T> BiasLayerT<T>::compute(const VectorX<T>& in) const {
+  VectorX<T> BiasLayer<T>::compute(const VectorX<T>& in) const {
     return in + m_bias;
   }
 
   // basic dense matrix layer
   template<typename T>
-  MatrixLayerT<T>::MatrixLayerT(const MatrixX<T>& matrix):
+  MatrixLayer<T>::MatrixLayer(const MatrixX<T>& matrix):
     m_matrix(matrix)
   {
   }
   
   template<typename T>
-  VectorX<T> MatrixLayerT<T>::compute(const VectorX<T>& in) const {
+  VectorX<T> MatrixLayer<T>::compute(const VectorX<T>& in) const {
     return m_matrix * in;
   }
 
   // maxout layer
   template<typename T>
-  MaxoutLayerT<T>::MaxoutLayerT(const std::vector<MaxoutLayerT::InitUnit>& units):
+  MaxoutLayer<T>::MaxoutLayer(const std::vector<MaxoutLayerT::InitUnit>& units):
     m_bias(units.size(), units.front().first.rows())
   {
     int out_pos = 0;
@@ -253,7 +248,7 @@ namespace lwt {
   }
   
   template<typename T>
-  VectorX<T> MaxoutLayerT<T>::compute(const VectorX<T>& in) const {
+  VectorX<T> MaxoutLayer<T>::compute(const VectorX<T>& in) const {
     // eigen supports tensors, but only in the experimental component
     // for now just stick to matrix and vector classes
     const size_t n_mat = m_matrices.size();
@@ -268,7 +263,7 @@ namespace lwt {
 
    // Normalization layer
   template<typename T>
-   NormalizationLayerT<T>::NormalizationLayerT(const VectorX<T>& W,
+   NormalizationLayer<T>::NormalizationLayer(const VectorX<T>& W,
                                           const VectorX<T>& b):
     _W(W), _b(b)
   {
@@ -276,27 +271,27 @@ namespace lwt {
   
   
   template<typename T>
-  VectorX<T> NormalizationLayerT<T>::compute(const VectorX<T>& in) const {
+  VectorX<T> NormalizationLayer<T>::compute(const VectorX<T>& in) const {
     VectorX<T> shift = in + _b ;
     return _W.cwiseProduct(shift);
   }
 
   // highway layer
   template<typename T>
-  HighwayLayerT<T>::HighwayLayerT(const MatrixX<T>& W,
+  HighwayLayer<T>::HighwayLayer(const MatrixX<T>& W,
                              const VectorX<T>& b,
                              const MatrixX<T>& W_carry,
                              const VectorX<T>& b_carry,
                              ActivationConfig activation):
     m_w_t(W), m_b_t(b), m_w_c(W_carry), m_b_c(b_carry),
-    m_act(get_activationT<T>(activation))
+    m_act(get_activation<T>(activation))
   {
   }
   
   
   template<typename T>
-  VectorX<T> HighwayLayerT<T>::compute(const VectorX<T>& in) const {
-    const std::function<T(T)> sig(nn_sigmoidT<T>);
+  VectorX<T> HighwayLayer<T>::compute(const VectorX<T>& in) const {
+    const std::function<T(T)> sig(nn_sigmoid<T>);
     ArrayX<T> c = (m_w_c * in + m_b_c).unaryExpr(sig);
     ArrayX<T> t = (m_w_t * in + m_b_t).unaryExpr(m_act);
     return c * t + (1 - c) * in.array();
@@ -306,7 +301,7 @@ namespace lwt {
   // Recurrent Stack
 
   template<typename T>
-  RecurrentStackT<T>::RecurrentStackT(size_t n_inputs,
+  RecurrentStack<T>::RecurrentStack(size_t n_inputs,
                                  const std::vector<lwt::LayerConfig>& layers)
   {
     using namespace lwt;
@@ -329,7 +324,7 @@ namespace lwt {
   }
   
   template<typename T>
-  RecurrentStackT<T>::~RecurrentStackT() {
+  RecurrentStack<T>::~RecurrentStack() {
     for (auto& layer: m_layers) {
       delete layer;
       layer = 0;
@@ -337,7 +332,7 @@ namespace lwt {
   }
   
   template<typename T>
-  MatrixX<T> RecurrentStackT<T>::scan(MatrixX<T> in) const {
+  MatrixX<T> RecurrentStack<T>::scan(MatrixX<T> in) const {
     for (auto* layer: m_layers) {
       in = layer->scan(in);
     }
@@ -345,12 +340,12 @@ namespace lwt {
   }
   
   template<typename T>
-  size_t RecurrentStackT<T>::n_outputs() const {
+  size_t RecurrentStack<T>::n_outputs() const {
     return m_n_outputs;
   }
 
   template<typename T>
-  size_t RecurrentStackT<T>::add_lstm_layers(size_t n_inputs,
+  size_t RecurrentStack<T>::add_lstm_layers(size_t n_inputs,
                                          const LayerConfig& layer) {
     auto& comps = layer.components;
     const auto& i = get_component(comps.at(Component::I), n_inputs);
@@ -358,7 +353,7 @@ namespace lwt {
     const auto& f = get_component(comps.at(Component::F), n_inputs);
     const auto& c = get_component(comps.at(Component::C), n_inputs);
     m_layers.push_back(
-      new LSTMLayerT<T>(layer.activation, layer.inner_activation,
+      new LSTMLayer<T>(layer.activation, layer.inner_activation,
                     i.W, i.U, i.b,
                     f.W, f.U, f.b,
                     o.W, o.U, o.b,
@@ -367,14 +362,14 @@ namespace lwt {
   }
 
   template<typename T>
-  size_t RecurrentStackT<T>::add_gru_layers(size_t n_inputs,
+  size_t RecurrentStack<T>::add_gru_layers(size_t n_inputs,
                                          const LayerConfig& layer) {
     auto& comps = layer.components;
     const auto& z = get_component(comps.at(Component::Z), n_inputs);
     const auto& r = get_component(comps.at(Component::R), n_inputs);
     const auto& h = get_component(comps.at(Component::H), n_inputs);
     m_layers.push_back(
-      new GRULayerT<T>(layer.activation, layer.inner_activation,
+      new GRULayer<T>(layer.activation, layer.inner_activation,
                     z.W, z.U, z.b,
                     r.W, r.U, r.b,
                     h.W, h.U, h.b));
@@ -382,20 +377,20 @@ namespace lwt {
   }
 
   template<typename T>
-  size_t RecurrentStackT<T>::add_embedding_layers(size_t n_inputs,
+  size_t RecurrentStack<T>::add_embedding_layers(size_t n_inputs,
                                               const LayerConfig& layer) {
     for (const auto& emb: layer.embedding) {
       size_t n_wt = emb.weights.size();
       size_t n_cats = n_wt / emb.n_out;
       MatrixX<T> mat = build_matrix(emb.weights, n_cats);
-      m_layers.push_back(new EmbeddingLayerT<T>(emb.index, mat));
+      m_layers.push_back(new EmbeddingLayer<T>(emb.index, mat));
       n_inputs += emb.n_out - 1;
     }
     return n_inputs;
   }
 
   template<typename T>
-  ReductionStackT<T>::ReductionStackT(size_t n_in,
+  ReductionStack<T>::ReductionStack(size_t n_in,
                                  const std::vector<LayerConfig>& layers) {
     std::vector<LayerConfig> recurrent;
     std::vector<LayerConfig> feed_forward;
@@ -413,19 +408,19 @@ namespace lwt {
   }
   
   template<typename T>
-  ReductionStackT<T>::~ReductionStackT() {
+  ReductionStack<T>::~ReductionStack() {
     delete m_recurrent;
     delete m_stack;
   }
   
   template<typename T>
-  VectorX<T> ReductionStackT<T>::reduce(MatrixX<T> in) const {
+  VectorX<T> ReductionStack<T>::reduce(MatrixX<T> in) const {
     in = m_recurrent->scan(in);
     return m_stack->compute(in.col(in.cols() -1));
   }
   
   template<typename T>
-  size_t ReductionStackT<T>::n_outputs() const {
+  size_t ReductionStack<T>::n_outputs() const {
     return m_stack->n_outputs();
   }
 
@@ -433,7 +428,7 @@ namespace lwt {
   // Recurrent layers
 
   template<typename T>
-  EmbeddingLayerT<T>::EmbeddingLayerT(int var_row_index, MatrixX<T> W):
+  EmbeddingLayer<T>::EmbeddingLayer(int var_row_index, MatrixX<T> W):
     m_var_row_index(var_row_index),
     m_W(W)
   {
@@ -444,7 +439,7 @@ namespace lwt {
   }
 
   template<typename T>
-  MatrixX<T> EmbeddingLayerT<T>::scan( const MatrixX<T>& x) const {
+  MatrixX<T> EmbeddingLayer<T>::scan( const MatrixX<T>& x) const {
 
     if( m_var_row_index >= x.rows() )
       throw NNEvaluationException(
@@ -482,7 +477,7 @@ namespace lwt {
 
   // LSTM layer
   template<typename T>
-  LSTMLayerT<T>::LSTMLayerT(ActivationConfig activation,
+  LSTMLayer<T>::LSTMLayer(ActivationConfig activation,
                        ActivationConfig inner_activation,
                        MatrixX<T> W_i, MatrixX<T> U_i, VectorX<T> b_i,
                        MatrixX<T> W_f, MatrixX<T> U_f, VectorX<T> b_f,
@@ -510,14 +505,14 @@ namespace lwt {
   // internal structure created on each scan call
   template<typename T>
   struct LSTMStateT {
-    LSTMStateT(size_t n_input, size_t n_outputs);
+    LSTMState(size_t n_input, size_t n_outputs);
     MatrixX<T> C_t;
     MatrixX<T> h_t;
     int time;
   };
   
   template<typename T>
-  LSTMStateT<T>::LSTMStateT(size_t n_input, size_t n_output):
+  LSTMState<T>::LSTMState(size_t n_input, size_t n_output):
     C_t(MatrixX<T>::Zero(n_output, n_input)),
     h_t(MatrixX<T>::Zero(n_output, n_input)),
     time(0)
@@ -525,7 +520,7 @@ namespace lwt {
   }
 
   template<typename T>
-  void LSTMLayerT<T>::step(const VectorX<T>& x_t, LSTMState& s) const {
+  void LSTMLayer<T>::step(const VectorX<T>& x_t, LSTMState& s) const {
     // https://github.com/fchollet/keras/blob/master/keras/layers/recurrent.py#L740
 
     const auto& act_fun = m_activation_fun;
@@ -545,9 +540,9 @@ namespace lwt {
   }
 
   template<typename T>
-  MatrixX<T> LSTMLayerT<T>::scan( const MatrixX<T>& x ) const {
+  MatrixX<T> LSTMLayer<T>::scan( const MatrixX<T>& x ) const {
 
-    LSTMStateT<T> state(x.cols(), m_n_outputs);
+    LSTMState<T> state(x.cols(), m_n_outputs);
 
     for(state.time = 0; state.time < x.cols(); state.time++) {
       step( x.col( state.time ), state );
@@ -559,7 +554,7 @@ namespace lwt {
 
   // GRU layer
   template<typename T>
-  GRULayerT<T>::GRULayerT(ActivationConfig activation,
+  GRULayer<T>::GRULayer(ActivationConfig activation,
                      ActivationConfig inner_activation,
                      MatrixX<T> W_z, MatrixX<T> U_z, VectorX<T> b_z,
                      MatrixX<T> W_r, MatrixX<T> U_r, VectorX<T> b_r,
@@ -582,20 +577,20 @@ namespace lwt {
   // internal structure created on each scan call
   template<typename T>
   struct GRUStateT {
-    GRUStateT(size_t n_input, size_t n_outputs);
+    GRUState(size_t n_input, size_t n_outputs);
     MatrixX<T> h_t;
     int time;
   };
   
   template<typename T>
-  GRUStateT<T>::GRUStateT(size_t n_input, size_t n_output):
+  GRUState<T>::GRUState(size_t n_input, size_t n_output):
     h_t(MatrixX<T>::Zero(n_output, n_input)),
     time(0)
   {
   }
 
   template<typename T>
-  void GRULayerT<T>::step( const VectorX<T>& x_t, GRUState& s) const {
+  void GRULayer<T>::step( const VectorX<T>& x_t, GRUState& s) const {
     // https://github.com/fchollet/keras/blob/master/keras/layers/recurrent.py#L547
 
     const auto& act_fun = m_activation_fun;
@@ -612,7 +607,7 @@ namespace lwt {
   }
 
   template<typename T>
-  MatrixX<T> GRULayerT<T>::scan( const MatrixX<T>& x ) const {
+  MatrixX<T> GRULayer<T>::scan( const MatrixX<T>& x ) const {
 
     GRUState state(x.cols(), m_n_outputs);
 
@@ -635,27 +630,27 @@ namespace lwt {
   
   
   template<typename T>
-  ILayerT<T>* get_raw_activation_layerT(ActivationConfig activation) {
+  ILayer<T>* get_raw_activation_layer(ActivationConfig activation) {
     // Check for special cases. If it's not one, use
     // UnaryActivationLayer
     switch (activation.function) {
-    case Activation::SOFTMAX: return new SoftmaxLayerT<T>;
-    default: return new UnaryActivationLayerT<T>(activation);
+    case Activation::SOFTMAX: return new SoftmaxLayer<T>;
+    default: return new UnaryActivationLayer<T>(activation);
     }
   }
 
   // Most activation functions should be handled here.
   template<typename T>
-  std::function<T(T)> get_activationT(lwt::ActivationConfig act) {
+  std::function<T(T)> get_activation(lwt::ActivationConfig act) {
     using namespace lwt;
     switch (act.function) {
-    case Activation::SIGMOID: return nn_sigmoidT<T>;
-    case Activation::HARD_SIGMOID: return nn_hard_sigmoidT<T>;
-    case Activation::SWISH: return SwishT<T>(act.alpha);
-    case Activation::TANH: return nn_tanhT<T>;
-    case Activation::RECTIFIED: return nn_reluT<T>;
-    case Activation::ELU: return ELUT<T>(act.alpha);
-    case Activation::LEAKY_RELU: return LeakyReLUT<T>(act.alpha);
+    case Activation::SIGMOID: return nn_sigmoid<T>;
+    case Activation::HARD_SIGMOID: return nn_hard_sigmoid<T>;
+    case Activation::SWISH: return Swish<T>(act.alpha);
+    case Activation::TANH: return nn_tanh<T>;
+    case Activation::RECTIFIED: return nn_relu<T>;
+    case Activation::ELU: return ELU<T>(act.alpha);
+    case Activation::LEAKY_RELU: return LeakyReLU<T>(act.alpha);
     case Activation::LINEAR: return [](T x){return x;};
     case Activation::ABS: return [](T x){using std::abs; /* autodiff... */ return abs(x);};
     default: {
@@ -665,7 +660,7 @@ namespace lwt {
   }
 
   template<typename T>
-  T nn_sigmoidT( T x ){
+  T nn_sigmoid( T x ){
     //github.com/Theano/Theano/blob/master/theano/tensor/nnet/sigm.py#L35
     using std::exp;  // strange requirement from autodiff
     if (x < -30.0) return 0.0;
@@ -674,7 +669,7 @@ namespace lwt {
   }
 
   template<typename T>
-  T nn_hard_sigmoidT( T x ){
+  T nn_hard_sigmoid( T x ){
     //github.com/Theano/Theano/blob/master/theano/tensor/nnet/sigm.py#L279
     T out = 0.2*x + 0.5;
     if (out < 0) return 0.0;
@@ -683,34 +678,34 @@ namespace lwt {
   }
 
   template<typename T>
-  SwishT<T>::SwishT(T alpha):
+  Swish<T>::Swish(T alpha):
     m_alpha(alpha)
   {}
   
   template<typename T>
-  T SwishT<T>::operator()(T x) const {
-    return x * nn_sigmoidT<T>(m_alpha * x);
+  T Swish<T>::operator()(T x) const {
+    return x * nn_sigmoid<T>(m_alpha * x);
   }
 
   template<typename T>
-  T nn_tanhT( T x ){
+  T nn_tanh( T x ){
     using std::tanh; // strange requirement from autodiff
     return tanh(x);
   }
 
   template<typename T>
-  T nn_reluT( T x) {
+  T nn_relu( T x) {
     if (std::isnan(static_cast<double>(x))) return x;
     else return x > 0 ? x : 0;
   }
 
   template<typename T>
-  ELUT<T>::ELUT(T alpha):
+  ELU<T>::ELU(T alpha):
     m_alpha(alpha)
   {}
   
   template<typename T>
-  T ELUT<T>::operator()( T x ) const {
+  T ELU<T>::operator()( T x ) const {
     /* ELU function : https://arxiv.org/pdf/1511.07289.pdf
        f(x)=(x>=0)*x + ( (x<0)*alpha*(exp(x)-1) )
     */
@@ -720,19 +715,19 @@ namespace lwt {
   }
 
   template<typename T>
-  LeakyReLUT<T>::LeakyReLUT(T alpha):
+  LeakyReLU<T>::LeakyReLU(T alpha):
     m_alpha(alpha)
   {}
   
   template<typename T>
-  T LeakyReLUT<T>::operator()(T x) const {
+  T LeakyReLU<T>::operator()(T x) const {
     return x > 0 ? x : static_cast<T>(m_alpha * x); // weird autodiff
   }
 
   // ________________________________________________________________________
   // utility functions
   template<typename T1, typename T2>
-  MatrixX<T1> build_matrixT(const std::vector<T2>& weights, size_t n_inputs)
+  MatrixX<T1> build_matrix(const std::vector<T2>& weights, size_t n_inputs)
   {
     static_assert( std::is_same<T1, T2>::value ||
                    std::is_assignable<T1, T2>::value, 
@@ -757,7 +752,7 @@ namespace lwt {
   }
   
   template<typename T1, typename T2>
-  VectorX<T1> build_vectorT(const std::vector<T2>& bias) 
+  VectorX<T1> build_vector(const std::vector<T2>& bias) 
   {
     static_assert( std::is_same<T1, T2>::value ||
                    std::is_assignable<T1, T2>::value, 
@@ -774,16 +769,16 @@ namespace lwt {
 
   // component-wise getters (for Highway, lstm, etc)
   template<typename T>
-  DenseComponentsT<T> get_componentT(const lwt::LayerConfig& layer, size_t n_in) {
+  DenseComponents<T> get_component(const lwt::LayerConfig& layer, size_t n_in) {
     using namespace Eigen;
     using namespace lwt;
-    MatrixX<T> weights = build_matrixT<T, double>(layer.weights, n_in);
+    MatrixX<T> weights = build_matrix<T, double>(layer.weights, n_in);
     size_t n_out = weights.rows();
-    VectorX<T> bias = build_vectorT<T, double>(layer.bias);
+    VectorX<T> bias = build_vector<T, double>(layer.bias);
 
     // the u element is optional
     size_t u_el = layer.U.size();
-    MatrixX<T> U = u_el ? build_matrixT<T, double>(layer.U, n_out) : MatrixX<T>::Zero(0,0);
+    MatrixX<T> U = u_el ? build_matrix<T, double>(layer.U, n_out) : MatrixX<T>::Zero(0,0);
 
     size_t u_out = U.rows();
     size_t b_out = bias.rows();
@@ -795,4 +790,6 @@ namespace lwt {
     }
     return {weights, U, bias};
   }
-}
+  
+} // namespace generic
+} // namespace lwt

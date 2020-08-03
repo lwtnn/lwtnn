@@ -5,7 +5,7 @@
 // - templated all classes
 
 
-// StackT classes
+// Stack classes
 //
 // These are the low-level classes that implement feed-forward and
 // recurrent neural networks. All the Eigen-dependant code in this
@@ -23,52 +23,42 @@
 //  - Various utility functions
 
 
-#include "Exceptions.hh"
-#include "NNLayerConfig.hh"
-
-#include <Eigen/Dense>
+#include "lwtnn/Exceptions.hh"
+#include "lwtnn/NNLayerConfig.hh"
+#include "lwtnn/generic/eigen_typedefs.hh"
 
 #include <vector>
 #include <functional>
 
-namespace lwt {
-
+namespace lwt 
+{
+    
+namespace generic
+{
+    
   template<typename T>
-  using VectorX = Eigen::Matrix<T, Eigen::Dynamic, 1>;
+  class ILayer;
   
   template<typename T>
-  using MatrixX = Eigen::Matrix<T, Eigen::Dynamic, Eigen::Dynamic>;
-  
-  template<typename T>
-  using ArrayX = Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic>;
-
-  template<typename T>
-  class ILayerT;
-  
-  template<typename T>
-  class IRecurrentLayerT;
-
-  class FittableLWTNN;
+  class IRecurrentLayer;
   
   // ______________________________________________________________________
   // Feed forward Stack class
 
   template<typename T>
-  class StackT
-  {
-    friend class FittableLWTNN;
-      
+  class Stack
+  {      
   public:
     // constructor for dummy net
-    StackT();
+    Stack();
     // constructor for real net
-    StackT(size_t n_inputs, const std::vector<LayerConfig>& layers,
+    Stack(size_t n_inputs, const std::vector<LayerConfig>& layers,
           size_t skip_layers = 0);
-    ~StackT();
+    ~Stack();
 
     // make non-copyable for now
-    StackT(StackT&) = delete;
-    StackT& operator=(StackT&) = delete;
+    Stack(Stack&) = delete;
+    Stack& operator=(Stack&) = delete;
 
     VectorX<T> compute(VectorX<T>) const;
     size_t n_outputs() const;
@@ -80,110 +70,93 @@ namespace lwt {
     size_t add_normalization_layers(size_t n_inputs, const LayerConfig&);
     size_t add_highway_layers(size_t n_inputs, const LayerConfig&);
     size_t add_maxout_layers(size_t n_inputs, const LayerConfig&);
-    std::vector<ILayerT<T>*> m_layers;
+    std::vector<ILayer<T>*> m_layers;
     size_t m_n_outputs;
   };
-  
-  using Stack = StackT<double>;
 
   // _______________________________________________________________________
   // Feed-forward layers
 
   template<typename T>
-  class ILayerT
+  class ILayer
   {
   public:
-    virtual ~ILayerT() {}
+    virtual ~ILayer() {}
     virtual VectorX<T> compute(const VectorX<T>&) const = 0;
   };
-  
-  using ILayer = ILayerT<double>;
 
   template<typename T>
-  class DummyLayerT: public ILayerT<T>
+  class DummyLayer: public ILayer<T>
   {
   public:
     virtual VectorX<T> compute(const VectorX<T>&) const override;
   };
-  
-  using DummyLayer = DummyLayerT<double>;
 
   template<typename T>
-  class UnaryActivationLayerT: public ILayerT<T>
+  class UnaryActivationLayer: public ILayer<T>
   {
   public:
-    UnaryActivationLayerT(ActivationConfig);
+    UnaryActivationLayer(ActivationConfig);
     virtual VectorX<T> compute(const VectorX<T>&) const override;
   private:
     std::function<T(T)> m_func;
   };
-  
-  using UnaryActivationLayer = UnaryActivationLayerT<double>;
 
   template<typename T>
-  class SoftmaxLayerT: public ILayerT<T>
+  class SoftmaxLayer: public ILayer<T>
   {
   public:
     virtual VectorX<T> compute(const VectorX<T>&) const override;
   };
-  
-  using SoftmaxLayer = SoftmaxLayerT<double>;
 
   template<typename T>
-  class BiasLayerT: public ILayerT<T>
+  class BiasLayer: public ILayer<T>
   {
     friend class FittableLWTNN;
     
   public:
-    BiasLayerT(const VectorX<T>& bias);
-    template<typename U> BiasLayerT(const std::vector<U>& bias);
+    BiasLayer(const VectorX<T>& bias);
+    template<typename U> BiasLayer(const std::vector<U>& bias);
     virtual VectorX<T> compute(const VectorX<T>&) const override;
   private:
     VectorX<T> m_bias;
   };
-  
-  using BiasLayer = BiasLayerT<double>;
 
   template<typename T>
-  class MatrixLayerT: public ILayerT<T>
+  class MatrixLayer: public ILayer<T>
   {
     friend class FittableLWTNN;
     
   public:
-    MatrixLayerT(const MatrixX<T>& matrix);
+    MatrixLayer(const MatrixX<T>& matrix);
     virtual VectorX<T> compute(const VectorX<T>&) const override;
   private:
     MatrixX<T> m_matrix;
   };
-  
-  using MatrixLayer = MatrixLayerT<double>;
 
   template<typename T>
-  class MaxoutLayerT: public ILayerT<T>
+  class MaxoutLayer: public ILayer<T>
   {
     friend class FittableLWTNN;
     
   public:
     typedef std::pair<MatrixX<T>, VectorX<T>> InitUnit;
-    MaxoutLayerT(const std::vector<InitUnit>& maxout_tensor);
+    MaxoutLayer(const std::vector<InitUnit>& maxout_tensor);
     virtual VectorX<T> compute(const VectorX<T>&) const override;
   private:
     std::vector<MatrixX<T>> m_matrices;
     MatrixX<T> m_bias;
   };
-  
-  using MaxoutLayer = MaxoutLayerT<double>;
-
 
   /// Normalization layer ///
   /// https://arxiv.org/abs/1502.03167 ///
   template<typename T>
-  class NormalizationLayerT : public ILayerT<T>
+  class NormalizationLayer : public ILayer<T>
   {
     friend class FittableLWTNN;
     
   public:
-    NormalizationLayerT(const VectorX<T>& W,const VectorX<T>& b);
+    NormalizationLayer(const VectorX<T>& W,const VectorX<T>& b);
     virtual VectorX<T> compute(const VectorX<T>&) const override;
 
   private:
@@ -191,17 +164,15 @@ namespace lwt {
     VectorX<T> _b;
 
   };
-  
-  using NormalizationLayer = NormalizationLayerT<double>;
 
   //http://arxiv.org/pdf/1505.00387v2.pdf
   template<typename T>
-  class HighwayLayerT: public ILayerT<T>
+  class HighwayLayer: public ILayer<T>
   {
     friend class FittableLWTNN;
     
   public:
-    HighwayLayerT(const MatrixX<T>& W,
+    HighwayLayer(const MatrixX<T>& W,
                  const VectorX<T>& b,
                  const MatrixX<T>& W_carry,
                  const VectorX<T>& b_carry,
@@ -212,105 +183,94 @@ namespace lwt {
     VectorX<T> m_b_t;
     MatrixX<T> m_w_c;
     VectorX<T> m_b_c;
-    std::function<T(T)> m_act;
+    std::function<(T)> m_act;
   };
-  
-  using HighwayLayer = HighwayLayerT<double>;
 
   // ______________________________________________________________________
   // Recurrent StackT
 
   template<typename T>
-  class RecurrentStackT
+  class RecurrentStack
   {
   public:
-    RecurrentStackT(size_t n_inputs, const std::vector<LayerConfig>& layers);
-    ~RecurrentStackT();
-    RecurrentStackT(RecurrentStackT&) = delete;
-    RecurrentStackT& operator=(RecurrentStackT&) = delete;
+    RecurrentStack(size_t n_inputs, const std::vector<LayerConfig>& layers);
+    ~RecurrentStack();
+    RecurrentStack(RecurrentStack&) = delete;
+    RecurrentStack& operator=(RecurrentStack&) = delete;
     MatrixX<T> scan(MatrixX<T> inputs) const;
     size_t n_outputs() const;
   private:
-    std::vector<IRecurrentLayerT<T>*> m_layers;
+    std::vector<IRecurrentLayer<T>*> m_layers;
     size_t add_lstm_layers(size_t n_inputs, const LayerConfig&);
     size_t add_gru_layers(size_t n_inputs, const LayerConfig&);
     size_t add_embedding_layers(size_t n_inputs, const LayerConfig&);
     size_t m_n_outputs;
   };
-  
-  using RecurrentStack = RecurrentStackT<double>;
 
   // This is the old RecurrentStack. Should probably absorb this into
   // the high-level interface in LightweightRNN, since all it does is
   // provide a slightly higher-level interface to a network which
   // combines recurrent + ff layers.
   template<typename T>
-  class ReductionStackT
+  class ReductionStack
   {
   public:
-    ReductionStackT(size_t n_in, const std::vector<LayerConfig>& layers);
-    ~ReductionStackT();
-    ReductionStackT(ReductionStackT&) = delete;
-    ReductionStackT& operator=(ReductionStackT&) = delete;
+    ReductionStack(size_t n_in, const std::vector<LayerConfig>& layers);
+    ~ReductionStack();
+    ReductionStack(ReductionStack&) = delete;
+    ReductionStack& operator=(ReductionStack&) = delete;
     VectorX<T> reduce(MatrixX<T> inputs) const;
     size_t n_outputs() const;
   private:
-    RecurrentStackT<T>* m_recurrent;
-    StackT<T>* m_stack;
+    RecurrentStack<T>* m_recurrent;
+    Stack<T>* m_stack;
   };
-  
-  using ReductionStack = ReductionStackT<double>;
 
   // __________________________________________________________________
   // Recurrent layers
 
   template<typename T>
-  class IRecurrentLayerT
+  class IRecurrentLayer
   {
   public:
-    virtual ~IRecurrentLayerT() {}
+    virtual ~IRecurrentLayer() {}
     virtual MatrixX<T> scan( const MatrixX<T>&) const = 0;
   };
   
-  using IRecurrentLayer = IRecurrentLayerT<double>;
-  
   template<typename T>
-  class EmbeddingLayerT : public IRecurrentLayerT<T>
+  class EmbeddingLayer : public IRecurrentLayer<T>
   {
   public:
-    EmbeddingLayerT(int var_row_index, MatrixX<T> W);
-    virtual ~EmbeddingLayerT() {};
+    EmbeddingLayer(int var_row_index, MatrixX<T> W);
+    virtual ~EmbeddingLayer() {};
     virtual MatrixX<T> scan( const MatrixX<T>&) const override;
 
   private:
     int m_var_row_index;
     MatrixX<T> m_W;
   };
-  
-  using EmbeddingLayer = EmbeddingLayerT<double>;
 
   /// long short term memory ///
-  template<typename T> struct LSTMStateT;
-  using LSTMState = LSTMStateT<double>;
+  template<typename T> struct LSTMState;
   
   template<typename T>
-  class LSTMLayerT : public IRecurrentLayerT<T>
+  class LSTMLayer : public IRecurrentLayer<T>
   {
   public:
-    LSTMLayerT(ActivationConfig activation,
+    LSTMLayer(ActivationConfig activation,
               ActivationConfig inner_activation,
               MatrixX<T> W_i, MatrixX<T> U_i, VectorX<T> b_i,
               MatrixX<T> W_f, MatrixX<T> U_f, VectorX<T> b_f,
               MatrixX<T> W_o, MatrixX<T> U_o, VectorX<T> b_o,
               MatrixX<T> W_c, MatrixX<T> U_c, VectorX<T> b_c);
 
-    virtual ~LSTMLayerT() {};
+    virtual ~LSTMLayer() {};
     virtual MatrixX<T> scan( const MatrixX<T>&) const override;
-    void step( const VectorX<T>& input, LSTMState& ) const;
+    void step( const VectorX<T>& input, LSTMState<T>& ) const;
 
   private:
-    std::function<T(T)> m_activation_fun;
-    std::function<T(T)> m_inner_activation_fun;
+    std::function<(T)> m_activation_fun;
+    std::function<(T)> m_inner_activation_fun;
 
     MatrixX<T> m_W_i;
     MatrixX<T> m_U_i;
@@ -331,29 +291,27 @@ namespace lwt {
     int m_n_outputs;
   };
   
-  using LSTMLayer = LSTMLayerT<double>;
 
   /// gated recurrent unit ///
-  template<typename T> struct GRUStateT;
-  using GRUState = GRUStateT<double>;
+  template<typename T> struct GRUState;
   
   template<typename T>
-  class GRULayerT : public IRecurrentLayerT<T>
+  class GRULayer : public IRecurrentLayer<T>
   {
   public:
-    GRULayerT(ActivationConfig activation,
+    GRULayer(ActivationConfig activation,
              ActivationConfig inner_activation,
              MatrixX<T> W_z, MatrixX<T> U_z, VectorX<T> b_z,
              MatrixX<T> W_r, MatrixX<T> U_r, VectorX<T> b_r,
              MatrixX<T> W_h, MatrixX<T> U_h, VectorX<T> b_h);
 
-    virtual ~GRULayerT() {};
+    virtual ~GRULayer() {};
     virtual MatrixX<T> scan( const MatrixX<T>&) const override;
-    void step( const VectorX<T>& input, GRUState& ) const;
+    void step( const VectorX<T>& input, GRUState<T>& ) const;
 
   private:
-    std::function<T(T)> m_activation_fun;
-    std::function<T(T)> m_inner_activation_fun;
+    std::function<(T)> m_activation_fun;
+    std::function<(T)> m_inner_activation_fun;
 
     MatrixX<T> m_W_z;
     MatrixX<T> m_U_z;
@@ -369,18 +327,16 @@ namespace lwt {
 
     int m_n_outputs;
   };
-  
-  using GRULayer = GRULayerT<double>;
 
   // ______________________________________________________________________
   // Activation functions
 
   // note that others are supported but are too simple to
   // require a special function
-  template<typename T> T nn_sigmoidT( T x );
-  template<typename T> T nn_hard_sigmoidT( T x );
-  template<typename T> T nn_tanhT( T x );
-  template<typename T> T nn_reluT( T x );
+  template<typename T> T nn_sigmoid( T x );
+  template<typename T> T nn_hard_sigmoid( T x );
+  template<typename T> T nn_tanh( T x );
+  template<typename T> T nn_relu( T x );
   
   double nn_sigmoid( double x );
   double nn_hard_sigmoid( double x );
@@ -388,58 +344,48 @@ namespace lwt {
   double nn_relu( double x );
   
   template<typename T>
-  class ELUT
+  class ELU
   {
   public:
-    ELUT(T alpha);
+    ELU(T alpha);
     T operator()(T) const;
   private:
     T m_alpha;
   };
   
-  using ELU = ELUT<double>;
   
   template<typename T>
-  class LeakyReLUT
+  class LeakyReLU
   {
   public:
-    LeakyReLUT(T alpha);
+    LeakyReLU(T alpha);
     T operator()(T) const;
   private:
     T m_alpha;
   };
-  
-  using LeakyReLU = LeakyReLUT<double>;
   
   template<typename T>
-  class SwishT
+  class Swish
   {
   public:
-    SwishT(T alpha);
+    Swish(T alpha);
     T operator()(T) const;
   private:
     T m_alpha;
   };
   
-  using Swish = SwishT<double>;
-  
-  template<typename T> std::function<T(T)> get_activationT(lwt::ActivationConfig);
+  template<typename T> std::function<(T)> get_activation(lwt::ActivationConfig);
   std::function<double(double)> get_activation(lwt::ActivationConfig);
 
   // WARNING: you own this pointer! Only call when assigning to member data!
-  template<typename T> ILayerT<T>* get_raw_activation_layerT(ActivationConfig);
-  ILayer* get_raw_activation_layer(ActivationConfig);
-  
+  template<typename T> ILayer<T>* get_raw_activation_layer(ActivationConfig);
 
   // ______________________________________________________________________
   // utility functions
 
   // functions to build up basic units from vectors
-  template<typename T1, typename T2> MatrixX<T1> build_matrixT(const std::vector<T2>& weights, size_t n_inputs);
-  template<typename T1, typename T2> VectorX<T1> build_vectorT(const std::vector<T2>& bias);
-  
-  MatrixX<double> build_matrix(const std::vector<double>& weights, size_t n_inputs);
-  VectorX<double> build_vector(const std::vector<double>& bias);
+  template<typename T1, typename T2> MatrixX<T1> build_matrix(const std::vector<T2>& weights, size_t n_inputs);
+  template<typename T1, typename T2> VectorX<T1> build_vector(const std::vector<T2>& bias);
 
   // consistency checks
   void throw_if_not_maxout(const LayerConfig& layer);
@@ -448,18 +394,47 @@ namespace lwt {
 
   // LSTM component for convenience in some layers
   template<typename T>
-  struct DenseComponentsT
+  struct DenseComponents
   {
     MatrixX<T> W;
     MatrixX<T> U;
     VectorX<T> b;
   };
   
-  using DenseComponents = DenseComponentsT<double>;
+  template<typename T> DenseComponents<T> get_component(const lwt::LayerConfig& layer, size_t n_in);
+
+    
+} // namespace generic  
   
-  template<typename T> DenseComponentsT<T> get_componentT(const lwt::LayerConfig& layer, size_t n_in);
+  // typedefs for double
+  using ILayer = generic::ILayer<double>;
+  using DummyLayer = generic::DummyLayer<double>;
+  using UnaryActivationLayer = generic::UnaryActivationLayer<double>;
+  using SoftmaxLayer = generic::SoftmaxLayer<double>;
+  using BiasLayer = generic::BiasLayer<double>;
+  using MatrixLayer = generic::MatrixLayer<double>;
+  using MaxoutLayer = generic::MaxoutLayer<double>;
+  using NormalizationLayer = generic::NormalizationLayer<double>;
+  using HighwayLayer = generic::HighwayLayer<double>;
+  using RecurrentStack = generic::RecurrentStack<double>;
+  using ReductionStack = generic::ReductionStack<double>;
+  using IRecurrentLayer = generic::IRecurrentLayer<double>;
+  using EmbeddingLayer = generic::EmbeddingLayer<double>;
+  using LSTMLayer = generic::LSTMLayer<double>;
+  using GRULayer = generic::GRULayer<double>;
+  using ELU = generic::ELU<double>;
+  using LeakyReLU = generic::LeakyReLU<double>;
+  using Swish = generic::Swish<double>;
+  using DenseComponents = generic::DenseComponents<double>;
+  using Stack = generic::Stack<double>;
+  
+  // functions for double
+  MatrixX<double> build_matrix(const std::vector<double>& weights, size_t n_inputs);
+  VectorX<double> build_vector(const std::vector<double>& bias);
+  
   DenseComponents get_component(const lwt::LayerConfig& layer, size_t n_in);
-}
+  
+} // namespace lwt
 
 #include "Stack.txx"
 
