@@ -16,4 +16,4 @@ namespace lwt {
   
 }
 
-#endif
+#endif // LWTNN_EIGEN_TYPEDEFS_HH

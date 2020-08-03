@@ -1,5 +1,5 @@
-#ifndef GENERIC_LIGHTWEIGHT_NEURAL_NETWORK_HH
-#define GENERIC_LIGHTWEIGHT_NEURAL_NETWORK_HH
+#ifndef LWTNN_GENERIC_LIGHTWEIGHT_NEURAL_NETWORK_HH
+#define LWTNN_GENERIC_LIGHTWEIGHT_NEURAL_NETWORK_HH
 
 // Lightweight Neural Networks
 //
@@ -92,4 +92,4 @@ namespace generic {
 
 #include "LightweightNeuralNetwork.txx"
 
-#endif
+#endif // LWTNN_GENERIC_LIGHTWEIGHT_NEURAL_NETWORK_HH

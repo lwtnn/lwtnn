@@ -1,5 +1,5 @@
-#ifndef GENERIC_GRAPH_HH
-#define GENERIC_GRAPH_HH
+#ifndef LWTNN_GENERIC_GRAPH_HH
+#define LWTNN_GENERIC_GRAPH_HH
 
 #include <vector>
 #include <unordered_map>
@@ -170,4 +170,4 @@ namespace generic {
 
 #include "Graph.txx"
 
-#endif // GRAPH_HH
+#endif // LWTNN_GENERIC_GRAPH_HH
