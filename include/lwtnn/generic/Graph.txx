@@ -1,7 +1,7 @@
-#ifndef GRAPH_TXX
-#define GRAPH_TXX
+#ifndef GENERIC_GRAPH_TXX
+#define GENERIC_GRAPH_TXX
 
-#include "Graph.hh"
+#include "lwtnn/generic/Graph.hh"
 #include "lwtnn/Exceptions.hh"
 #include "lwtnn/Stack.hh"
 
@@ -9,10 +9,11 @@
 #include <memory>
 
 namespace lwt {
+namespace generic {
 
   // Sources
   template<typename T>
-  VectorSourceT<T>::VectorSourceT(std::vector<VectorX<T>>&& vv,
+  VectorSource<T>::VectorSource(std::vector<VectorX<T>>&& vv,
                                   std::vector<MatrixX<T>>&& mm):
     m_inputs(std::move(vv)),
     m_matrix_inputs(std::move(mm))
@@ -20,7 +21,7 @@ namespace lwt {
   }
   
   template<typename T>
-  VectorX<T> VectorSourceT<T>::at(size_t index) const {
+  VectorX<T> VectorSource<T>::at(size_t index) const {
     if (index >= m_inputs.size()) {
       throw NNEvaluationException(
         "VectorSource: no source vector defined at " + std::to_string(index));
@@ -29,7 +30,7 @@ namespace lwt {
   }
   
   template<typename T>
-  MatrixX<T> VectorSourceT<T>::matrix_at(size_t index) const {
+  MatrixX<T> VectorSource<T>::matrix_at(size_t index) const {
     if (index >= m_matrix_inputs.size()) {
       throw NNEvaluationException(
         "VectorSource: no source matrix defined at " + std::to_string(index));
@@ -38,7 +39,7 @@ namespace lwt {
   }
   
   template<typename T>
-  DummySourceT<T>::DummySourceT(const std::vector<size_t>& input_sizes,
+  DummySource<T>::DummySource(const std::vector<size_t>& input_sizes,
                                 const std::vector<std::pair<size_t,size_t> >& ma):
     m_sizes(input_sizes),
     m_matrix_sizes(ma)
@@ -46,7 +47,7 @@ namespace lwt {
   }
   
   template<typename T>
-  VectorX<T> DummySourceT<T>::at(size_t index) const {
+  VectorX<T> DummySource<T>::at(size_t index) const {
     if (index >= m_sizes.size()) {
       throw NNEvaluationException(
         "Dummy Source: no size defined at " + std::to_string(index));
@@ -60,7 +61,7 @@ namespace lwt {
   }
   
   template<typename T>
-  MatrixX<T> DummySourceT::matrix_at(size_t index) const {
+  MatrixX<T> DummySource<T>::matrix_at(size_t index) const {
     if (index >= m_matrix_sizes.size()) {
       throw NNEvaluationException(
         "Dummy Source: no size defined at " + std::to_string(index));
@@ -79,7 +80,7 @@ namespace lwt {
 
   // Nodes
   template<typename T>
-  InputNodeT<T>::InputNodeT(size_t index, size_t n_outputs):
+  InputNode<T>::InputNode(size_t index, size_t n_outputs):
     m_index(index),
     m_n_outputs(n_outputs)
   {
@@ -87,7 +88,7 @@ namespace lwt {
   
   
   template<typename T>
-  VectorX<T> InputNodeT::compute(const ISourceT<T>& source) const {
+  VectorX<T> InputNode<T>::compute(const ISource<T>& source) const {
     VectorX<T> output = source.at(m_index);
     assert(output.rows() > 0);
     if (static_cast<size_t>(output.rows()) != m_n_outputs) {
@@ -100,29 +101,29 @@ namespace lwt {
   }
   
   template<typename T>
-  size_t InputNodeT<T>::n_outputs() const {
+  size_t InputNode<T>::n_outputs() const {
     return m_n_outputs;
   }
 
   template<typename T>
-  FeedForwardNodeT<T>::FeedForwardNodeT(const StackT<T>* stack, const INodeT<T>* source):
+  FeedForwardNode<T>::FeedForwardNode(const Stack<T>* stack, const INode<T>* source):
     m_stack(stack),
     m_source(source)
   {
   }
   
   template<typename T>
-  VectorX<T> FeedForwardNodeT<T>::compute(const ISourceT<T>& source) const {
+  VectorX<T> FeedForwardNode<T>::compute(const ISource<T>& source) const {
     return m_stack->compute(m_source->compute(source));
   }
   
   template<typename T>
-  size_t FeedForwardNodeT<T>::n_outputs() const {
+  size_t FeedForwardNode<T>::n_outputs() const {
     return m_stack->n_outputs();
   }
 
   template<typename T>
-  ConcatenateNodeT<T>::ConcatenateNodeT(const std::vector<const INodeT<T>*>& sources):
+  ConcatenateNode<T>::ConcatenateNode(const std::vector<const INode<T>*>& sources):
     m_sources(sources),
     m_n_outputs(0)
   {
@@ -132,7 +133,7 @@ namespace lwt {
   }
 
   template<typename T>
-  VectorX<T> ConcatenateNodeT<T>::compute(const ISourceT<T>& source) const {
+  VectorX<T> ConcatenateNode<T>::compute(const ISource<T>& source) const {
     VectorX<T> output(m_n_outputs);
     size_t offset = 0;
     for (const auto node: m_sources) {
@@ -147,20 +148,20 @@ namespace lwt {
   }
   
   template<typename T>
-  size_t ConcatenateNodeT<T>::n_outputs() const {
+  size_t ConcatenateNode<T>::n_outputs() const {
     return m_n_outputs;
   }
 
   // Sequence nodes
   template<typename T>
-  InputSequenceNodeT<T>::InputSequenceNodeT(size_t index, size_t n_outputs):
+  InputSequenceNode<T>::InputSequenceNode(size_t index, size_t n_outputs):
     m_index(index),
     m_n_outputs(n_outputs)
   {
   }
   
   template<typename T>
-  MatrixX<T> InputSequenceNodeT<T>::scan(const ISourceT<T>& source) const {
+  MatrixX<T> InputSequenceNode<T>::scan(const ISource<T>& source) const {
     MatrixX<T> output = source.matrix_at(m_index);
     if (output.rows() == 0) {
       throw NNEvaluationException("empty input sequence");
@@ -173,25 +174,26 @@ namespace lwt {
     }
     return output;
   }
-  size_t InputSequenceNode::n_outputs() const {
+  template<typename T>
+  size_t InputSequenceNode<T>::n_outputs() const {
     return m_n_outputs;
   }
   
   template<typename T>
-  SequenceNode<T>::SequenceNodeT(const RecurrentStackT<T>* stack,
-                                 const ISequenceNodeT<T>* source) :
+  SequenceNode<T>::SequenceNode(const RecurrentStack<T>* stack,
+                                 const ISequenceNode<T>* source) :
     m_stack(stack),
     m_source(source)
   {
   }
   
   template<typename T>
-  MatrixX<T> SequenceNodeT<T>::scan(const ISourceT<T>& source) const {
+  MatrixX<T> SequenceNode<T>::scan(const ISource<T>& source) const {
     return m_stack->scan(m_source->scan(source));
   }
   
   template<typename T>
-  VectorX<T> SequenceNodeT<T>::compute(const ISourceT<T>& src) const {
+  VectorX<T> SequenceNode<T>::compute(const ISource<T>& src) const {
     MatrixX<T> mat = scan(src);
     size_t n_cols = mat.cols();
     // special handling for empty sequence
@@ -202,20 +204,20 @@ namespace lwt {
   }
   
   template<typename T>
-  size_t SequenceNodeT<T>::n_outputs() const {
+  size_t SequenceNode<T>::n_outputs() const {
     return m_stack->n_outputs();
   }
 
   template<typename T>
-  TimeDistributedNodeT<T>::TimeDistributedNodeT(const StackT<T>* stack,
-                                                const ISequenceNodeT<T>* source):
+  TimeDistributedNode<T>::TimeDistributedNode(const Stack<T>* stack,
+                                                const ISequenceNode<T>* source):
     m_stack(stack),
     m_source(source)
   {
   }
   
   template<typename T>
-  MatrixX<T> TimeDistributedNodeT<T>::scan(const ISourceT<T>& source) const {
+  MatrixX<T> TimeDistributedNode<T>::scan(const ISource<T>& source) const {
     MatrixXd input = m_source->scan(source);
     MatrixXd output(m_stack->n_outputs(), input.cols());
     size_t n_columns = input.cols();
@@ -226,23 +228,23 @@ namespace lwt {
   }
   
   template<typename T>
-  size_t TimeDistributedNodeT<T>::n_outputs() const {
+  size_t TimeDistributedNode<T>::n_outputs() const {
     return m_stack->n_outputs();
   }
 
   template<typename T>
-  SumNodeT<T>::SumNodeT(const ISequenceNodeT<T>* source):
+  SumNode<T>::SumNode(const ISequenceNode<T>* source):
     m_source(source)
   {
   }
   
   template<typename T>
-  VectorX<T> SumNodeT<T>::compute(const ISourceT<T>& source) const {
+  VectorX<T> SumNode<T>::compute(const ISource<T>& source) const {
     return m_source->scan(source).rowwise().sum();
   }
   
   template<typename T>
-  size_t SumNodeT<T>::n_outputs() const {
+  size_t SumNode<T>::n_outputs() const {
     return m_source->n_outputs();
   }
 }
@@ -266,68 +268,74 @@ namespace {
     }
   }
   // NOTE: you own this pointer!
-  INode* get_feedforward_node(
+  template<typename T>
+  INode<T>* get_feedforward_node(
     const NodeConfig& node,
     const std::vector<LayerConfig>& layers,
-    const std::unordered_map<size_t, INode*>& node_map,
-    std::unordered_map<size_t, Stack*>& stack_map) {
+    const std::unordered_map<size_t, INode<T>*>& node_map,
+    std::unordered_map<size_t, Stack<T>*>& stack_map) {
 
     // FIXME: merge this block with the time distributed one later on
     check_compute_node(node, layers.size());
-    INode* source = node_map.at(node.sources.at(0));
+    INode<T>* source = node_map.at(node.sources.at(0));
     int layer_n = node.index;
     if (!stack_map.count(layer_n)) {
-      stack_map[layer_n] = new Stack(source->n_outputs(),
-                                     {layers.at(layer_n)});
+      stack_map[layer_n] = new Stack<T>(source->n_outputs(),
+                                         {layers.at(layer_n)});
     }
-    return new FeedForwardNode(stack_map.at(layer_n), source);
+    return new FeedForwardNode<T>(stack_map.at(layer_n), source);
   }
-  SequenceNode* get_sequence_node(
+  template<typename T>
+  SequenceNode<T>* get_sequence_node(
     const NodeConfig& node,
     const std::vector<LayerConfig>& layers,
-    const std::unordered_map<size_t, ISequenceNode*>& node_map,
-    std::unordered_map<size_t, RecurrentStack*>& stack_map) {
+    const std::unordered_map<size_t, ISequenceNode<T>*>& node_map,
+    std::unordered_map<size_t, RecurrentStack<T>*>& stack_map) {
 
     check_compute_node(node, layers.size());
-    ISequenceNode* source = node_map.at(node.sources.at(0));
+    ISequenceNode<T>* source = node_map.at(node.sources.at(0));
     int layer_n = node.index;
     if (!stack_map.count(layer_n)) {
-      stack_map[layer_n] = new RecurrentStack(source->n_outputs(),
+      stack_map[layer_n] = new RecurrentStack<T>(source->n_outputs(),
                                               {layers.at(layer_n)});
     }
-    return new SequenceNode(stack_map.at(layer_n), source);
+    return new SequenceNode<T>(stack_map.at(layer_n), source);
   }
-  TimeDistributedNode* get_time_distributed_node(
+  template<typename T>
+  TimeDistributedNode<T>* get_time_distributed_node(
     const NodeConfig& node,
     const std::vector<LayerConfig>& layers,
-    const std::unordered_map<size_t, ISequenceNode*>& node_map,
+    const std::unordered_map<size_t, ISequenceNode<T>*>& node_map,
     std::unordered_map<size_t, Stack*>& stack_map) {
 
     // FIXME: merge this block with the FF block above
     check_compute_node(node, layers.size());
-    ISequenceNode* source = node_map.at(node.sources.at(0));
+    ISequenceNode<T>* source = node_map.at(node.sources.at(0));
     int layer_n = node.index;
     if (!stack_map.count(layer_n)) {
-      stack_map[layer_n] = new Stack(source->n_outputs(),
+      stack_map[layer_n] = new Stack<T>(source->n_outputs(),
                                      {layers.at(layer_n)});
     }
-    return new TimeDistributedNode(stack_map.at(layer_n), source);
+    return new TimeDistributedNode<T>(stack_map.at(layer_n), source);
   }
 }
 
 namespace lwt {
   // graph
-  Graph::Graph() {
-    m_stacks[0] = new Stack;
+  template<typename T>
+  Graph<T>::Graph() {
+    m_stacks[0] = new Stack<T>;
 
-    m_nodes[0] = new InputNode(0, 2);
-    m_nodes[1] = new InputNode(1, 2);
-    m_nodes[2] = new ConcatenateNode({m_nodes.at(0), m_nodes.at(1)});
-    m_nodes[3] = new FeedForwardNode(m_stacks.at(0), m_nodes.at(2));
+    m_nodes[0] = new InputNode<T>(0, 2);
+    m_nodes[1] = new InputNode<T>(1, 2);
+    m_nodes[2] = new ConcatenateNode<T>({m_nodes.at(0), m_nodes.at(1)});
+    m_nodes[3] = new FeedForwardNode<T>(m_stacks.at(0), m_nodes.at(2));
     m_last_node = 3;
   }
-  Graph::Graph(const std::vector<NodeConfig>& nodes,
-               const std::vector<LayerConfig>& layers):
+  
+  template<typename T>
+  Graph<T>::Graph(const std::vector<NodeConfig>& nodes,
+                    const std::vector<LayerConfig>& layers):
     m_last_node(0)
   {
     for (size_t iii = 0; iii < nodes.size(); iii++) {
@@ -335,7 +343,8 @@ namespace lwt {
     }
     // assert(maps.node.size() + maps.seq_node.size() == nodes.size());
   }
-  Graph::~Graph() {
+  template<typename T>
+  Graph<T>::~Graph() {
     for (auto node: m_nodes) {
       delete node.second;
       node.second = nullptr;
@@ -356,7 +365,8 @@ namespace lwt {
       stack.second = nullptr;
     }
   }
-  VectorXd Graph::compute(const ISource& source, size_t node_number) const {
+  template<typename T>
+  VectorX<T> Graph<T>::compute(const ISource<T>& source, size_t node_number) const {
     if (!m_nodes.count(node_number)) {
       auto num = std::to_string(node_number);
       if (m_seq_nodes.count(node_number)) {
@@ -367,13 +377,15 @@ namespace lwt {
     }
     return m_nodes.at(node_number)->compute(source);
   }
-  VectorXd Graph::compute(const ISource& source) const {
+  template<typename T>
+  VectorX<T> Graph<T>::compute(const ISource<T>& source) const {
     if (!m_nodes.count(m_last_node)) {
       throw OutputRankException("Graph: output is not a feed forward node");
     }
     return m_nodes.at(m_last_node)->compute(source);
   }
-  MatrixXd Graph::scan(const ISource& source, size_t node_number) const {
+  template<typename T>
+  MatrixX<T> Graph<T>::scan(const ISource<T>& source, size_t node_number) const {
     if (!m_seq_nodes.count(node_number)) {
       auto num = std::to_string(node_number);
       if (m_nodes.count(node_number)) {
@@ -384,7 +396,8 @@ namespace lwt {
     }
     return m_seq_nodes.at(node_number)->scan(source);
   }
-  MatrixXd Graph::scan(const ISource& source) const {
+  template<typename T>
+  MatrixX<T> Graph<T>::scan(const ISource<T>& source) const {
     if (!m_seq_nodes.count(m_last_node)) {
       throw OutputRankException("Graph: output is not a sequence node");
     }
@@ -394,7 +407,8 @@ namespace lwt {
   // ______________________________________________________________________
   // private methods
 
-  void Graph::build_node(const size_t iii,
+  template<typename T>
+  void Graph<T>::build_node(const size_t iii,
                          const std::vector<NodeConfig>& nodes,
                          const std::vector<LayerConfig>& layers,
                          std::set<size_t> cycle_check) {
@@ -447,21 +461,22 @@ namespace lwt {
       m_nodes[iii] = seq_node.release();
     } else if (node.type == NodeConfig::Type::CONCATENATE) {
       // build concatenate layer
-      std::vector<const INode*> in_nodes;
+      std::vector<const INode<T>*> in_nodes;
       for (size_t source_node: node.sources) {
         in_nodes.push_back(m_nodes.at(source_node));
       }
-      m_nodes[iii] = new ConcatenateNode(in_nodes);
+      m_nodes[iii] = new ConcatenateNode<T>(in_nodes);
     } else if (node.type == NodeConfig::Type::SUM) {
       if (node.sources.size() != 1) {
         throw NNConfigurationException("Sum node needs exactly 1 source");
       }
-      m_nodes[iii] = new SumNode(m_seq_nodes.at(node.sources.at(0)));
+      m_nodes[iii] = new SumNode<T>(m_seq_nodes.at(node.sources.at(0)));
     } else {
       throw NNConfigurationException("unknown node type");
     }
   }
 
-}
+} // namespace generic
+} // namespace lwt
 
 #endif

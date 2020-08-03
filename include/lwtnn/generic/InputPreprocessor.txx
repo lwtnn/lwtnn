@@ -1,13 +1,14 @@
-#include "lwtnn/InputPreprocessor.hh"
+#include "lwtnn/generic/InputPreprocessor.hh"
 
 namespace lwt {
+namespace generic {
   // ______________________________________________________________________
   // Input preprocessors
 
   // simple feed-forwared version
   
   template<typename T>
-  InputPreprocessorT<T>::InputPreprocessorT(const std::vector<Input>& inputs):
+  InputPreprocessor<T>::InputPreprocessor(const std::vector<Input>& inputs):
     m_offsets(inputs.size()),
     m_scales(inputs.size())
   {
@@ -25,7 +26,7 @@ namespace lwt {
   }
   
   template<typename T>
-  VectorX<T> InputPreprocessorT<T>::operator()(const ValueMap& in) const {
+  VectorX<T> InputPreprocessor<T>::operator()(const ValueMap& in) const {
     VectorX<T> invec(m_names.size());
     size_t input_number = 0;
     for (const auto& in_name: m_names) {
@@ -41,7 +42,7 @@ namespace lwt {
 
   // Input vector preprocessor
   template<typename T>
-  InputVectorPreprocessorT<T>::InputVectorPreprocessorT(
+  InputVectorPreprocessor<T>::InputVectorPreprocessor(
     const std::vector<Input>& inputs):
     m_offsets(inputs.size()),
     m_scales(inputs.size())
@@ -65,7 +66,7 @@ namespace lwt {
   }
   
   template<typename T>
-  MatrixX<T> InputVectorPreprocessorT<T>::operator()(const VectorMap& in) const {
+  MatrixX<T> InputVectorPreprocessor<T>::operator()(const VectorMap& in) const {
     using namespace Eigen;
     if (in.size() == 0) {
       throw NNEvaluationException("Empty input map");
@@ -90,4 +91,5 @@ namespace lwt {
     return m_scales.asDiagonal() * (inmat.colwise() + m_offsets);
   }
 
-}
+} // namespace generic
+} // namespace lwt

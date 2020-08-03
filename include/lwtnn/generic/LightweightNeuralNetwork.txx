@@ -1,26 +1,22 @@
-#include "lwtnn/LightweightNeuralNetworkT.hh"
-#include "lwtnn/InputPreprocessor.hh"
-#include "lwtnn/Stack.hh"
-#include <Eigen/Dense>
+#include "lwtnn/generic/LightweightNeuralNetwork.hh"
+#include "lwtnn/generic/InputPreprocessor.hh"
+#include "lwtnn/generic/Stack.hh"
+#include "lwtnn/generic/eigen_typedefs.hh"
 
 #include <set>
 
-// internal utility functions
-namespace {
-  using namespace Eigen;
-  using namespace lwt;
-}
 namespace lwt {
+namespace generic {
 
   // ______________________________________________________________________
   // LightweightNeuralNetwork HL wrapper
   template<typename T>
-  LightweightNeuralNetworkT<T>::LightweightNeuralNetworkT(
+  LightweightNeuralNetwork<T>::LightweightNeuralNetwork(
     const std::vector<Input>& inputs,
     const std::vector<LayerConfig>& layers,
     const std::vector<std::string>& outputs):
-    m_stack(new StackT<T>(inputs.size(), layers)),
-    m_preproc(new InputPreprocessorT<T>(inputs)),
+    m_stack(new Stack<T>(inputs.size(), layers)),
+    m_preproc(new InputPreprocessor<T>(inputs)),
     m_outputs(outputs.begin(), outputs.end())
   {
     if (m_outputs.size() != m_stack->n_outputs()) {
@@ -32,7 +28,7 @@ namespace lwt {
   }
 
   template<typename T>
-  LightweightNeuralNetworkT<T>::~LightweightNeuralNetworkT() {
+  LightweightNeuralNetwork<T>::~LightweightNeuralNetwork() {
     delete m_stack;
     m_stack = 0;
     delete m_preproc;
@@ -41,7 +37,7 @@ namespace lwt {
 
   template<typename T>
   lwt::ValueMap
-  LightweightNeuralNetworkT<T>::compute(const lwt::ValueMap& in) const {
+  LightweightNeuralNetwork<T>::compute(const lwt::ValueMap& in) const {
 
     // compute outputs
     const auto& preproc = *m_preproc;
@@ -62,7 +58,7 @@ namespace lwt {
   // LightweightRNN
 
   template<typename T>
-  LightweightRNNT<T>::LightweightRNNT(const std::vector<Input>& inputs,
+  LightweightRNN<T>::LightweightRNN(const std::vector<Input>& inputs,
                                  const std::vector<LayerConfig>& layers,
                                  const std::vector<std::string>& outputs):
     m_stack(new ReductionStack(inputs.size(), layers)),
@@ -78,14 +74,14 @@ namespace lwt {
   }
   
   template<typename T>
-  LightweightRNNT<T>::~LightweightRNNT() {
+  LightweightRNN<T>::~LightweightRNN() {
     delete m_stack;
     delete m_preproc;
     delete m_vec_preproc;
   }
 
   template<typename T>
-  ValueMap LightweightRNNT<T>::reduce(const std::vector<ValueMap>& in) const {
+  ValueMap LightweightRNN<T>::reduce(const std::vector<ValueMap>& in) const {
     const auto& preproc = *m_preproc;
     MatrixXd inputs(m_n_inputs, in.size());
     for (size_t iii = 0; iii < in.size(); iii++) {
@@ -104,7 +100,7 @@ namespace lwt {
   // the inputs once
   
   template<typename T>
-  ValueMap LightweightRNNT<T>::reduce(const VectorMap& in) const {
+  ValueMap LightweightRNN<T>::reduce(const VectorMap& in) const {
     const auto& preproc = *m_vec_preproc;
     auto outvec = m_stack->reduce(preproc(in));
     ValueMap out;
@@ -114,4 +110,5 @@ namespace lwt {
     }
     return out;
   }
-}
+} // namespace generic
+} // namespace lwt

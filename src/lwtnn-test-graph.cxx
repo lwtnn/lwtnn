@@ -1,6 +1,6 @@
 // Use example for Graph class
 
-#include "lwtnn/Graph.hh"
+#include "lwtnn/generic/Graph.hh"
 #include "lwtnn/parse_json.hh"
 #include "lwtnn/NNLayerConfig.hh"
 
@@ -83,7 +83,7 @@ namespace {
     LayerConfig dense {
       {0, 0, 0, 1,  0, 0, 1, 0,  0, 1, 0, 0,  1, 0, 0, 0}};
     dense.activation.function = Activation::LINEAR;
-    dense.architecture = Architecture::DENSE;
+    dense.architecture = lwt::Architecture::DENSE;
     config.layers.push_back(dense);
     return config;
   }

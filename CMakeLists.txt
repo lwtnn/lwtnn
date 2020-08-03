@@ -107,22 +107,24 @@ endif()
 
 # Public header files for the shared/static library.
 set( lib_headers
+   include/lwtnn/generic/eigen_typedefs.hh
+   include/lwtnn/generic/Graph.hh
+   include/lwtnn/generic/Graph.txx
+   include/lwtnn/generic/InputPreprocessor.hh
+   include/lwtnn/generic/InputPreprocessor.txx
+   include/lwtnn/generic/LightweightNeuralNetwork.hh 
+   include/lwtnn/generic/LightweightNeuralNetwork.txx
+   include/lwtnn/generic/Stack.hh
+   include/lwtnn/generic/Stack.txx
    include/lwtnn/Exceptions.hh
-   include/lwtnn/Graph.hh
-   include/lwtnn/InputPreprocessor.hh
-   include/lwtnn/InputPreprocessor.txx
    include/lwtnn/LightweightGraph.hh
    include/lwtnn/LightweightNeuralNetwork.hh
    include/lwtnn/NNLayerConfig.hh
    include/lwtnn/NanReplacer.hh
    include/lwtnn/Source.hh
-   include/lwtnn/Stack.hh
-   include/lwtnn/Stack.txx
    include/lwtnn/lightweight_network_config.hh
    include/lwtnn/lightweight_nn_streamers.hh 
-   include/lwtnn/parse_json.hh
-   include/lwtnn/LightweightNeuralNetworkT.hh 
-   include/lwtnn/LightweightNeuralNetworkT.txx )
+   include/lwtnn/parse_json.hh )
 # Source files for the shared/static library.
 set( lib_sources 
    src/Exceptions.cxx
