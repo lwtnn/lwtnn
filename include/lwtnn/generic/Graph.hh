@@ -5,9 +5,9 @@
 #include <unordered_map>
 #include <set>
 
-#include "lwtnn/NNLayerConfig.hh"
-#include "lwtnn/Source.hh"
-#include "eigen_typedefs.hh"
+#include <lwtnn/generic/eigen_typedefs.hh>
+#include <lwtnn/generic/Source.hh>
+#include <lwtnn/NNLayerConfig.hh>
 
 namespace lwt {
 namespace generic {
@@ -71,7 +71,7 @@ namespace generic {
   {
   public:
     virtual ~ISequenceNode() {}
-    virtual MatrixX<T> scan(const ISource&) const = 0;
+    virtual MatrixX<T> scan(const ISource<T>&) const = 0;
     virtual size_t n_outputs() const = 0;
   };
 
@@ -125,15 +125,15 @@ namespace generic {
 
   // Graph class, owns the nodes
   template<typename T>
-  class GraphT
+  class Graph
   {
   public:
-    GraphT();                    // dummy constructor
-    GraphT(const std::vector<NodeConfig>& nodes,
+    Graph();                    // dummy constructor
+    Graph(const std::vector<NodeConfig>& nodes,
           const std::vector<LayerConfig>& layers);
-    GraphT(GraphT&) = delete;
-    GraphT& operator=(GraphT&) = delete;
-    ~GraphT();
+    Graph(Graph&) = delete;
+    Graph& operator=(Graph&) = delete;
+    ~Graph();
     VectorX<T> compute(const ISource<T>&, size_t node_number) const;
     VectorX<T> compute(const ISource<T>&) const;
     MatrixX<T> scan(const ISource<T>&, size_t node_number) const;
@@ -164,7 +164,7 @@ namespace generic {
   using SequenceNode = generic::SequenceNode<double>;
   using TimeDistributedNode = generic::TimeDistributedNode<double>;
   
-  using Graph = Graph<double>;
+  using Graph = generic::Graph<double>;
   
 } // namespace lwt
 

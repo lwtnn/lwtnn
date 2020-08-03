@@ -1,9 +1,9 @@
 #ifndef GENERIC_GRAPH_TXX
 #define GENERIC_GRAPH_TXX
 
+#include "lwtnn/generic/Stack.hh"
 #include "lwtnn/generic/Graph.hh"
 #include "lwtnn/Exceptions.hh"
-#include "lwtnn/Stack.hh"
 
 #include <set>
 #include <memory>
@@ -218,8 +218,8 @@ namespace generic {
   
   template<typename T>
   MatrixX<T> TimeDistributedNode<T>::scan(const ISource<T>& source) const {
-    MatrixXd input = m_source->scan(source);
-    MatrixXd output(m_stack->n_outputs(), input.cols());
+    MatrixX<T> input = m_source->scan(source);
+    MatrixX<T> output(m_stack->n_outputs(), input.cols());
     size_t n_columns = input.cols();
     for (size_t col_n = 0; col_n < n_columns; col_n++) {
       output.col(col_n) = m_stack->compute(input.col(col_n));
@@ -247,10 +247,7 @@ namespace generic {
   size_t SumNode<T>::n_outputs() const {
     return m_source->n_outputs();
   }
-}
 
-namespace {
-  using namespace lwt;
   void throw_cfg(std::string msg, size_t index) {
     throw NNConfigurationException(msg + " " + std::to_string(index));
   }
@@ -306,7 +303,7 @@ namespace {
     const NodeConfig& node,
     const std::vector<LayerConfig>& layers,
     const std::unordered_map<size_t, ISequenceNode<T>*>& node_map,
-    std::unordered_map<size_t, Stack*>& stack_map) {
+    std::unordered_map<size_t, Stack<T>*>& stack_map) {
 
     // FIXME: merge this block with the FF block above
     check_compute_node(node, layers.size());
@@ -318,9 +315,7 @@ namespace {
     }
     return new TimeDistributedNode<T>(stack_map.at(layer_n), source);
   }
-}
-
-namespace lwt {
+  
   // graph
   template<typename T>
   Graph<T>::Graph() {
@@ -427,12 +422,12 @@ namespace lwt {
     if (node.type == NodeConfig::Type::INPUT) {
       check_compute_node(node);
       size_t input_number = node.sources.at(0);
-      m_nodes[iii] = new InputNode(input_number, node.index);
+      m_nodes[iii] = new InputNode<T>(input_number, node.index);
       return;
     } else if (node.type == NodeConfig::Type::INPUT_SEQUENCE) {
       check_compute_node(node);
       size_t input_number = node.sources.at(0);
-      m_seq_nodes[iii] = new InputSequenceNode(input_number, node.index);
+      m_seq_nodes[iii] = new InputSequenceNode<T>(input_number, node.index);
       return;
     }
 
@@ -450,10 +445,10 @@ namespace lwt {
       m_nodes[iii] = get_feedforward_node(node, layers,
                                           m_nodes, m_stacks);
     } else if (node.type == NodeConfig::Type::TIME_DISTRIBUTED) {
-      m_seq_nodes[iii] = get_time_distributed_node(node, layers,
+      m_seq_nodes[iii] = get_time_distributed_node<T>(node, layers,
                                                    m_seq_nodes, m_stacks);
     } else if (node.type == NodeConfig::Type::SEQUENCE) {
-      std::unique_ptr<SequenceNode> seq_node(
+      std::unique_ptr<SequenceNode<T>> seq_node(
         get_sequence_node(node, layers, m_seq_nodes, m_seq_stacks));
       // entering in m_nodes means that m_nodes will delete this one
       m_nodes[iii] = nullptr;

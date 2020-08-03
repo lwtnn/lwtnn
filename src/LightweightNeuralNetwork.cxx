@@ -1,7 +1,7 @@
-#include "lwtnn/LightweightNeuralNetwork.hh"
-#include "lwtnn/LightweightNeuralNetworkT.hh"
-#include "lwtnn/InputPreprocessor.hh"
-#include "lwtnn/Stack.hh"
+#include <lwtnn/LightweightNeuralNetwork.hh>
+#include <lwtnn/generic/LightweightNeuralNetwork.hh>
+#include <lwtnn/generic/InputPreprocessor.hh>
+#include <lwtnn/generic/Stack.hh>
 #include <Eigen/Dense>
 
 #include <set>
@@ -19,7 +19,7 @@ namespace lwt {
     const std::vector<Input>& inputs,
     const std::vector<LayerConfig>& layers,
     const std::vector<std::string>& outputs):
-    m_impl(new LightweightNeuralNetworkT<double>(inputs, layers, outputs))
+    m_impl(new generic::LightweightNeuralNetwork<double>(inputs, layers, outputs))
   {
   }
   
@@ -38,7 +38,7 @@ namespace lwt {
   LightweightRNN::LightweightRNN(const std::vector<Input>& inputs,
                                  const std::vector<LayerConfig>& layers,
                                  const std::vector<std::string>& outputs):
-    m_impl(new LightweightRNNT<double>(inputs, layers, outputs))
+    m_impl(new generic::LightweightRNN<double>(inputs, layers, outputs))
   {
   }
   

@@ -125,8 +125,8 @@ namespace generic {
       std::string problem = "weights and bias layer are not equal in size!";
       throw NNConfigurationException(problem);
     };
-    VectorX<T> v_weights = build_vector(layer.weights);
-    VectorX<T> v_bias = build_vector(layer.bias);
+    VectorX<T> v_weights = build_vector<T>(layer.weights);
+    VectorX<T> v_bias = build_vector<T>(layer.bias);
 
     m_layers.push_back(
       new NormalizationLayer<T>(v_weights, v_bias));
@@ -137,8 +137,8 @@ namespace generic {
   template<typename T>
   size_t Stack<T>::add_highway_layers(size_t n_inputs, const LayerConfig& layer) {
     auto& comps = layer.components;
-    const auto& t = get_component(comps.at(Component::T), n_inputs);
-    const auto& c = get_component(comps.at(Component::CARRY), n_inputs);
+    const auto& t = get_component<T>(comps.at(Component::T), n_inputs);
+    const auto& c = get_component<T>(comps.at(Component::CARRY), n_inputs);
 
     m_layers.push_back(
       new HighwayLayer<T>(t.W, t.b, c.W, c.b, layer.activation));
@@ -153,8 +153,8 @@ namespace generic {
     std::vector<typename MaxoutLayer<T>::InitUnit> matrices;
     std::set<size_t> n_outputs;
     for (const auto& sublayer: layer.sublayers) {
-      MatrixX<T> matrix = build_matrix(sublayer.weights, n_inputs);
-      VectorX<T> bias = build_vector(sublayer.bias);
+      MatrixX<T> matrix = build_matrix<T>(sublayer.weights, n_inputs);
+      VectorX<T> bias = build_vector<T>(sublayer.bias);
       n_outputs.insert(matrix.rows());
       matrices.push_back(std::make_pair(matrix, bias));
     }
@@ -236,7 +236,7 @@ namespace generic {
 
   // maxout layer
   template<typename T>
-  MaxoutLayer<T>::MaxoutLayer(const std::vector<MaxoutLayerT::InitUnit>& units):
+  MaxoutLayer<T>::MaxoutLayer(const std::vector<MaxoutLayer::InitUnit>& units):
     m_bias(units.size(), units.front().first.rows())
   {
     int out_pos = 0;
@@ -348,10 +348,10 @@ namespace generic {
   size_t RecurrentStack<T>::add_lstm_layers(size_t n_inputs,
                                          const LayerConfig& layer) {
     auto& comps = layer.components;
-    const auto& i = get_component(comps.at(Component::I), n_inputs);
-    const auto& o = get_component(comps.at(Component::O), n_inputs);
-    const auto& f = get_component(comps.at(Component::F), n_inputs);
-    const auto& c = get_component(comps.at(Component::C), n_inputs);
+    const auto& i = get_component<T>(comps.at(Component::I), n_inputs);
+    const auto& o = get_component<T>(comps.at(Component::O), n_inputs);
+    const auto& f = get_component<T>(comps.at(Component::F), n_inputs);
+    const auto& c = get_component<T>(comps.at(Component::C), n_inputs);
     m_layers.push_back(
       new LSTMLayer<T>(layer.activation, layer.inner_activation,
                     i.W, i.U, i.b,
@@ -365,9 +365,9 @@ namespace generic {
   size_t RecurrentStack<T>::add_gru_layers(size_t n_inputs,
                                          const LayerConfig& layer) {
     auto& comps = layer.components;
-    const auto& z = get_component(comps.at(Component::Z), n_inputs);
-    const auto& r = get_component(comps.at(Component::R), n_inputs);
-    const auto& h = get_component(comps.at(Component::H), n_inputs);
+    const auto& z = get_component<T>(comps.at(Component::Z), n_inputs);
+    const auto& r = get_component<T>(comps.at(Component::R), n_inputs);
+    const auto& h = get_component<T>(comps.at(Component::H), n_inputs);
     m_layers.push_back(
       new GRULayer<T>(layer.activation, layer.inner_activation,
                     z.W, z.U, z.b,
@@ -382,7 +382,7 @@ namespace generic {
     for (const auto& emb: layer.embedding) {
       size_t n_wt = emb.weights.size();
       size_t n_cats = n_wt / emb.n_out;
-      MatrixX<T> mat = build_matrix(emb.weights, n_cats);
+      MatrixX<T> mat = build_matrix<T>(emb.weights, n_cats);
       m_layers.push_back(new EmbeddingLayer<T>(emb.index, mat));
       n_inputs += emb.n_out - 1;
     }
@@ -403,8 +403,8 @@ namespace generic {
         feed_forward.push_back(layer);
       }
     }
-    m_recurrent = new RecurrentStack(n_in, recurrent);
-    m_stack = new Stack(m_recurrent->n_outputs(), feed_forward);
+    m_recurrent = new RecurrentStack<T>(n_in, recurrent);
+    m_stack = new Stack<T>(m_recurrent->n_outputs(), feed_forward);
   }
   
   template<typename T>
@@ -498,13 +498,13 @@ namespace generic {
   {
     m_n_outputs = m_W_o.rows();
 
-    m_activation_fun = get_activation(activation);
-    m_inner_activation_fun = get_activation(inner_activation);
+    m_activation_fun = get_activation<T>(activation);
+    m_inner_activation_fun = get_activation<T>(inner_activation);
   }
 
   // internal structure created on each scan call
   template<typename T>
-  struct LSTMStateT {
+  struct LSTMState {
     LSTMState(size_t n_input, size_t n_outputs);
     MatrixX<T> C_t;
     MatrixX<T> h_t;
@@ -520,7 +520,7 @@ namespace generic {
   }
 
   template<typename T>
-  void LSTMLayer<T>::step(const VectorX<T>& x_t, LSTMState& s) const {
+  void LSTMLayer<T>::step(const VectorX<T>& x_t, LSTMState<T>& s) const {
     // https://github.com/fchollet/keras/blob/master/keras/layers/recurrent.py#L740
 
     const auto& act_fun = m_activation_fun;
@@ -571,12 +571,12 @@ namespace generic {
   {
     m_n_outputs = m_W_h.rows();
 
-    m_activation_fun = get_activation(activation);
-    m_inner_activation_fun = get_activation(inner_activation);
+    m_activation_fun = get_activation<T>(activation);
+    m_inner_activation_fun = get_activation<T>(inner_activation);
   }
   // internal structure created on each scan call
   template<typename T>
-  struct GRUStateT {
+  struct GRUState {
     GRUState(size_t n_input, size_t n_outputs);
     MatrixX<T> h_t;
     int time;
@@ -590,7 +590,7 @@ namespace generic {
   }
 
   template<typename T>
-  void GRULayer<T>::step( const VectorX<T>& x_t, GRUState& s) const {
+  void GRULayer<T>::step( const VectorX<T>& x_t, GRUState<T>& s) const {
     // https://github.com/fchollet/keras/blob/master/keras/layers/recurrent.py#L547
 
     const auto& act_fun = m_activation_fun;
@@ -609,7 +609,7 @@ namespace generic {
   template<typename T>
   MatrixX<T> GRULayer<T>::scan( const MatrixX<T>& x ) const {
 
-    GRUState state(x.cols(), m_n_outputs);
+    GRUState<T> state(x.cols(), m_n_outputs);
 
     for(state.time = 0; state.time < x.cols(); state.time++) {
       step( x.col( state.time ), state );

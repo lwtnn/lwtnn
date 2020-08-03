@@ -116,12 +116,12 @@ set( lib_headers
    include/lwtnn/generic/LightweightNeuralNetwork.txx
    include/lwtnn/generic/Stack.hh
    include/lwtnn/generic/Stack.txx
+   include/lwtnn/generic/Source.hh
+   include/lwtnn/generic/LightweightGraph.hh
    include/lwtnn/Exceptions.hh
-   include/lwtnn/LightweightGraph.hh
    include/lwtnn/LightweightNeuralNetwork.hh
    include/lwtnn/NNLayerConfig.hh
    include/lwtnn/NanReplacer.hh
-   include/lwtnn/Source.hh
    include/lwtnn/lightweight_network_config.hh
    include/lwtnn/lightweight_nn_streamers.hh 
    include/lwtnn/parse_json.hh )
@@ -129,8 +129,8 @@ set( lib_headers
 set( lib_sources 
    src/Exceptions.cxx
    src/Graph.cxx
-   src/LightweightGraph.cxx
    src/LightweightNeuralNetwork.cxx
+   src/LightweightGraph.cxx
    src/NanReplacer.cxx
    src/Stack.cxx
    src/lightweight_nn_streamers.cxx
