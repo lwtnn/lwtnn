@@ -128,7 +128,6 @@ set( lib_headers
 # Source files for the shared/static library.
 set( lib_sources 
    src/Exceptions.cxx
-   src/Graph.cxx
    src/LightweightNeuralNetwork.cxx
    src/LightweightGraph.cxx
    src/NanReplacer.cxx

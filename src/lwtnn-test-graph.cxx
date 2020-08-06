@@ -83,7 +83,7 @@ namespace {
     LayerConfig dense {
       {0, 0, 0, 1,  0, 0, 1, 0,  0, 1, 0, 0,  1, 0, 0, 0}};
     dense.activation.function = Activation::LINEAR;
-    dense.architecture = lwt::Architecture::DENSE;
+    dense.architecture = Architecture::DENSE;
     config.layers.push_back(dense);
     return config;
   }
