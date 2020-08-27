@@ -159,6 +159,12 @@ def _build_variables_file(args):
 LAYERS = 'layers'
 NODES = 'nodes'
 
+_inbound_confused_error_tmp = (
+    "Unknown inbound_node information. I'm not sure what to with field {n} "
+    "in {whole}, this converter is too dumb to deal with anything but zero "
+    "or empty values!"
+)
+
 class Node:
     # TODO: make the node object a wrapper on the Keras layer dictionary
     def __init__(self, layer, idx):
@@ -173,8 +179,12 @@ class Node:
         inbound = layer['inbound_nodes']
         if self.layer_type != "inputlayer":
             for sname, sidx, *something in inbound[idx]:
-                for some_stuff in something:
-                    assert not some_stuff
+                for n, some_stuff in enumerate(something):
+                    if some_stuff:
+                        err = _inbound_confused_error_tmp.format(
+                            n=n+2,
+                            whole=inbound[idx])
+                        raise Exception(err)
                 self.sources.append( (sname, sidx) )
         else:
             shape = layer['config']['batch_input_shape']
