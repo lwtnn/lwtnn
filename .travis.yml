@@ -45,6 +45,7 @@ addons:
 # python dependencies
 python:
   - "3.8"
+  - "3.6"
 install:
   - pip install h5py
   - pip install pyyaml
