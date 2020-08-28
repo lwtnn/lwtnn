@@ -281,13 +281,6 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
         node.n_outputs = node.sources[0].n_outputs
         return
 
-    # if this layer is already defined, just add the node count and
-    # continue
-    if node.name in layer_dict:
-        node.n_outputs = layer_dict[node.name]['n_outputs']
-        node.layer_number = layer_dict[node.name]['pos']
-        return
-
     layer_type = node.layer_type
 
     if KERAS_VERSION == 1:
@@ -312,12 +305,15 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
     layer_config = node.keras_layer['config']
     out_layer, node.n_outputs = convert(
         h5, layer_config, n_inputs, layer_type)
-    layer_number = len(output_layers)
-    layer_dict[node.name] = {
-        'n_outputs': node.n_outputs,
-        'pos': layer_number}
+    if node.name in layer_dict:
+        layer_number = layer_dict[node.name]['pos']
+    else:
+        layer_number = len(output_layers)
+        layer_dict[node.name] = {
+            'n_outputs': node.n_outputs,
+            'pos': layer_number}
+        output_layers.append(out_layer)
     node.layer_number = layer_number
-    output_layers.append(out_layer)
 
 _node_type_map = {
     'batchnormalization': 'feed_forward',
