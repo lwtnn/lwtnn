@@ -1,5 +1,5 @@
 sudo: required
-dist: trusty
+dist: bionic
 language: python
 
 notifications:
@@ -44,7 +44,7 @@ addons:
 
 # python dependencies
 python:
-  - "3.4"
+  - "3.8"
 install:
   - pip install h5py
   - pip install pyyaml
