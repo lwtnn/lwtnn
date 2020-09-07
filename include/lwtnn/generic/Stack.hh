@@ -18,7 +18,6 @@
 //  - Activation functions
 //  - Various utility functions
 
-
 #include "lwtnn/Exceptions.hh"
 #include "lwtnn/NNLayerConfig.hh"
 #include "lwtnn/generic/eigen_typedefs.hh"
@@ -397,6 +396,6 @@ namespace generic
   
 } // namespace lwt
 
-#include "Stack.txx"
+#include "Stack.tcc"
 
 #endif // LWTNN_GENERIC_STACK_HH

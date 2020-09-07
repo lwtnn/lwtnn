@@ -1,7 +1,7 @@
 #ifndef LWTNN_GENERIC_SOURCE_HH
 #define LWTNN_GENERIC_SOURCE_HH
 
-#include <lwtnn/generic/eigen_typedefs.hh>
+#include "lwtnn/generic/eigen_typedefs.hh"
 
 #include <vector>
 

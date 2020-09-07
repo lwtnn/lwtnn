@@ -1,8 +1,8 @@
-#include <lwtnn/LightweightGraph.hh>
-#include <lwtnn/generic/LightweightGraph.hh>
-#include <lwtnn/generic/InputPreprocessor.hh>
-#include <lwtnn/generic/Graph.hh>
-#include <lwtnn/generic/eigen_typedefs.hh>
+#include "lwtnn/LightweightGraph.hh"
+#include "lwtnn/generic/LightweightGraph.hh"
+#include "lwtnn/generic/InputPreprocessor.hh"
+#include "lwtnn/generic/Graph.hh"
+#include "lwtnn/generic/eigen_typedefs.hh"
 
 namespace lwt {
   // ______________________________________________________________________

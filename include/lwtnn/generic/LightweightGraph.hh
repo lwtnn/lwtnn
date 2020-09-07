@@ -42,7 +42,7 @@
  Eigen objects and Eigen objects back to std::maps. For the
  underlying implementation, see Graph.hh. */
 
-#include <lwtnn/lightweight_network_config.hh>
+#include "lwtnn/lightweight_network_config.hh"
 
 namespace lwt {
 
@@ -112,6 +112,6 @@ namespace generic {
 } // namespace generic
 } // namespace lwt
 
-#include "LightweightGraph.txx"
+#include "LightweightGraph.tcc"
 
 #endif // LWTNN_GENERIC_LIGHTWEIGHT_GRAPH_HH

@@ -1,4 +1,4 @@
-#include <lwtnn/generic/InputPreprocessor.hh>
+#include "lwtnn/generic/InputPreprocessor.hh"
 
 namespace lwt {
 namespace generic {

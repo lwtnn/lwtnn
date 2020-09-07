@@ -17,6 +17,7 @@
 //          Michela Paganini <micky.91@hotmail.com>
 
 #include <memory>
+
 #include "lightweight_network_config.hh"
 
 namespace lwt {

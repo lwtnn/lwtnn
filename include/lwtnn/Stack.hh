@@ -1,7 +1,7 @@
 #ifndef LWTNN_STACK_HH
 #define LWTNN_STACK_HH
 
-#include <lwtnn/generic/Stack.hh>
+#include "lwtnn/generic/Stack.hh"
 
 namespace lwt
 {
