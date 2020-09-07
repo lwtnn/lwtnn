@@ -109,15 +109,16 @@ endif()
 set( lib_headers
    include/lwtnn/generic/eigen_typedefs.hh
    include/lwtnn/generic/Graph.hh
-   include/lwtnn/generic/Graph.txx
+   include/lwtnn/generic/Graph.tcc
    include/lwtnn/generic/InputPreprocessor.hh
-   include/lwtnn/generic/InputPreprocessor.txx
+   include/lwtnn/generic/InputPreprocessor.tcc
    include/lwtnn/generic/LightweightNeuralNetwork.hh 
-   include/lwtnn/generic/LightweightNeuralNetwork.txx
+   include/lwtnn/generic/LightweightNeuralNetwork.tcc
    include/lwtnn/generic/Stack.hh
-   include/lwtnn/generic/Stack.txx
+   include/lwtnn/generic/Stack.tcc
    include/lwtnn/generic/Source.hh
    include/lwtnn/generic/LightweightGraph.hh
+   include/lwtnn/generic/LightweightGraph.tcc
    include/lwtnn/Exceptions.hh
    include/lwtnn/LightweightNeuralNetwork.hh
    include/lwtnn/NNLayerConfig.hh
