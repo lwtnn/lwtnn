@@ -43,7 +43,8 @@
  underlying implementation, see Graph.hh. */
 
 #include <memory>
-#include <lwtnn/lightweight_network_config.hh>
+
+#include "lwtnn/lightweight_network_config.hh"
 
 namespace lwt {
     

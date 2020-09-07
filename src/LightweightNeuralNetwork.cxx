@@ -1,7 +1,8 @@
-#include <lwtnn/LightweightNeuralNetwork.hh>
-#include <lwtnn/generic/LightweightNeuralNetwork.hh>
-#include <lwtnn/generic/InputPreprocessor.hh>
-#include <lwtnn/generic/Stack.hh>
+#include "lwtnn/LightweightNeuralNetwork.hh"
+#include "lwtnn/generic/LightweightNeuralNetwork.hh"
+#include "lwtnn/generic/InputPreprocessor.hh"
+#include "lwtnn/generic/Stack.hh"
+
 #include <Eigen/Dense>
 
 #include <set>

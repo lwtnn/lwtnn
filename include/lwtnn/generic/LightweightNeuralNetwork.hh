@@ -90,6 +90,6 @@ namespace generic {
 }
 }
 
-#include "LightweightNeuralNetwork.txx"
+#include "LightweightNeuralNetwork.tcc"
 
 #endif // LWTNN_GENERIC_LIGHTWEIGHT_NEURAL_NETWORK_HH

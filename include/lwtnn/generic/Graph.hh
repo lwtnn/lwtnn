@@ -1,13 +1,13 @@
 #ifndef LWTNN_GENERIC_GRAPH_HH
 #define LWTNN_GENERIC_GRAPH_HH
 
+#include "lwtnn/generic/eigen_typedefs.hh"
+#include "lwtnn/generic/Source.hh"
+#include "lwtnn/NNLayerConfig.hh"
+
 #include <vector>
 #include <unordered_map>
 #include <set>
-
-#include <lwtnn/generic/eigen_typedefs.hh>
-#include <lwtnn/generic/Source.hh>
-#include <lwtnn/NNLayerConfig.hh>
 
 namespace lwt {
 namespace generic {
@@ -168,6 +168,6 @@ namespace generic {
   
 } // namespace lwt
 
-#include "Graph.txx"
+#include "Graph.tcc"
 
 #endif // LWTNN_GENERIC_GRAPH_HH

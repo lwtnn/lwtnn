@@ -1,12 +1,12 @@
 #ifndef LWTNN_GENERIC_INPUT_PREPROCESSOR_HH
 #define LWTNN_GENERIC_INPUT_PREPROCESSOR_HH
 
+#include "lwtnn/lightweight_network_config.hh"
+#include "lwtnn/Exceptions.hh"
+#include "lwtnn/generic/eigen_typedefs.hh"
+
 #include <map>
 #include <vector>
-
-#include <lwtnn/lightweight_network_config.hh>
-#include <lwtnn/Exceptions.hh>
-#include <lwtnn/generic/eigen_typedefs.hh>
 
 namespace lwt {
     
@@ -54,6 +54,6 @@ namespace generic {
   
 } // namespace lwt
 
-#include "InputPreprocessor.txx"
+#include "InputPreprocessor.tcc"
 
 #endif // LWTNN_GENERIC_INPUT_PREPROCESSOR_HH
