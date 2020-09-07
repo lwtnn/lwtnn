@@ -1,3 +1,6 @@
+#ifndef LWTNN_GENERIC_LIGHTWEIGHT_GRAPH_TCC
+#define LWTNN_GENERIC_LIGHTWEIGHT_GRAPH_TCC
+
 #include "lwtnn/generic/LightweightGraph.hh"
 #include "lwtnn/generic/InputPreprocessor.hh"
 #include "lwtnn/generic/Graph.hh"
@@ -174,3 +177,5 @@ namespace generic {
 
 } // namespace generic
 } // namespace lwt
+
+#endif

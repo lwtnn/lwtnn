@@ -1,3 +1,6 @@
+#ifndef LWTNN_GENERIC_INPUT_PREPROCESSOR_TCC
+#define LWTNN_GENERIC_INPUT_PREPROCESSOR_TCC
+
 #include "lwtnn/generic/InputPreprocessor.hh"
 
 namespace lwt {
@@ -93,3 +96,5 @@ namespace generic {
 
 } // namespace generic
 } // namespace lwt
+
+#endif

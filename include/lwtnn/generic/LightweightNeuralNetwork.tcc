@@ -1,3 +1,6 @@
+#ifndef LWTNN_GENERIC_LIGHTWEIGHT_NEURAL_NETWORK_TCC
+#define LWTNN_GENERIC_LIGHTWEIGHT_NEURAL_NETWORK_TCC
+
 #include "lwtnn/generic/LightweightNeuralNetwork.hh"
 #include "lwtnn/generic/InputPreprocessor.hh"
 #include "lwtnn/generic/Stack.hh"
@@ -112,3 +115,5 @@ namespace generic {
   }
 } // namespace generic
 } // namespace lwt
+
+#endif
