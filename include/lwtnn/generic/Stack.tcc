@@ -1,3 +1,6 @@
+#ifndef LWTNN_GENERIC_STACK_TCC
+#define LWTNN_GENERIC_STACK_TCC
+
 #include "lwtnn/generic/Stack.hh"
 
 #include <set>
@@ -793,3 +796,5 @@ namespace generic {
   
 } // namespace generic
 } // namespace lwt
+
+#endif

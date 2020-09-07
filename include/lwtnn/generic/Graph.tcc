@@ -1,3 +1,6 @@
+#ifndef LWTNN_GENERIC_GRAPH_TCC
+#define LWTNN_GENERIC_GRAPH_TCC
+
 #include "lwtnn/generic/Stack.hh"
 #include "lwtnn/generic/Graph.hh"
 #include "lwtnn/Exceptions.hh"
@@ -470,3 +473,5 @@ namespace generic {
 
 } // namespace generic
 } // namespace lwt
+
+#endif
