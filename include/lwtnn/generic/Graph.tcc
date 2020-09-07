@@ -248,22 +248,25 @@ namespace generic {
     return m_source->n_outputs();
   }
 
-  void throw_cfg(std::string msg, size_t index) {
-    throw NNConfigurationException(msg + " " + std::to_string(index));
-  }
-  void check_compute_node(const NodeConfig& node) {
-    size_t n_source = node.sources.size();
-    if (n_source != 1) throw_cfg("need one source, found", n_source);
-    int layer_n = node.index;
-    if (layer_n < 0) throw_cfg("negative layer number", layer_n);
-  }
-  void check_compute_node(const NodeConfig& node, size_t n_layers) {
-    check_compute_node(node);
-    int layer_n = node.index;
-    if (static_cast<size_t>(layer_n) >= n_layers) {
-      throw_cfg("no layer number", layer_n);
+  namespace {
+    void throw_cfg(std::string msg, size_t index) {
+        throw NNConfigurationException(msg + " " + std::to_string(index));
+    }
+    void check_compute_node(const NodeConfig& node) {
+        size_t n_source = node.sources.size();
+        if (n_source != 1) throw_cfg("need one source, found", n_source);
+        int layer_n = node.index;
+        if (layer_n < 0) throw_cfg("negative layer number", layer_n);
+    }
+    void check_compute_node(const NodeConfig& node, size_t n_layers) {
+        check_compute_node(node);
+        int layer_n = node.index;
+        if (static_cast<size_t>(layer_n) >= n_layers) {
+        throw_cfg("no layer number", layer_n);
+        }
     }
   }
+  
   // NOTE: you own this pointer!
   template<typename T>
   INode<T>* get_feedforward_node(
