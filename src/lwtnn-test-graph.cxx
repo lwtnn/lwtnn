@@ -1,6 +1,6 @@
 // Use example for Graph class
 
-#include "lwtnn/Graph.hh"
+#include "lwtnn/generic/Graph.hh"
 #include "lwtnn/parse_json.hh"
 #include "lwtnn/NNLayerConfig.hh"
 

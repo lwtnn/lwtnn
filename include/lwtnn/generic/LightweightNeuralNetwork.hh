@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_NEURAL_NETWORK_HH
-#define LIGHTWEIGHT_NEURAL_NETWORK_HH
+#ifndef LWTNN_GENERIC_LIGHTWEIGHT_NEURAL_NETWORK_HH
+#define LWTNN_GENERIC_LIGHTWEIGHT_NEURAL_NETWORK_HH
 
 // Lightweight Neural Networks
 //
@@ -16,9 +16,7 @@
 //          Michael Kagan <mkagan@cern.ch>
 //          Michela Paganini <micky.91@hotmail.com>
 
-#include <memory>
-
-#include "lightweight_network_config.hh"
+#include "lwtnn/lightweight_network_config.hh"
 
 namespace lwt {
 
@@ -29,24 +27,26 @@ namespace lwt {
   typedef std::vector<std::pair<std::string, double> > ValueVector;
   typedef std::map<std::string, std::vector<double> > VectorMap;
   
+namespace generic {
+    
+  template<typename T> class Stack;
+  template<typename T> class ReductionStack;
+  
+  template<typename T> class InputPreprocessor;
+  template<typename T> class InputVectorPreprocessor;
+
   // ______________________________________________________________________
   // high-level wrappers
 
-  namespace generic {
-    template<typename T> class LightweightNeuralNetwork;
-    template<typename T> class LightweightRNN;
-  }
-  
   // feed-forward variant
+  template<typename T>
   class LightweightNeuralNetwork
   {
   public:
     LightweightNeuralNetwork(const std::vector<Input>& inputs,
                              const std::vector<LayerConfig>& layers,
                              const std::vector<std::string>& outputs);
-    
     ~LightweightNeuralNetwork();
-    
     // disable copying until we need it...
     LightweightNeuralNetwork(LightweightNeuralNetwork&) = delete;
     LightweightNeuralNetwork& operator=(LightweightNeuralNetwork&) = delete;
@@ -56,29 +56,40 @@ namespace lwt {
     // TODO: is it worth changing to unordered_map?
     ValueMap compute(const ValueMap&) const;
 
-  private:
-    std::unique_ptr<generic::LightweightNeuralNetwork<double>> m_impl;
+  protected:
+    // use the Stack class above as the computational core
+    Stack<T>* m_stack;
+    InputPreprocessor<T>* m_preproc;
+
+    // output labels
+    std::vector<std::string> m_outputs;
   };
-  
+
   // recurrent version
+  template<typename T>
   class LightweightRNN
   {
   public:
     LightweightRNN(const std::vector<Input>& inputs,
                    const std::vector<LayerConfig>& layers,
                    const std::vector<std::string>& outputs);
-    
     ~LightweightRNN();
-    
     LightweightRNN(LightweightRNN&) = delete;
     LightweightRNN& operator=(LightweightRNN&) = delete;
 
     ValueMap reduce(const std::vector<ValueMap>&) const;
     ValueMap reduce(const VectorMap&) const;
   private:
-    std::unique_ptr<generic::LightweightRNN<double>> m_impl;
+    ReductionStack<T>* m_stack;
+    InputPreprocessor<T>* m_preproc;
+    InputVectorPreprocessor<T>* m_vec_preproc;
+    std::vector<std::string> m_outputs;
+    size_t m_n_inputs;
   };
-
-
+  
 }
-#endif
+}
+
+#include "LightweightNeuralNetwork.tcc"
+
+#endif // LWTNN_GENERIC_LIGHTWEIGHT_NEURAL_NETWORK_HH

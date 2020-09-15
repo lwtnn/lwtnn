@@ -106,17 +106,37 @@ else()
 endif()
 
 # Public header files for the shared/static library.
-set( lib_headers include/lwtnn/Exceptions.hh include/lwtnn/Graph.hh
-   include/lwtnn/InputPreprocessor.hh include/lwtnn/LightweightGraph.hh
-   include/lwtnn/LightweightNeuralNetwork.hh include/lwtnn/NNLayerConfig.hh
-   include/lwtnn/NanReplacer.hh include/lwtnn/Source.hh include/lwtnn/Stack.hh
-   include/lwtnn/Stack.hh include/lwtnn/lightweight_network_config.hh
-   include/lwtnn/lightweight_nn_streamers.hh include/lwtnn/parse_json.hh )
+set( lib_headers
+   include/lwtnn/generic/eigen_typedefs.hh
+   include/lwtnn/generic/Graph.hh
+   include/lwtnn/generic/Graph.tcc
+   include/lwtnn/generic/InputPreprocessor.hh
+   include/lwtnn/generic/InputPreprocessor.tcc
+   include/lwtnn/generic/LightweightNeuralNetwork.hh 
+   include/lwtnn/generic/LightweightNeuralNetwork.tcc
+   include/lwtnn/generic/Stack.hh
+   include/lwtnn/generic/Stack.tcc
+   include/lwtnn/generic/Source.hh
+   include/lwtnn/generic/LightweightGraph.hh
+   include/lwtnn/generic/LightweightGraph.tcc
+   include/lwtnn/Exceptions.hh
+   include/lwtnn/LightweightNeuralNetwork.hh
+   include/lwtnn/NNLayerConfig.hh
+   include/lwtnn/NanReplacer.hh
+   include/lwtnn/lightweight_network_config.hh
+   include/lwtnn/lightweight_nn_streamers.hh 
+   include/lwtnn/parse_json.hh )
 # Source files for the shared/static library.
-set( lib_sources src/Exceptions.cxx src/Graph.cxx src/InputPreprocessor.cxx
-   src/LightweightGraph.cxx src/LightweightNeuralNetwork.cxx src/NanReplacer.cxx
-   src/Stack.cxx src/lightweight_nn_streamers.cxx src/parse_json.cxx
-   src/test_utilities.hh src/test_utilities.cxx )
+set( lib_sources 
+   src/Exceptions.cxx
+   src/LightweightNeuralNetwork.cxx
+   src/LightweightGraph.cxx
+   src/NanReplacer.cxx
+   src/Stack.cxx
+   src/lightweight_nn_streamers.cxx
+   src/parse_json.cxx
+   src/test_utilities.hh
+   src/test_utilities.cxx )
 
 # Build the shared library.
 add_library( lwtnn SHARED ${lib_headers} ${lib_sources} )

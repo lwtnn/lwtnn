@@ -1,5 +1,5 @@
-#ifndef LIGHTWEIGHT_GRAPH_HH
-#define LIGHTWEIGHT_GRAPH_HH
+#ifndef LWTNN_GENERIC_LIGHTWEIGHT_GRAPH_HH
+#define LWTNN_GENERIC_LIGHTWEIGHT_GRAPH_HH
 
 /* Lightweight Graph
 
@@ -42,15 +42,9 @@
  Eigen objects and Eigen objects back to std::maps. For the
  underlying implementation, see Graph.hh. */
 
-#include <memory>
-
 #include "lwtnn/lightweight_network_config.hh"
 
 namespace lwt {
-    
-  namespace generic {
-    template<typename T> class LightweightGraph;
-  }
 
   // We currently allow several input types
   // The "ValueMap" is for simple rank-1 inputs
@@ -58,8 +52,14 @@ namespace lwt {
   // The "VectorMap" is for sequence inputs
   typedef std::map<std::string, std::vector<double> > VectorMap;
   
+namespace generic {
+
+  template<typename T> class Graph;
+  template<typename T> class InputPreprocessor;
+  template<typename T> class InputVectorPreprocessor;
 
   // Graph class
+  template<typename T>
   class LightweightGraph
   {
   public:
@@ -94,9 +94,24 @@ namespace lwt {
                    const std::string& output) const;
 
   private:
-    std::unique_ptr<generic::LightweightGraph<double>> m_impl;
+    typedef InputPreprocessor<T> IP;
+    typedef InputVectorPreprocessor<T> IVP;
+    typedef std::vector<std::pair<std::string, IP*> > Preprocs;
+    typedef std::vector<std::pair<std::string, IVP*> > VecPreprocs;
+
+    ValueMap compute(const NodeMap&, const SeqNodeMap&, size_t) const;
+    VectorMap scan(const NodeMap&, const SeqNodeMap&, size_t) const;
+    Graph<T>* m_graph;
+    Preprocs m_preprocs;
+    VecPreprocs m_vec_preprocs;
+    std::vector<std::pair<size_t, std::vector<std::string> > > m_outputs;
+    std::map<std::string, size_t> m_output_indices;
+    size_t m_default_output;
   };
   
+} // namespace generic
 } // namespace lwt
 
-#endif
+#include "LightweightGraph.tcc"
+
+#endif // LWTNN_GENERIC_LIGHTWEIGHT_GRAPH_HH
