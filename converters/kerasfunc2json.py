@@ -80,7 +80,7 @@ def _resolve_inheriting_types(nodes):
                 node['type'] = 'feed_forward'
 
 def _check_version(arch):
-    if arch["class_name"] != "Model":
+    if arch["class_name"] not in {"Model", "Functional"}:
         sys.exit("this is not a graph, try using keras2json")
     global BACKEND
     if 'backend' not in arch:
