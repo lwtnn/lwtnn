@@ -28,7 +28,7 @@ namespace lwt {
   typedef std::map<std::string, double> ValueMap;
   typedef std::vector<std::pair<std::string, double> > ValueVector;
   typedef std::map<std::string, std::vector<double> > VectorMap;
-  
+
   // ______________________________________________________________________
   // high-level wrappers
 
@@ -36,7 +36,7 @@ namespace lwt {
     template<typename T> class LightweightNeuralNetwork;
     template<typename T> class LightweightRNN;
   }
-  
+
   // feed-forward variant
   class LightweightNeuralNetwork
   {
@@ -44,9 +44,9 @@ namespace lwt {
     LightweightNeuralNetwork(const std::vector<Input>& inputs,
                              const std::vector<LayerConfig>& layers,
                              const std::vector<std::string>& outputs);
-    
+
     ~LightweightNeuralNetwork();
-    
+
     // disable copying until we need it...
     LightweightNeuralNetwork(LightweightNeuralNetwork&) = delete;
     LightweightNeuralNetwork& operator=(LightweightNeuralNetwork&) = delete;
@@ -59,7 +59,7 @@ namespace lwt {
   private:
     std::unique_ptr<generic::LightweightNeuralNetwork<double>> m_impl;
   };
-  
+
   // recurrent version
   class LightweightRNN
   {
@@ -67,9 +67,9 @@ namespace lwt {
     LightweightRNN(const std::vector<Input>& inputs,
                    const std::vector<LayerConfig>& layers,
                    const std::vector<std::string>& outputs);
-    
+
     ~LightweightRNN();
-    
+
     LightweightRNN(LightweightRNN&) = delete;
     LightweightRNN& operator=(LightweightRNN&) = delete;
 

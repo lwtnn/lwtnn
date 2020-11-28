@@ -9,16 +9,16 @@ namespace generic {
   // Input preprocessors
 
   // simple feed-forwared version
-  
+
   template<typename T>
   InputPreprocessor<T>::InputPreprocessor(const std::vector<Input>& inputs):
     m_offsets(inputs.size()),
     m_scales(inputs.size())
   {
     static_assert( std::is_same<T, double>::value ||
-                   std::is_assignable<T, double>::value, 
+                   std::is_assignable<T, double>::value,
                    "double cannot be implicitly assigned to T" );
-    
+
     size_t in_num = 0;
     for (const auto& input: inputs) {
       m_offsets(in_num) = input.offset;
@@ -27,7 +27,7 @@ namespace generic {
       in_num++;
     }
   }
-  
+
   template<typename T>
   VectorX<T> InputPreprocessor<T>::operator()(const ValueMap& in) const {
     VectorX<T> invec(m_names.size());
@@ -51,9 +51,9 @@ namespace generic {
     m_scales(inputs.size())
   {
     static_assert( std::is_same<T, double>::value ||
-                   std::is_assignable<T, double>::value, 
+                   std::is_assignable<T, double>::value,
                    "double cannot be implicitly assigned to T" );
-    
+
     size_t in_num = 0;
     for (const auto& input: inputs) {
       m_offsets(in_num) = input.offset;
@@ -67,7 +67,7 @@ namespace generic {
       throw NNConfigurationException("need at least one input");
     }
   }
-  
+
   template<typename T>
   MatrixX<T> InputVectorPreprocessor<T>::operator()(const VectorMap& in) const {
     using namespace Eigen;

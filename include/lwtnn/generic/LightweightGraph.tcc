@@ -39,7 +39,7 @@ namespace {
     m_nodes(n), m_seqs(s), m_preprocs(p), m_vec_preprocs(v)
   {
   }
-  
+
   template<typename T>
   VectorX<T> LazySource<T>::at(size_t index) const
   {
@@ -50,7 +50,7 @@ namespace {
     const auto& preproc = *proc.second;
     return preproc(m_nodes.at(proc.first));
   }
-  
+
   template<typename T>
   MatrixX<T> LazySource<T>::matrix_at(size_t index) const
   {
@@ -118,7 +118,7 @@ namespace generic {
                                      const SeqNodeMap& seq) const {
     return compute(nodes, seq, m_default_output);
   }
-  
+
   template<typename T>
   ValueMap LightweightGraph<T>::compute(const NodeMap& nodes,
                                      const SeqNodeMap& seq,
@@ -128,7 +128,7 @@ namespace generic {
     }
     return compute(nodes, seq, m_output_indices.at(output));
   }
-  
+
   template<typename T>
   ValueMap LightweightGraph<T>::compute(const NodeMap& nodes,
                                      const SeqNodeMap& seq,
@@ -148,7 +148,7 @@ namespace generic {
                                      const SeqNodeMap& seq) const {
     return scan(nodes, seq, m_default_output);
   }
-  
+
   template<typename T>
   VectorMap LightweightGraph<T>::scan(const NodeMap& nodes,
                                      const SeqNodeMap& seq,
@@ -158,7 +158,7 @@ namespace generic {
     }
     return scan(nodes, seq, m_output_indices.at(output));
   }
-  
+
   template<typename T>
   VectorMap LightweightGraph<T>::scan(const NodeMap& nodes,
                                      const SeqNodeMap& seq,

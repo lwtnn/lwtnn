@@ -11,11 +11,11 @@
 
 namespace lwt {
 namespace generic {
-    
+
   // Forward declaretions
   template<typename T>
   class Stack;
-  
+
   template<typename T>
   class RecurrentStack;
 
@@ -99,7 +99,7 @@ namespace generic {
     const RecurrentStack<T>* m_stack;
     const ISequenceNode<T>* m_source;
   };
-  
+
   template<typename T>
   class TimeDistributedNode: public ISequenceNode<T>
   {
@@ -111,7 +111,7 @@ namespace generic {
     const Stack<T>* m_stack;
     const ISequenceNode<T>* m_source;
   };
-  
+
   template<typename T>
   class SumNode: public INode<T>
   {
@@ -152,9 +152,9 @@ namespace generic {
     // At some point maybe also convolutional nodes, but we'd have to
     // have a use case for that first.
   };
-  
+
 } // namespace generic
-  
+
   using INode = generic::INode<double>;
   using FeedForwardNode = generic::FeedForwardNode<double>;
   using InputNode = generic::InputNode<double>;
@@ -163,9 +163,9 @@ namespace generic {
   using InputSequenceNode = generic::InputSequenceNode<double>;
   using SequenceNode = generic::SequenceNode<double>;
   using TimeDistributedNode = generic::TimeDistributedNode<double>;
-  
+
   using Graph = generic::Graph<double>;
-  
+
 } // namespace lwt
 
 #include "Graph.tcc"

@@ -19,7 +19,7 @@ namespace generic {
     m_matrix_inputs(std::move(mm))
   {
   }
-  
+
   template<typename T>
   VectorX<T> VectorSource<T>::at(size_t index) const {
     if (index >= m_inputs.size()) {
@@ -28,7 +28,7 @@ namespace generic {
     }
     return m_inputs.at(index);
   }
-  
+
   template<typename T>
   MatrixX<T> VectorSource<T>::matrix_at(size_t index) const {
     if (index >= m_matrix_inputs.size()) {
@@ -37,7 +37,7 @@ namespace generic {
     }
     return m_matrix_inputs.at(index);
   }
-  
+
   template<typename T>
   DummySource<T>::DummySource(const std::vector<size_t>& input_sizes,
                                 const std::vector<std::pair<size_t,size_t> >& ma):
@@ -45,7 +45,7 @@ namespace generic {
     m_matrix_sizes(ma)
   {
   }
-  
+
   template<typename T>
   VectorX<T> DummySource<T>::at(size_t index) const {
     if (index >= m_sizes.size()) {
@@ -59,7 +59,7 @@ namespace generic {
     }
     return vec;
   }
-  
+
   template<typename T>
   MatrixX<T> DummySource<T>::matrix_at(size_t index) const {
     if (index >= m_matrix_sizes.size()) {
@@ -85,8 +85,8 @@ namespace generic {
     m_n_outputs(n_outputs)
   {
   }
-  
-  
+
+
   template<typename T>
   VectorX<T> InputNode<T>::compute(const ISource<T>& source) const {
     VectorX<T> output = source.at(m_index);
@@ -99,7 +99,7 @@ namespace generic {
     }
     return output;
   }
-  
+
   template<typename T>
   size_t InputNode<T>::n_outputs() const {
     return m_n_outputs;
@@ -111,12 +111,12 @@ namespace generic {
     m_source(source)
   {
   }
-  
+
   template<typename T>
   VectorX<T> FeedForwardNode<T>::compute(const ISource<T>& source) const {
     return m_stack->compute(m_source->compute(source));
   }
-  
+
   template<typename T>
   size_t FeedForwardNode<T>::n_outputs() const {
     return m_stack->n_outputs();
@@ -146,7 +146,7 @@ namespace generic {
     assert(offset == m_n_outputs);
     return output;
   }
-  
+
   template<typename T>
   size_t ConcatenateNode<T>::n_outputs() const {
     return m_n_outputs;
@@ -159,7 +159,7 @@ namespace generic {
     m_n_outputs(n_outputs)
   {
   }
-  
+
   template<typename T>
   MatrixX<T> InputSequenceNode<T>::scan(const ISource<T>& source) const {
     MatrixX<T> output = source.matrix_at(m_index);
@@ -178,7 +178,7 @@ namespace generic {
   size_t InputSequenceNode<T>::n_outputs() const {
     return m_n_outputs;
   }
-  
+
   template<typename T>
   SequenceNode<T>::SequenceNode(const RecurrentStack<T>* stack,
                                  const ISequenceNode<T>* source) :
@@ -186,12 +186,12 @@ namespace generic {
     m_source(source)
   {
   }
-  
+
   template<typename T>
   MatrixX<T> SequenceNode<T>::scan(const ISource<T>& source) const {
     return m_stack->scan(m_source->scan(source));
   }
-  
+
   template<typename T>
   VectorX<T> SequenceNode<T>::compute(const ISource<T>& src) const {
     MatrixX<T> mat = scan(src);
@@ -202,7 +202,7 @@ namespace generic {
     }
     return mat.col(n_cols - 1);
   }
-  
+
   template<typename T>
   size_t SequenceNode<T>::n_outputs() const {
     return m_stack->n_outputs();
@@ -215,7 +215,7 @@ namespace generic {
     m_source(source)
   {
   }
-  
+
   template<typename T>
   MatrixX<T> TimeDistributedNode<T>::scan(const ISource<T>& source) const {
     MatrixX<T> input = m_source->scan(source);
@@ -226,7 +226,7 @@ namespace generic {
     }
     return output;
   }
-  
+
   template<typename T>
   size_t TimeDistributedNode<T>::n_outputs() const {
     return m_stack->n_outputs();
@@ -237,12 +237,12 @@ namespace generic {
     m_source(source)
   {
   }
-  
+
   template<typename T>
   VectorX<T> SumNode<T>::compute(const ISource<T>& source) const {
     return m_source->scan(source).rowwise().sum();
   }
-  
+
   template<typename T>
   size_t SumNode<T>::n_outputs() const {
     return m_source->n_outputs();
@@ -266,7 +266,7 @@ namespace generic {
         }
     }
   }
-  
+
   // NOTE: you own this pointer!
   template<typename T>
   INode<T>* get_feedforward_node(
@@ -318,7 +318,7 @@ namespace generic {
     }
     return new TimeDistributedNode<T>(stack_map.at(layer_n), source);
   }
-  
+
   // graph
   template<typename T>
   Graph<T>::Graph() {
@@ -330,7 +330,7 @@ namespace generic {
     m_nodes[3] = new FeedForwardNode<T>(m_stacks.at(0), m_nodes.at(2));
     m_last_node = 3;
   }
-  
+
   template<typename T>
   Graph<T>::Graph(const std::vector<NodeConfig>& nodes,
                     const std::vector<LayerConfig>& layers):

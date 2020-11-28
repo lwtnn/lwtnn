@@ -124,10 +124,10 @@ set( lib_headers
    include/lwtnn/NNLayerConfig.hh
    include/lwtnn/NanReplacer.hh
    include/lwtnn/lightweight_network_config.hh
-   include/lwtnn/lightweight_nn_streamers.hh 
+   include/lwtnn/lightweight_nn_streamers.hh
    include/lwtnn/parse_json.hh )
 # Source files for the shared/static library.
-set( lib_sources 
+set( lib_sources
    src/Exceptions.cxx
    src/LightweightNeuralNetwork.cxx
    src/LightweightGraph.cxx

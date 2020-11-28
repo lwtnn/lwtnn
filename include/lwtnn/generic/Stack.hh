@@ -25,24 +25,24 @@
 #include <vector>
 #include <functional>
 
-namespace lwt 
+namespace lwt
 {
-    
+
 namespace generic
 {
-    
+
   template<typename T>
   class ILayer;
-  
+
   template<typename T>
   class IRecurrentLayer;
-  
+
   // ______________________________________________________________________
   // Feed forward Stack class
 
   template<typename T>
   class Stack
-  {      
+  {
   public:
     // constructor for dummy net
     Stack();
@@ -108,7 +108,7 @@ namespace generic
   class BiasLayer: public ILayer<T>
   {
     friend class FittableLWTNN;
-    
+
   public:
     BiasLayer(const VectorX<T>& bias);
     template<typename U> BiasLayer(const std::vector<U>& bias);
@@ -121,7 +121,7 @@ namespace generic
   class MatrixLayer: public ILayer<T>
   {
     friend class FittableLWTNN;
-    
+
   public:
     MatrixLayer(const MatrixX<T>& matrix);
     virtual VectorX<T> compute(const VectorX<T>&) const override;
@@ -133,7 +133,7 @@ namespace generic
   class MaxoutLayer: public ILayer<T>
   {
     friend class FittableLWTNN;
-    
+
   public:
     typedef std::pair<MatrixX<T>, VectorX<T>> InitUnit;
     MaxoutLayer(const std::vector<InitUnit>& maxout_tensor);
@@ -149,7 +149,7 @@ namespace generic
   class NormalizationLayer : public ILayer<T>
   {
     friend class FittableLWTNN;
-    
+
   public:
     NormalizationLayer(const VectorX<T>& W,const VectorX<T>& b);
     virtual VectorX<T> compute(const VectorX<T>&) const override;
@@ -165,7 +165,7 @@ namespace generic
   class HighwayLayer: public ILayer<T>
   {
     friend class FittableLWTNN;
-    
+
   public:
     HighwayLayer(const MatrixX<T>& W,
                  const VectorX<T>& b,
@@ -231,7 +231,7 @@ namespace generic
     virtual ~IRecurrentLayer() {}
     virtual MatrixX<T> scan( const MatrixX<T>&) const = 0;
   };
-  
+
   template<typename T>
   class EmbeddingLayer : public IRecurrentLayer<T>
   {
@@ -247,7 +247,7 @@ namespace generic
 
   /// long short term memory ///
   template<typename T> struct LSTMState;
-  
+
   template<typename T>
   class LSTMLayer : public IRecurrentLayer<T>
   {
@@ -285,11 +285,11 @@ namespace generic
 
     int m_n_outputs;
   };
-  
+
 
   /// gated recurrent unit ///
   template<typename T> struct GRUState;
-  
+
   template<typename T>
   class GRULayer : public IRecurrentLayer<T>
   {
@@ -332,7 +332,7 @@ namespace generic
   template<typename T> T nn_hard_sigmoid( T x );
   template<typename T> T nn_tanh( T x );
   template<typename T> T nn_relu( T x );
-  
+
   template<typename T>
   class ELU
   {
@@ -342,8 +342,8 @@ namespace generic
   private:
     T m_alpha;
   };
-  
-  
+
+
   template<typename T>
   class LeakyReLU
   {
@@ -353,7 +353,7 @@ namespace generic
   private:
     T m_alpha;
   };
-  
+
   template<typename T>
   class Swish
   {
@@ -363,7 +363,7 @@ namespace generic
   private:
     T m_alpha;
   };
-  
+
   template<typename T> std::function<T(T)> get_activation(lwt::ActivationConfig);
 
   // WARNING: you own this pointer! Only call when assigning to member data!
@@ -384,16 +384,16 @@ namespace generic
     MatrixX<T> U;
     VectorX<T> b;
   };
-  
+
   template<typename T> DenseComponents<T> get_component(const lwt::LayerConfig& layer, size_t n_in);
-    
-} // namespace generic    
+
+} // namespace generic
 
   // consistency checks
   void throw_if_not_maxout(const LayerConfig& layer);
   void throw_if_not_dense(const LayerConfig& layer);
   void throw_if_not_normalization(const LayerConfig& layer);
-  
+
 } // namespace lwt
 
 #include "Stack.tcc"

@@ -26,12 +26,12 @@ namespace lwt {
   typedef std::map<std::string, double> ValueMap;
   typedef std::vector<std::pair<std::string, double> > ValueVector;
   typedef std::map<std::string, std::vector<double> > VectorMap;
-  
+
 namespace generic {
-    
+
   template<typename T> class Stack;
   template<typename T> class ReductionStack;
-  
+
   template<typename T> class InputPreprocessor;
   template<typename T> class InputVectorPreprocessor;
 
@@ -86,7 +86,7 @@ namespace generic {
     std::vector<std::string> m_outputs;
     size_t m_n_inputs;
   };
-  
+
 }
 }
 

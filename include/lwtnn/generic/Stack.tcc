@@ -17,7 +17,7 @@ namespace generic {
     m_layers.push_back(new DummyLayer<T>);
     m_layers.push_back(new UnaryActivationLayer<T>({ Activation::SIGMOID, 0.0 }));
     m_layers.push_back(new BiasLayer<T>(std::vector<T>{1, 1, 1, 1}));
-    
+
     MatrixX<T> mat(4, 4);
     mat <<
       0, 0, 0, 1,
@@ -46,7 +46,7 @@ namespace generic {
       layer = 0;
     }
   }
-  
+
   template<typename T>
   VectorX<T> Stack<T>::compute(VectorX<T> in) const {
     for (const auto& layer: m_layers) {
@@ -54,7 +54,7 @@ namespace generic {
     }
     return in;
   }
-  
+
   template<typename T>
   size_t Stack<T>::n_outputs() const {
     return m_n_outputs;
@@ -65,8 +65,8 @@ namespace generic {
   //
   // top level add_layers method. This delegates to the other methods
   // below
-  
-  
+
+
   template<typename T>
   size_t Stack<T>::add_layers(size_t n_inputs, const LayerConfig& layer) {
     if (layer.architecture == Architecture::DENSE) {
@@ -186,7 +186,7 @@ namespace generic {
     m_func(get_activation<T>(act))
   {
   }
-  
+
   template<typename T>
   VectorX<T> UnaryActivationLayer<T>::compute(const VectorX<T>& in) const {
     return in.unaryExpr(m_func);
@@ -212,14 +212,14 @@ namespace generic {
   BiasLayer<T>::BiasLayer(const VectorX<T>& bias): m_bias(bias)
   {
   }
-  
-  template<typename T> 
+
+  template<typename T>
   template<typename U>
   BiasLayer<T>::BiasLayer(const std::vector<U>& bias):
     m_bias(build_vector<T,U>(bias))
   {
   }
-  
+
   template<typename T>
   VectorX<T> BiasLayer<T>::compute(const VectorX<T>& in) const {
     return in + m_bias;
@@ -231,7 +231,7 @@ namespace generic {
     m_matrix(matrix)
   {
   }
-  
+
   template<typename T>
   VectorX<T> MatrixLayer<T>::compute(const VectorX<T>& in) const {
     return m_matrix * in;
@@ -249,7 +249,7 @@ namespace generic {
       out_pos++;
     }
   }
-  
+
   template<typename T>
   VectorX<T> MaxoutLayer<T>::compute(const VectorX<T>& in) const {
     // eigen supports tensors, but only in the experimental component
@@ -271,8 +271,8 @@ namespace generic {
     _W(W), _b(b)
   {
   }
-  
-  
+
+
   template<typename T>
   VectorX<T> NormalizationLayer<T>::compute(const VectorX<T>& in) const {
     VectorX<T> shift = in + _b ;
@@ -290,8 +290,8 @@ namespace generic {
     m_act(get_activation<T>(activation))
   {
   }
-  
-  
+
+
   template<typename T>
   VectorX<T> HighwayLayer<T>::compute(const VectorX<T>& in) const {
     const std::function<T(T)> sig(nn_sigmoid<T>);
@@ -325,7 +325,7 @@ namespace generic {
     }
     m_n_outputs = n_inputs;
   }
-  
+
   template<typename T>
   RecurrentStack<T>::~RecurrentStack() {
     for (auto& layer: m_layers) {
@@ -333,7 +333,7 @@ namespace generic {
       layer = 0;
     }
   }
-  
+
   template<typename T>
   MatrixX<T> RecurrentStack<T>::scan(MatrixX<T> in) const {
     for (auto* layer: m_layers) {
@@ -341,7 +341,7 @@ namespace generic {
     }
     return in;
   }
-  
+
   template<typename T>
   size_t RecurrentStack<T>::n_outputs() const {
     return m_n_outputs;
@@ -409,19 +409,19 @@ namespace generic {
     m_recurrent = new RecurrentStack<T>(n_in, recurrent);
     m_stack = new Stack<T>(m_recurrent->n_outputs(), feed_forward);
   }
-  
+
   template<typename T>
   ReductionStack<T>::~ReductionStack() {
     delete m_recurrent;
     delete m_stack;
   }
-  
+
   template<typename T>
   VectorX<T> ReductionStack<T>::reduce(MatrixX<T> in) const {
     in = m_recurrent->scan(in);
     return m_stack->compute(in.col(in.cols() -1));
   }
-  
+
   template<typename T>
   size_t ReductionStack<T>::n_outputs() const {
     return m_stack->n_outputs();
@@ -513,7 +513,7 @@ namespace generic {
     MatrixX<T> h_t;
     int time;
   };
-  
+
   template<typename T>
   LSTMState<T>::LSTMState(size_t n_input, size_t n_output):
     C_t(MatrixX<T>::Zero(n_output, n_input)),
@@ -584,7 +584,7 @@ namespace generic {
     MatrixX<T> h_t;
     int time;
   };
-  
+
   template<typename T>
   GRUState<T>::GRUState(size_t n_input, size_t n_output):
     h_t(MatrixX<T>::Zero(n_output, n_input)),
@@ -630,8 +630,8 @@ namespace generic {
 
   // Note that in the first case you own this layer! It's your
   // responsibility to delete it.
-  
-  
+
+
   template<typename T>
   ILayer<T>* get_raw_activation_layer(ActivationConfig activation) {
     // Check for special cases. If it's not one, use
@@ -684,7 +684,7 @@ namespace generic {
   Swish<T>::Swish(T alpha):
     m_alpha(alpha)
   {}
-  
+
   template<typename T>
   T Swish<T>::operator()(T x) const {
     return x * nn_sigmoid<T>(m_alpha * x);
@@ -706,7 +706,7 @@ namespace generic {
   ELU<T>::ELU(T alpha):
     m_alpha(alpha)
   {}
-  
+
   template<typename T>
   T ELU<T>::operator()( T x ) const {
     /* ELU function : https://arxiv.org/pdf/1511.07289.pdf
@@ -721,7 +721,7 @@ namespace generic {
   LeakyReLU<T>::LeakyReLU(T alpha):
     m_alpha(alpha)
   {}
-  
+
   template<typename T>
   T LeakyReLU<T>::operator()(T x) const {
     return x > 0 ? x : static_cast<T>(m_alpha * x); // weird autodiff
@@ -733,9 +733,9 @@ namespace generic {
   MatrixX<T1> build_matrix(const std::vector<T2>& weights, size_t n_inputs)
   {
     static_assert( std::is_same<T1, T2>::value ||
-                   std::is_assignable<T1, T2>::value, 
+                   std::is_assignable<T1, T2>::value,
                    "T2 cannot be implicitly assigned to T1" );
-    
+
     size_t n_elements = weights.size();
     if ((n_elements % n_inputs) != 0) {
       std::string problem = "matrix elements not divisible by number"
@@ -753,14 +753,14 @@ namespace generic {
     }
     return matrix;
   }
-  
+
   template<typename T1, typename T2>
-  VectorX<T1> build_vector(const std::vector<T2>& bias) 
+  VectorX<T1> build_vector(const std::vector<T2>& bias)
   {
     static_assert( std::is_same<T1, T2>::value ||
-                   std::is_assignable<T1, T2>::value, 
+                   std::is_assignable<T1, T2>::value,
                    "T2 cannot be implicitly assigned to T1" );
-    
+
     VectorX<T1> out(bias.size());
     size_t idx = 0;
     for (const auto& val: bias) {
@@ -793,7 +793,7 @@ namespace generic {
     }
     return {weights, U, bias};
   }
-  
+
 } // namespace generic
 } // namespace lwt
 
