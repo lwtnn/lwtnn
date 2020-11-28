@@ -16,10 +16,10 @@ namespace {
   class LazySource: public generic::ISource<T>
   {
     typedef typename generic::LightweightGraph<T>::NodeMap NodeMap;
-    typedef InputPreprocessor IP;
+    using IP = generic::InputPreprocessor<T>;
     typedef std::vector<std::pair<std::string, IP*> > Preprocs;
     typedef typename generic::LightweightGraph<T>::SeqNodeMap SeqNodeMap;
-    typedef InputVectorPreprocessor IVP;
+    using IVP = generic::InputVectorPreprocessor<T>;
     typedef std::vector<std::pair<std::string, IVP*> > VecPreprocs;
   public:
     LazySource(const NodeMap&, const SeqNodeMap&,

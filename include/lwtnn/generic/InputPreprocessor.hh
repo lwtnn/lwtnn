@@ -49,9 +49,6 @@ namespace generic {
 
 } // namespace generic
 
-  using InputPreprocessor = generic::InputPreprocessor<double>;
-  using InputVectorPreprocessor = generic::InputVectorPreprocessor<double>;
-
 } // namespace lwt
 
 #include "InputPreprocessor.tcc"
