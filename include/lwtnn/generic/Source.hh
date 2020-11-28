@@ -17,7 +17,7 @@ namespace generic {
     virtual VectorX<T> at(size_t index) const = 0;
     virtual MatrixX<T> matrix_at(size_t index) const = 0;
   };
-  
+
   template<typename T>
   class VectorSource: public ISource<T>
   {
@@ -29,7 +29,7 @@ namespace generic {
     std::vector<VectorX<T>> m_inputs;
     std::vector<MatrixX<T>> m_matrix_inputs;
   };
-  
+
   template<typename T>
   class DummySource: public ISource<T>
   {
@@ -42,7 +42,7 @@ namespace generic {
     std::vector<size_t> m_sizes;
     std::vector<std::pair<size_t, size_t> > m_matrix_sizes;
   };
-  
+
 } // namespace generic
 
   using ISource = generic::ISource<double>;

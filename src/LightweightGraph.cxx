@@ -14,7 +14,7 @@ namespace lwt {
   {
   }
 
-  LightweightGraph::~LightweightGraph() 
+  LightweightGraph::~LightweightGraph()
   {
   }
 
@@ -22,7 +22,7 @@ namespace lwt {
                                      const SeqNodeMap& seq) const {
     return m_impl->compute(nodes, seq);
   }
-  
+
   ValueMap LightweightGraph::compute(const NodeMap& nodes,
                                      const SeqNodeMap& seq,
                                      const std::string& output) const {
@@ -33,7 +33,7 @@ namespace lwt {
                                    const SeqNodeMap& seq) const {
     return m_impl->scan(nodes, seq);
   }
-  
+
   VectorMap LightweightGraph::scan(const NodeMap& nodes,
                                    const SeqNodeMap& seq,
                                    const std::string& output) const {

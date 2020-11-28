@@ -51,7 +51,7 @@ namespace lwt {
   typedef std::map<std::string, double> ValueMap;
   // The "VectorMap" is for sequence inputs
   typedef std::map<std::string, std::vector<double> > VectorMap;
-  
+
 namespace generic {
 
   template<typename T> class Graph;
@@ -108,7 +108,7 @@ namespace generic {
     std::map<std::string, size_t> m_output_indices;
     size_t m_default_output;
   };
-  
+
 } // namespace generic
 } // namespace lwt
 

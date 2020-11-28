@@ -23,7 +23,7 @@ namespace lwt {
     m_impl(new generic::LightweightNeuralNetwork<double>(inputs, layers, outputs))
   {
   }
-  
+
   LightweightNeuralNetwork::~LightweightNeuralNetwork()
   {
   }
@@ -42,7 +42,7 @@ namespace lwt {
     m_impl(new generic::LightweightRNN<double>(inputs, layers, outputs))
   {
   }
-  
+
   LightweightRNN::~LightweightRNN()
   {
   }

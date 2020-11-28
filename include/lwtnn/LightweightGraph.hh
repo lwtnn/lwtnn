@@ -47,7 +47,7 @@
 #include "lwtnn/lightweight_network_config.hh"
 
 namespace lwt {
-    
+
   namespace generic {
     template<typename T> class LightweightGraph;
   }
@@ -57,7 +57,7 @@ namespace lwt {
   typedef std::map<std::string, double> ValueMap;
   // The "VectorMap" is for sequence inputs
   typedef std::map<std::string, std::vector<double> > VectorMap;
-  
+
 
   // Graph class
   class LightweightGraph
@@ -96,7 +96,7 @@ namespace lwt {
   private:
     std::unique_ptr<generic::LightweightGraph<double>> m_impl;
   };
-  
+
 } // namespace lwt
 
 #endif

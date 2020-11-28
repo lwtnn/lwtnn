@@ -75,7 +75,7 @@ namespace generic {
         "Mismatch between NN output dimensions and output labels");
     }
   }
-  
+
   template<typename T>
   LightweightRNN<T>::~LightweightRNN() {
     delete m_stack;
@@ -101,7 +101,7 @@ namespace generic {
 
   // this version should be slightly faster since it only has to sort
   // the inputs once
-  
+
   template<typename T>
   ValueMap LightweightRNN<T>::reduce(const VectorMap& in) const {
     const auto& preproc = *m_vec_preproc;
