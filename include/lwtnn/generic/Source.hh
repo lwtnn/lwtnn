@@ -45,10 +45,6 @@ namespace generic {
 
 } // namespace generic
 
-  using ISource = generic::ISource<double>;
-  using VectorSource = generic::VectorSource<double>;
-  using DummySource = generic::DummySource<double>;
-
 } // namespace lwt
 
 #endif //SOURCE_HH

@@ -155,17 +155,6 @@ namespace generic {
 
 } // namespace generic
 
-  using INode = generic::INode<double>;
-  using FeedForwardNode = generic::FeedForwardNode<double>;
-  using InputNode = generic::InputNode<double>;
-  using ConcatenateNode = generic::ConcatenateNode<double>;
-  using ISequenceNode = generic::ISequenceNode<double>;
-  using InputSequenceNode = generic::InputSequenceNode<double>;
-  using SequenceNode = generic::SequenceNode<double>;
-  using TimeDistributedNode = generic::TimeDistributedNode<double>;
-
-  using Graph = generic::Graph<double>;
-
 } // namespace lwt
 
 #include "Graph.tcc"
