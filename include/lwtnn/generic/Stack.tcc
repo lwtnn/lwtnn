@@ -732,16 +732,12 @@ namespace generic {
   // utility functions
 
   // check to see if the base type of the NN can be assigned to
-  template<typename T1, typename T2>
+  template<typename To, typename From>
   struct conversion_check {
-    static const bool value = (
-      std::is_same<T1, T2>::value ||
-      std::is_assignable<T1, T2>::value || (
-        std::is_convertible<T2, T1>::value &&
-        std::is_floating_point<T1>::value &&
-        std::is_floating_point<T2>::value
-        )
-      );
+    static const bool value =
+      std::is_same<To, From>::value ||
+      std::is_assignable<To, From>::value ||
+      std::is_convertible<From, To>::value;
   };
 
   template<typename T1, typename T2>
