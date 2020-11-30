@@ -107,8 +107,6 @@ namespace generic
   template<typename T>
   class BiasLayer: public ILayer<T>
   {
-    friend class FittableLWTNN;
-
   public:
     BiasLayer(const VectorX<T>& bias);
     template<typename U> BiasLayer(const std::vector<U>& bias);
@@ -120,8 +118,6 @@ namespace generic
   template<typename T>
   class MatrixLayer: public ILayer<T>
   {
-    friend class FittableLWTNN;
-
   public:
     MatrixLayer(const MatrixX<T>& matrix);
     virtual VectorX<T> compute(const VectorX<T>&) const override;
@@ -132,8 +128,6 @@ namespace generic
   template<typename T>
   class MaxoutLayer: public ILayer<T>
   {
-    friend class FittableLWTNN;
-
   public:
     typedef std::pair<MatrixX<T>, VectorX<T>> InitUnit;
     MaxoutLayer(const std::vector<InitUnit>& maxout_tensor);
@@ -148,8 +142,6 @@ namespace generic
   template<typename T>
   class NormalizationLayer : public ILayer<T>
   {
-    friend class FittableLWTNN;
-
   public:
     NormalizationLayer(const VectorX<T>& W,const VectorX<T>& b);
     virtual VectorX<T> compute(const VectorX<T>&) const override;
@@ -164,8 +156,6 @@ namespace generic
   template<typename T>
   class HighwayLayer: public ILayer<T>
   {
-    friend class FittableLWTNN;
-
   public:
     HighwayLayer(const MatrixX<T>& W,
                  const VectorX<T>& b,

@@ -698,7 +698,8 @@ namespace generic {
 
   template<typename T>
   T nn_relu( T x) {
-    if (std::isnan(static_cast<double>(x))) return x;
+    using std::isnan;
+    if (isnan(x)) return x;
     else return x > 0 ? x : 0;
   }
 
