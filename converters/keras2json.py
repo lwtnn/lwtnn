@@ -132,6 +132,9 @@ def _get_layers(network, inputs, h5):
         layer_type = layer_arch['class_name'].lower()
         if layer_type in skip_layers: continue
 
+        skip_layers_sequential = {'inputlayer'}
+        if layer_type in skip_layers_sequential: continue
+
         convert = layer_converters[layer_type]
 
         # build the out layer
