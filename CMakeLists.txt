@@ -8,7 +8,7 @@ if( NOT ${CMAKE_VERSION} VERSION_LESS 3.9 )
 endif()
 
 # Set the project's name and version.
-project( lwtnn VERSION 2.11 )
+project( lwtnn VERSION 2.11.1 )
 
 # Enable using CTest in the project.
 include( CTest )
