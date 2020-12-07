@@ -4,19 +4,12 @@
 /lib
 
 # ignore common data file types
-*.yml
-*.yaml
-*.json
-*.txt
 *.h5
 *.tgz
 *.gz
 
 # except in the tests
 !/tests/data/*
-
-# include the .zenodo file
-!.zenodo.json
 
 # .pyc files
 *.pyc
