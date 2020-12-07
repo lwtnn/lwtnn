@@ -106,7 +106,21 @@ else()
 endif()
 
 # Public header files for the shared/static library.
-set( lib_headers
+set( concrete_headers
+   include/lwtnn/Exceptions.hh
+   include/lwtnn/Graph.hh
+   include/lwtnn/InputOrder.hh
+   include/lwtnn/InputPreprocessor.hh
+   include/lwtnn/LightweightGraph.hh
+   include/lwtnn/LightweightNeuralNetwork.hh
+   include/lwtnn/NNLayerConfig.hh
+   include/lwtnn/NanReplacer.hh
+   include/lwtnn/Stack.hh
+   include/lwtnn/lightweight_network_config.hh
+   include/lwtnn/lightweight_nn_streamers.hh
+   include/lwtnn/parse_json.hh )
+
+set( generic_headers
    include/lwtnn/generic/eigen_typedefs.hh
    include/lwtnn/generic/Graph.hh
    include/lwtnn/generic/Graph.tcc
@@ -123,13 +137,10 @@ set( lib_headers
    include/lwtnn/generic/FastInputPreprocessor.tcc
    include/lwtnn/generic/FastGraph.hh
    include/lwtnn/generic/FastGraph.tcc
-   include/lwtnn/Exceptions.hh
-   include/lwtnn/LightweightNeuralNetwork.hh
-   include/lwtnn/NNLayerConfig.hh
-   include/lwtnn/NanReplacer.hh
-   include/lwtnn/lightweight_network_config.hh
-   include/lwtnn/lightweight_nn_streamers.hh
-   include/lwtnn/parse_json.hh )
+   )
+
+set( lib_headers "${concrete_headers}" "${generic_headers}")
+
 # Source files for the shared/static library.
 set( lib_sources
    src/Exceptions.cxx
@@ -150,8 +161,6 @@ target_include_directories( lwtnn
    PUBLIC ${EIGEN3_INCLUDE_DIR}
    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
    PRIVATE ${Boost_INCLUDE_DIRS} )
-set_property( TARGET lwtnn
-   PROPERTY PUBLIC_HEADER ${lib_headers} )
 if( BUILTIN_BOOST )
    add_dependencies( lwtnn Boost )
 endif()
@@ -165,8 +174,6 @@ target_include_directories( lwtnn-stat
    PUBLIC ${EIGEN3_INCLUDE_DIR}
    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
    PRIVATE ${Boost_INCLUDE_DIRS} )
-set_property( TARGET lwtnn-stat
-   PROPERTY PUBLIC_HEADER ${lib_headers} )
 if( BUILTIN_BOOST )
    add_dependencies( lwtnn-stat Boost )
 endif()
@@ -180,6 +187,8 @@ install( TARGETS lwtnn lwtnn-stat
    ARCHIVE DESTINATION lib
    LIBRARY DESTINATION lib
    PUBLIC_HEADER DESTINATION include/lwtnn )
+
+install( DIRECTORY "include/" DESTINATION "include" )
 
 # Helper macro for building the projects' executables.
 macro( lwtnn_add_executable name )
@@ -242,3 +251,11 @@ configure_file( ${CMAKE_SOURCE_DIR}/cmake/lwtnnConfig-version.cmake.in
 install( FILES ${CMAKE_SOURCE_DIR}/cmake/lwtnnConfig.cmake
    ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/lwtnnConfig-version.cmake
    DESTINATION cmake )
+
+# Attila wrote this list originally, and used 3 spaces for tabs.  I
+# guess we can stick to that.
+#
+# Local Variables:
+# cmake-tab-width: 3
+# End:
+

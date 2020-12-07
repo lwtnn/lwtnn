@@ -21,6 +21,7 @@ matrix:
   include:
     # minimal build setup
     - packages:
+        - tree
         - cmake
         - libhdf5-serial-dev
       env: MINIMAL=1 BUILD=./tests/travis-build-cmake.sh
@@ -28,6 +29,7 @@ matrix:
 addons:
   apt:
     packages:
+      - tree
       - cmake
       - libhdf5-serial-dev
       - libboost-dev
