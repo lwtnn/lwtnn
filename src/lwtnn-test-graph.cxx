@@ -63,7 +63,8 @@ namespace {
     using namespace lwt;
     GraphConfig config;
     std::vector<Input> dummy_inputs{ {"one", 0, 1}, {"two", 0, 1} };
-    config.inputs = {{"one", dummy_inputs}, {"two", dummy_inputs}};
+    config.inputs = {{"one", dummy_inputs, {}, {}},
+                     {"two", dummy_inputs, {}, {}}};
     typedef NodeConfig::Type Type;
     // First input layer: read from source object at index 0, expect
     // 2d vector.
@@ -72,7 +73,7 @@ namespace {
     // vector.
     config.nodes.push_back({Type::INPUT, {1}, 2});
     // Concatenate layer: read from layers 0 and 1 above
-    config.nodes.push_back({Type::CONCATENATE, {0, 1}});
+    config.nodes.push_back({Type::CONCATENATE, {0, 1}, 0});
     // Feed forward layer, read from layer 2, apply transform from
     // layer 0 (defined below.
     config.nodes.push_back({Type::FEED_FORWARD, {2}, 0});
@@ -80,8 +81,9 @@ namespace {
     config.nodes.push_back({Type::FEED_FORWARD, {3}, 0});
 
     // Simple dense layer, inverts the input vector
-    LayerConfig dense {
-      {0, 0, 0, 1,  0, 0, 1, 0,  0, 1, 0, 0,  1, 0, 0, 0}};
+    LayerConfig dense;
+    dense.weights = {0, 0, 0, 1,  0, 0, 1, 0,  0, 1, 0, 0,  1, 0, 0, 0};
+    dense.bias = {0, 0, 0, 0};
     dense.activation.function = Activation::LINEAR;
     dense.architecture = Architecture::DENSE;
     config.layers.push_back(dense);
