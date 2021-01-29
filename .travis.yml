@@ -14,8 +14,8 @@ env:
   # test both cmake and make build systems
   matrix:
     - BUILD=make
-    - BUILD=./tests/travis-build-cmake.sh
-    - STANDARD=17 BUILD=./tests/travis-build-cmake.sh
+    - BUILD=./tests/build-cmake.sh
+    - STANDARD=17 BUILD=./tests/build-cmake.sh
 
 matrix:
   include:
@@ -24,7 +24,7 @@ matrix:
         - tree
         - cmake
         - libhdf5-serial-dev
-      env: MINIMAL=1 BUILD=./tests/travis-build-cmake.sh
+      env: MINIMAL=1 BUILD=./tests/build-cmake.sh
 
 addons:
   apt:
