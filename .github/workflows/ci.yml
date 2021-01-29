@@ -55,4 +55,3 @@ jobs:
         bash tests/check-conversion.sh
         bash tests/test-leaky-relu.sh
         bash tests/test-elu.sh
-
