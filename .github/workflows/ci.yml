@@ -16,7 +16,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: [3.7, 3.8, 3.9]
-        build-system: ["make", "tests/travis-build-cmake.sh"]
+        build-system: ["make", "tests/travis-build-cmake.sh", "STANDARD=17 tests/travis-build-cmake.sh"]
 
     steps:
     - uses: actions/checkout@v2
