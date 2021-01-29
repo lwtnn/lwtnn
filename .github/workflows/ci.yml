@@ -16,6 +16,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: [3.7, 3.8, 3.9]
+        build-system: ["make", "tests/travis-build-cmake.sh"]
 
     steps:
     - uses: actions/checkout@v2
@@ -40,7 +41,7 @@ jobs:
         libboost-dev
         libeigen3-dev
     - name: Build
-      run: make
+      run: ${{ matrix.build-system }}
     - name: Run tests
       run: |
         bash tests/test-highway.sh
