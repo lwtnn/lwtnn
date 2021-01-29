@@ -4,8 +4,8 @@ Lightweight Trained Neural Network
 [![Build Status][build-img]][build-link] [![Scan Status][scan-img]][scan-link]
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.597221.svg)](https://doi.org/10.5281/zenodo.597221)
 
-[build-img]: https://travis-ci.org/lwtnn/lwtnn.svg?branch=master
-[build-link]: https://travis-ci.org/lwtnn/lwtnn
+[build-img]: https://github.com/lwtnn/lwtnn/workflows/CI/badge.svg?branch=master
+[build-link]: https://github.com/lwtnn/lwtnn/actions?query=workflow%3ACI+branch%3Amaster
 [scan-img]: https://scan.coverity.com/projects/9285/badge.svg
 [scan-link]: https://scan.coverity.com/projects/lwtnn-lwtnn
 
