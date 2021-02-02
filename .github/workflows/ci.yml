@@ -58,3 +58,49 @@ jobs:
         ./tests/check-conversion.sh
         ./tests/test-leaky-relu.sh
         ./tests/test-elu.sh
+
+  minimal:
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.7, 3.8, 3.9]
+        build-system: ["MINIMAL=1 ./tests/build-cmake.sh"]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install external dependencies with apt
+      run: >-
+        sudo apt-get update -y &&
+        sudo apt-get install -y
+        tree
+        cmake
+        libhdf5-serial-dev
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        python -m pip install h5py pyyaml
+        python -m pip list
+    - name: Build
+      run: ${{ matrix.build-system }}
+    - name: Run tests
+      run: |
+        ./tests/test-highway.sh
+        ./tests/test-GRU.sh
+        ./tests/test-BatchNorm.sh
+        ./tests/test-dense_dropout_functional.sh
+        ./tests/test-lstm_functional.sh
+        ./tests/test-merge-graph.sh
+        ./tests/test-time-distributed-dense.sh
+        ./tests/test-gru-sequence.sh
+        ./tests/check-version-number.sh
+        ./tests/check-conversion.sh
+        ./tests/test-leaky-relu.sh
+        ./tests/test-elu.sh
