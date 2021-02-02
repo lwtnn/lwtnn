@@ -46,15 +46,15 @@ jobs:
       run: ${{ matrix.build-system }}
     - name: Run tests
       run: |
-        bash tests/test-highway.sh
-        bash tests/test-GRU.sh
-        bash tests/test-BatchNorm.sh
-        bash tests/test-dense_dropout_functional.sh
-        bash tests/test-lstm_functional.sh
-        bash tests/test-merge-graph.sh
-        bash tests/test-time-distributed-dense.sh
-        bash tests/test-gru-sequence.sh
-        bash tests/check-version-number.sh
-        bash tests/check-conversion.sh
-        bash tests/test-leaky-relu.sh
-        bash tests/test-elu.sh
+        ./tests/test-highway.sh
+        ./tests/test-GRU.sh
+        ./tests/test-BatchNorm.sh
+        ./tests/test-dense_dropout_functional.sh
+        ./tests/test-lstm_functional.sh
+        ./tests/test-merge-graph.sh
+        ./tests/test-time-distributed-dense.sh
+        ./tests/test-gru-sequence.sh
+        ./tests/check-version-number.sh
+        ./tests/check-conversion.sh
+        ./tests/test-leaky-relu.sh
+        ./tests/test-elu.sh
