@@ -46,18 +46,7 @@ jobs:
       run: ${{ matrix.build-system }}
     - name: Run tests
       run: |
-        ./tests/test-highway.sh
-        ./tests/test-GRU.sh
-        ./tests/test-BatchNorm.sh
-        ./tests/test-dense_dropout_functional.sh
-        ./tests/test-lstm_functional.sh
-        ./tests/test-merge-graph.sh
-        ./tests/test-time-distributed-dense.sh
-        ./tests/test-gru-sequence.sh
-        ./tests/check-version-number.sh
-        ./tests/check-conversion.sh
-        ./tests/test-leaky-relu.sh
-        ./tests/test-elu.sh
+        bash tests/test-runner.sh
 
   minimal:
 
@@ -91,15 +80,4 @@ jobs:
       run: MINIMAL=1 ./tests/build-cmake.sh
     - name: Run tests
       run: |
-        ./tests/test-highway.sh
-        ./tests/test-GRU.sh
-        ./tests/test-BatchNorm.sh
-        ./tests/test-dense_dropout_functional.sh
-        ./tests/test-lstm_functional.sh
-        ./tests/test-merge-graph.sh
-        ./tests/test-time-distributed-dense.sh
-        ./tests/test-gru-sequence.sh
-        ./tests/check-version-number.sh
-        ./tests/check-conversion.sh
-        ./tests/test-leaky-relu.sh
-        ./tests/test-elu.sh
+        bash tests/test-runner.sh
