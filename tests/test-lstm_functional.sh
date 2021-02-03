@@ -6,9 +6,6 @@
 #  - Convert a saved NN to JSON
 #  - Read in the saved file, with C++, test on a few patterns
 #  - Compare the outputs to somehting previously saved
-#
-# If feel free to copy and modify this file, and add tests to it to
-# the `.travis.yml` file.
 
 # _______________________________________________________________________
 # define inputs, outputs, and code to run

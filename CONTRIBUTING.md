@@ -97,8 +97,8 @@ an example see `tests/test-ipmp.sh`. This simple script will:
 Any error in this process will cause the script to return a nonzero
 exit code.
 
-The unit tests are run automatically by Travis CI, and are listed in
-the `script:` section of `.travis.yml`.
+The unit tests are run automatically by GitHub Actions, and are listed in
+`.github/workflows/ci.yml`.
 
 [1]: https://github.com/lwtnn/lwtnn/wiki
 [2]: https://github.com/lwtnn/lwtnn/issues

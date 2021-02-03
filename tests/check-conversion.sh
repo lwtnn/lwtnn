@@ -5,9 +5,6 @@
 # This should:
 #  - Create an inputs file and compare it to a template
 #  - Create a network file and compare it to a template
-#
-# If feel free to copy and modify this file, and add tests to it to
-# the `.travis.yml` file.
 
 # _______________________________________________________________________
 # define inputs, outputs, and code to run
