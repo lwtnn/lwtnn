@@ -18,7 +18,7 @@ Generate JSON file with variables (inputs to NN) with offset and scale values.
   Based on converters/keras2json.py:   https://github.com/lwtnn/lwtnn
 
 
-WARNING: Some values are hard-coded due to my unfamiliarity 
+WARNING: Some values are hard-coded due to my unfamiliarity
          with the sklearn MLPClassifier interface
          http://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html
 
@@ -143,7 +143,7 @@ class Sklearn2json(object):
             print " WARNING:  Please check the model."
             sys.exit(1)
 
-        for l in range(self.nLayers-1): 
+        for l in range(self.nLayers-1):
             # connecting layer (l) to layer (l+1)
             layer = {}
             layer["architecture"] = self.architecutre
@@ -157,8 +157,8 @@ class Sklearn2json(object):
             activation_fn = self.activation if l!=self.nLayers-2 else self.outActivation
             activation_fn = self.activation_fns[activation_fn]
             act_fn = {
-              "activation":   activation_fn, 
-              "architecture": self.architecutre, 
+              "activation":   activation_fn,
+              "architecture": self.architecutre,
               "bias": [],    # always empty, I think (?)
               "weights": []  # always empty, I think (?)
             }

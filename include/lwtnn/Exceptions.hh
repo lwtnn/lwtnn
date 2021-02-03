@@ -31,6 +31,3 @@ namespace lwt {
 }
 
 #endif // EXCEPTIONS_HH
-
-
-
