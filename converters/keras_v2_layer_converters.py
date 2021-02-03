@@ -39,7 +39,11 @@ def _get_dense_layer_parameters(h5, layer_config, n_in, layer_type):
 
 def _time_distributed_parameters(h5, layer_config, n_in, layer_type):
     dist_layer = layer_config['layer']['config']
-    dist_layer['name'] = layer_config['name'] # seems slightly hacky...
+    # TODO: Come up with a cleaner way to pass the h5 group
+    # corresponding to the wrapped layer into the layer converter. To
+    # do this we need to figure out exactly how Keras uses the json
+    # archetecture to locate h5 datasets.
+    dist_layer['name'] = layer_config['name']
     dist_name = layer_config['layer']['class_name'].lower()
     return layer_converters[dist_name](h5, dist_layer, n_in, layer_type)
 
