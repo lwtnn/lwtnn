@@ -1,7 +1,10 @@
 #include "lwtnn/parse_json.hh"
 
+// this is needed to quiet some warnings from boost
+#define BOOST_BIND_GLOBAL_PLACEHOLDERS
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
+
 #include <cassert>
 #include <string>
 #include <cmath> // for NAN
