@@ -287,7 +287,7 @@ namespace generic {
                              const VectorX<T>& b_carry,
                              ActivationConfig activation):
     m_w_t(W), m_b_t(b), m_w_c(W_carry), m_b_c(b_carry),
-    m_act(get_activation<T>(activation))
+    m_act(get_raw_activation_layer<T>(activation))
   {
   }
 
@@ -296,7 +296,7 @@ namespace generic {
   VectorX<T> HighwayLayer<T>::compute(const VectorX<T>& in) const {
     const std::function<T(T)> sig(nn_sigmoid<T>);
     ArrayX<T> c = (m_w_c * in + m_b_c).unaryExpr(sig);
-    ArrayX<T> t = (m_w_t * in + m_b_t).unaryExpr(m_act);
+    ArrayX<T> t = m_act->compute(m_w_t * in + m_b_t);
     return c * t + (1 - c) * in.array();
   }
 
@@ -501,8 +501,9 @@ namespace generic {
   {
     m_n_outputs = m_W_o.rows();
 
-    m_activation_fun = get_activation<T>(activation);
-    m_inner_activation_fun = get_activation<T>(inner_activation);
+    m_activation_fun.reset(get_raw_activation_layer<T>(activation));
+    m_inner_activation_fun.reset(
+      get_raw_activation_layer<T>(inner_activation));
   }
 
   // internal structure created on each scan call
@@ -533,13 +534,13 @@ namespace generic {
     VectorX<T> h_tm1 = s.h_t.col(tm1);
     VectorX<T> C_tm1 = s.C_t.col(tm1);
 
-    VectorX<T> i  =  (m_W_i*x_t + m_b_i + m_U_i*h_tm1).unaryExpr(in_act_fun);
-    VectorX<T> f  =  (m_W_f*x_t + m_b_f + m_U_f*h_tm1).unaryExpr(in_act_fun);
-    VectorX<T> o  =  (m_W_o*x_t + m_b_o + m_U_o*h_tm1).unaryExpr(in_act_fun);
-    VectorX<T> ct =  (m_W_c*x_t + m_b_c + m_U_c*h_tm1).unaryExpr(act_fun);
+    VectorX<T> i  =  in_act_fun->compute(m_W_i*x_t + m_b_i + m_U_i*h_tm1);
+    VectorX<T> f  =  in_act_fun->compute(m_W_f*x_t + m_b_f + m_U_f*h_tm1);
+    VectorX<T> o  =  in_act_fun->compute(m_W_o*x_t + m_b_o + m_U_o*h_tm1);
+    VectorX<T> ct =  act_fun->compute(m_W_c*x_t + m_b_c + m_U_c*h_tm1);
 
     s.C_t.col(s.time) = f.cwiseProduct(C_tm1) + i.cwiseProduct(ct);
-    s.h_t.col(s.time) = o.cwiseProduct(s.C_t.col(s.time).unaryExpr(act_fun));
+    s.h_t.col(s.time) = o.cwiseProduct(act_fun->compute(s.C_t.col(s.time)));
   }
 
   template<typename T>
@@ -574,8 +575,9 @@ namespace generic {
   {
     m_n_outputs = m_W_h.rows();
 
-    m_activation_fun = get_activation<T>(activation);
-    m_inner_activation_fun = get_activation<T>(inner_activation);
+    m_activation_fun.reset(get_raw_activation_layer<T>(activation));
+    m_inner_activation_fun.reset(
+      get_raw_activation_layer<T>(inner_activation));
   }
   // internal structure created on each scan call
   template<typename T>
@@ -601,10 +603,10 @@ namespace generic {
 
     int tm1 = s.time == 0 ? 0 : s.time - 1;
     VectorX<T> h_tm1 = s.h_t.col(tm1);
-    VectorX<T> z  = (m_W_z*x_t + m_b_z + m_U_z*h_tm1).unaryExpr(in_act_fun);
-    VectorX<T> r  = (m_W_r*x_t + m_b_r + m_U_r*h_tm1).unaryExpr(in_act_fun);
+    VectorX<T> z  = in_act_fun->compute(m_W_z*x_t + m_b_z + m_U_z*h_tm1);
+    VectorX<T> r  = in_act_fun->compute(m_W_r*x_t + m_b_r + m_U_r*h_tm1);
     VectorX<T> rh = r.cwiseProduct(h_tm1);
-    VectorX<T> hh = (m_W_h*x_t + m_b_h + m_U_h*rh).unaryExpr(act_fun);
+    VectorX<T> hh = act_fun->compute(m_W_h*x_t + m_b_h + m_U_h*rh);
     VectorX<T> one = VectorX<T>::Ones(z.size());
     s.h_t.col(s.time)  = z.cwiseProduct(h_tm1) + (one - z).cwiseProduct(hh);
   }
