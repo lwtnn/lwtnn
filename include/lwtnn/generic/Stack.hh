@@ -24,6 +24,7 @@
 
 #include <vector>
 #include <functional>
+#include <memory>
 
 namespace lwt
 {
@@ -168,7 +169,7 @@ namespace generic
     VectorX<T> m_b_t;
     MatrixX<T> m_w_c;
     VectorX<T> m_b_c;
-    std::function<T(T)> m_act;
+    std::unique_ptr<ILayer<T>> m_act;
   };
 
   // ______________________________________________________________________
@@ -254,8 +255,8 @@ namespace generic
     void step( const VectorX<T>& input, LSTMState<T>& ) const;
 
   private:
-    std::function<T(T)> m_activation_fun;
-    std::function<T(T)> m_inner_activation_fun;
+    std::unique_ptr<ILayer<T>> m_activation_fun;
+    std::unique_ptr<ILayer<T>> m_inner_activation_fun;
 
     MatrixX<T> m_W_i;
     MatrixX<T> m_U_i;
@@ -295,8 +296,8 @@ namespace generic
     void step( const VectorX<T>& input, GRUState<T>& ) const;
 
   private:
-    std::function<T(T)> m_activation_fun;
-    std::function<T(T)> m_inner_activation_fun;
+    std::unique_ptr<ILayer<T>> m_activation_fun;
+    std::unique_ptr<ILayer<T>> m_inner_activation_fun;
 
     MatrixX<T> m_W_z;
     MatrixX<T> m_U_z;
