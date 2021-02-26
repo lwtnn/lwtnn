@@ -207,6 +207,37 @@ namespace generic {
     return expv / sum_exp;
   }
 
+  template<typename T>
+  VectorX<T> ReLULayer<T>::compute(const VectorX<T>& in) const {
+    return in.unaryExpr([](T x){ return x < 0 ? 0 : x; });
+  }
+
+  template<typename T>
+  VectorX<T> SigmoidLayer<T>::compute(const VectorX<T>& in) const {
+    return 1.0 / (1.0 + exp(-in.array()));
+  }
+
+  template<typename T>
+  VectorX<T> HardSigmoidLayer<T>::compute(const VectorX<T>& in) const {
+    //https://github.com/Theano/Theano/blob/eb6a4125c4f5617e74b10503afc3f334f17cf545/theano/tensor/nnet/sigm.py#L279
+    return in.unaryExpr([](T x) -> T {
+      T out = 0.2*x + 0.5;
+      if (out < 0) return 0.0;
+      if (out > 1) return 1.0;
+      return out;
+    });
+  }
+
+  template<typename T>
+  VectorX<T> TanhLayer<T>::compute(const VectorX<T>& in) const {
+    return tanh(in.array());
+  }
+
+  template<typename T>
+  VectorX<T> AbsLayer<T>::compute(const VectorX<T>& in) const {
+    return abs(in.array());
+  }
+
   // bias layer
   template<typename T>
   BiasLayer<T>::BiasLayer(const VectorX<T>& bias): m_bias(bias)
@@ -639,7 +670,13 @@ namespace generic {
     // Check for special cases. If it's not one, use
     // UnaryActivationLayer
     switch (activation.function) {
+    case Activation::LINEAR: return new DummyLayer<T>;
     case Activation::SOFTMAX: return new SoftmaxLayer<T>;
+    case Activation::RECTIFIED: return new ReLULayer<T>;
+    case Activation::SIGMOID: return new SigmoidLayer<T>;
+    case Activation::HARD_SIGMOID: return new HardSigmoidLayer<T>;
+    case Activation::TANH: return new TanhLayer<T>;
+    case Activation::ABS: return new AbsLayer<T>;
     default: return new UnaryActivationLayer<T>(activation);
     }
   }
@@ -648,15 +685,16 @@ namespace generic {
   template<typename T>
   std::function<T(T)> get_activation(lwt::ActivationConfig act) {
     using namespace lwt;
+    // the first block here is legacy layers
     switch (act.function) {
-    case Activation::SIGMOID: return nn_sigmoid<T>;
-    case Activation::HARD_SIGMOID: return nn_hard_sigmoid<T>;
+    case Activation::SIGMOID_LEGACY: return nn_sigmoid<T>;
+    case Activation::HARD_SIGMOID_LEGACY: return nn_hard_sigmoid<T>;
+    case Activation::TANH_LEGACY: return nn_tanh<T>;
+    case Activation::RECTIFIED_LEGACY: return nn_relu<T>;
+      // at some point we should probably port these to be ILayer too
     case Activation::SWISH: return Swish<T>(act.alpha);
-    case Activation::TANH: return nn_tanh<T>;
-    case Activation::RECTIFIED: return nn_relu<T>;
     case Activation::ELU: return ELU<T>(act.alpha);
     case Activation::LEAKY_RELU: return LeakyReLU<T>(act.alpha);
-    case Activation::LINEAR: return [](T x){return x;};
     case Activation::ABS: return [](T x){using std::abs; /* autodiff... */ return abs(x);};
     default: {
       throw NNConfigurationException("Got undefined activation function");
@@ -664,6 +702,8 @@ namespace generic {
     }
   }
 
+  // Note: this is deprecated in favor of SigmoidLayer, still here for
+  // benchmarking comparisons.
   template<typename T>
   T nn_sigmoid( T x ){
     //github.com/Theano/Theano/blob/master/theano/tensor/nnet/sigm.py#L35
@@ -673,6 +713,8 @@ namespace generic {
     return 1.0 / (1.0 + exp(-1.0*x));
   }
 
+  // Note: this is deprecated in favor of HardSigmoidLayer, still here for
+  // benchmarking comparisons.
   template<typename T>
   T nn_hard_sigmoid( T x ){
     //github.com/Theano/Theano/blob/master/theano/tensor/nnet/sigm.py#L279
@@ -692,12 +734,16 @@ namespace generic {
     return x * nn_sigmoid<T>(m_alpha * x);
   }
 
+  // Note: this is deprecated in favor of TanhLayer, still here for
+  // benchmarking comparisons.
   template<typename T>
   T nn_tanh( T x ){
     using std::tanh; // strange requirement from autodiff
     return tanh(x);
   }
 
+  // Note: this is deprecated in favor of ReLULayer, still here for
+  // benchmarking comparisons.
   template<typename T>
   T nn_relu( T x) {
     using std::isnan;
