@@ -13,7 +13,10 @@
 
 namespace lwt {
   enum class Activation {NONE, LINEAR, SIGMOID, RECTIFIED, SOFTMAX, TANH,
-      HARD_SIGMOID, ELU, LEAKY_RELU, SWISH, ABS};
+    HARD_SIGMOID, ELU, LEAKY_RELU, SWISH, ABS,
+    // these "legacy" layers are just around for benchmarking now,
+    // will eventually be removed.
+    SIGMOID_LEGACY, HARD_SIGMOID_LEGACY, TANH_LEGACY, RECTIFIED_LEGACY};
   enum class Architecture {NONE, DENSE, NORMALIZATION, MAXOUT, HIGHWAY,
       LSTM, GRU, EMBEDDING};
   // components (for LSTM, etc)

@@ -220,6 +220,12 @@ namespace {
     if (str == "leakyrelu") return Activation::LEAKY_RELU;
     if (str == "swish") return Activation::SWISH;
     if (str == "abs") return Activation::ABS;
+    // legacy activations. These use UnaryActivationLayer. Just around
+    // for benchmarks now.
+    if (str == "sigmoid_legacy") return Activation::SIGMOID_LEGACY;
+    if (str == "hard_sigmoid_legacy") return Activation::HARD_SIGMOID_LEGACY;
+    if (str == "tanh_legacy") return Activation::TANH_LEGACY;
+    if (str == "rectified_legacy") return Activation::RECTIFIED_LEGACY;
     throw std::logic_error("activation function " + str + " not recognized");
     return Activation::LINEAR;
   }

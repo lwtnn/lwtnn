@@ -106,6 +106,36 @@ namespace generic
   };
 
   template<typename T>
+  class ReLULayer: public ILayer<T>
+  {
+    virtual VectorX<T> compute(const VectorX<T>&) const override;
+  };
+
+  template<typename T>
+  class SigmoidLayer: public ILayer<T>
+  {
+    virtual VectorX<T> compute(const VectorX<T>&) const override;
+  };
+
+  template<typename T>
+  class HardSigmoidLayer: public ILayer<T>
+  {
+    virtual VectorX<T> compute(const VectorX<T>&) const override;
+  };
+
+  template<typename T>
+  class TanhLayer: public ILayer<T>
+  {
+    virtual VectorX<T> compute(const VectorX<T>&) const override;
+  };
+
+  template<typename T>
+  class AbsLayer: public ILayer<T>
+  {
+    virtual VectorX<T> compute(const VectorX<T>&) const override;
+  };
+
+  template<typename T>
   class BiasLayer: public ILayer<T>
   {
   public:
