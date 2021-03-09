@@ -18,7 +18,7 @@ Use as follows:
 import argparse
 import json
 import sys
-from collections import Sequence
+from collections.abc import Sequence
 
 def _get_args():
     parser = argparse.ArgumentParser(
