@@ -17,3 +17,4 @@ set -o pipefail
 ./tests/check-conversion.sh
 ./tests/test-leaky-relu.sh
 ./tests/test-elu.sh
+./tests/test-unsplit-model.sh
