@@ -12,10 +12,10 @@
 
 import numpy as np
 import sys
-from keras_layer_converters_common import _activation_map
+from keras_layer_converters_common import activation_map
 import h5py
 
-def _send_recieve_meta_info(backend):
+def set_globals(backend):
     global BACKEND_SUFFIX
     BACKEND_SUFFIX = ":0" if backend == "tensorflow" else ""
 
@@ -33,7 +33,7 @@ def _get_dense_layer_parameters(h5, layer_config, n_in, layer_type):
         'weights': weights.T.flatten('C').tolist(),
         'bias': bias.flatten('C').tolist(),
         'architecture': 'dense',
-        'activation': _activation_map[layer_config['activation']],
+        'activation': activation_map[layer_config['activation']],
     }
     return return_dict, weights.shape[1]
 
@@ -99,13 +99,13 @@ def _rnn_parameters(h5, layer_config, n_in, layer_type):
         }
 
     return {'components': submap, 'architecture': rnn_architecure,
-            'activation': _activation_map[layer_config['activation']],
-            'inner_activation': _activation_map[layer_config['recurrent_activation']]}, n_out
+            'activation': activation_map[layer_config['activation']],
+            'inner_activation': activation_map[layer_config['recurrent_activation']]}, n_out
 
 def _activation_parameters(h5, layer_config, n_in, layer_type):
     """Return dummy parameters"""
     return {'weights':[], 'bias':[], 'architecture':'dense',
-            'activation':_activation_map[layer_config['activation']]}, n_in
+            'activation':activation_map[layer_config['activation']]}, n_in
 
 def _activation_func(activation_name):
     def func(h5, layer_config, n_in, layer_type):
