@@ -120,7 +120,7 @@ def _get_layers(network, inputs, h5):
         "Pleas open an issue at https://github.com/lwtnn").format(KERAS_VERSION)
 
     _send_recieve_meta_info = getattr(importlib.import_module(keras_layer_converters),
-    "_send_recieve_meta_info")
+    "set_globals")
     layer_converters = getattr(importlib.import_module(keras_layer_converters),
     "layer_converters")
 

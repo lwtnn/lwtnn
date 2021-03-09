@@ -11,9 +11,9 @@
 #  - The number of outputs (also for error checking)
 
 import numpy as np
-from keras_layer_converters_common import _activation_map
+from keras_layer_converters_common import activation_map
 
-def _send_recieve_meta_info(backend):
+def set_globals(backend):
     global BACKEND_SUFFIX
     BACKEND_SUFFIX = ":0" if backend == "tensorflow" else ""
 
@@ -34,7 +34,7 @@ def _get_dense_layer_parameters(h5, layer_config, n_in, layer_type):
         'weights': weights.T.flatten('C').tolist(),
         'bias': bias.flatten('C').tolist(),
         'architecture': 'dense',
-        'activation': _activation_map[layer_config['activation']],
+        'activation': activation_map[layer_config['activation']],
     }
     return return_dict, weights.shape[1]
 
@@ -110,8 +110,8 @@ def _lstm_parameters(h5, layer_config, n_in, layer_type):
             'bias': layers['b_' + gate].flatten().tolist(),
         }
     return {'components': submap, 'architecture': 'lstm',
-            'activation': _activation_map[layer_config['activation']],
-            'inner_activation': _activation_map[layer_config['inner_activation']]}, n_out
+            'activation': activation_map[layer_config['activation']],
+            'inner_activation': activation_map[layer_config['inner_activation']]}, n_out
 
 def _get_highway_layer_parameters(h5, layer_config, n_in, layer_type):
     """Get weights, bias, and n-outputs for a highway layer"""
@@ -126,7 +126,7 @@ def _get_highway_layer_parameters(h5, layer_config, n_in, layer_type):
             'bias': layers['b' + gate].flatten().tolist(),
         }
     return {'components': submap, 'architecture': 'highway',
-            'activation': _activation_map[layer_config['activation']]}, n_out
+            'activation': activation_map[layer_config['activation']]}, n_out
 
 def _gru_parameters(h5, layer_config, n_in, layer_type):
     """GRU parameter converter"""
@@ -192,7 +192,7 @@ def _get_elu_activation_parameters(h5, layer_config, n_in):
     pars = {
         'weights':[], 'bias':[],'architecture':'dense',
         'activation':{
-            'function': _activation_map['elu'],
+            'function': activation_map['elu'],
             'alpha': layer_config['alpha']
         }
     }
@@ -201,7 +201,7 @@ def _get_elu_activation_parameters(h5, layer_config, n_in):
 def _activation_parameters(h5, layer_config, n_in, layer_type):
     """Return dummy parameters"""
     return {'weights':[], 'bias':[], 'architecture':'dense',
-            'activation':_activation_map[layer_config['activation']]}, n_in
+            'activation':activation_map[layer_config['activation']]}, n_in
 
 # _________________________________________________________________________
 # master list of converters

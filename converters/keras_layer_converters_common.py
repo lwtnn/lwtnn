@@ -7,7 +7,7 @@
 skip_layers = {'flatten', 'dropout', 'masking'}
 
 # translate from keras to json representation
-_activation_map = {
+activation_map = {
     'relu': 'rectified',
     'sigmoid': 'sigmoid',
     None: 'linear',

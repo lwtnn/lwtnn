@@ -18,7 +18,6 @@ import json
 import h5py
 from collections import Counter
 import sys, os
-import importlib
 from keras_layer_converters_common import skip_layers
 
 def _run():
@@ -32,7 +31,7 @@ def _run():
     with open(args.variables_file, 'r') as variables_file:
         variables = json.load(variables_file)
 
-    _check_version(arch)
+    backend = _check_version(arch, args.hdf5_file)
 
     with h5py.File(args.hdf5_file, 'r') as h5:
         for group in h5:
@@ -41,7 +40,7 @@ def _run():
                     "The weight file has been saved incorrectly.\n"
                     "Please see https://github.com/lwtnn/lwtnn/wiki/Keras-Converter#saving-keras-models \n"
                     "on how to correctly save weights.")
-        layers, node_dict = _get_layers_and_nodes(arch, h5)
+        layers, node_dict = _get_layers_and_nodes(backend, arch, h5)
     input_layer_arch = arch['config']['input_layers']
     nodes = _build_node_list(node_dict, input_layer_arch)
 
@@ -79,29 +78,25 @@ def _resolve_inheriting_types(nodes):
             else:
                 node['type'] = 'feed_forward'
 
-def _check_version(arch):
+def _check_version(arch, h5_file):
     if arch["class_name"] not in {"Model", "Functional"}:
         sys.exit("this is not a graph, try using keras2json")
-    global BACKEND
-    if 'backend' not in arch:
+
+    if not {'backend','keras_version'}.issubset(arch):
         sys.stderr.write(
             'WARNING: no backend found for this architecture!\n'
-            'Defaulting to theano.\n')
+            'Defaulting to theano, keras version 1.\n')
         BACKEND="theano"
+        KERAS_VERSION='1.0.0'
     else:
         BACKEND = arch['backend']
-    global KERAS_VERSION
-    if 'keras_version' not in arch:
-        sys.stderr.write(
-            'WARNING: no version number found for this architecture!\n'
-            'Defaulting to version 1.2.\n')
-        KERAS_VERSION=1
-    else:
-        major, minor, *bugfix = arch['keras_version'].split('.')
-        KERAS_VERSION=int(major)
-        config_tmp = (
-            "lwtnn converter being configured for keras (v{}.{}).\n")
-        sys.stderr.write(config_tmp.format(major, minor))
+        KERAS_VERSION = arch['keras_version']
+    major, minor, *bugfix = KERAS_VERSION.split('.')
+    version=int(major)
+    config_tmp = (
+        "lwtnn converter being configured for keras (v{}.{}).\n")
+    sys.stderr.write(config_tmp.format(major, minor))
+    return BACKEND, version
 
 
 def _get_args():
@@ -119,10 +114,10 @@ def _build_variables_file(args):
     with open(args.arch_file, 'r') as arch_file:
         arch = json.load(arch_file)
 
-    _check_version(arch)
+    backend = _check_version(arch, args.hdf5_file)
 
     with h5py.File(args.hdf5_file, 'r') as h5:
-        layers, node_dict = _get_layers_and_nodes(arch, h5)
+        layers, node_dict = _get_layers_and_nodes(backend, arch, h5)
     input_layer_arch = arch['config']['input_layers']
     vars_per_input = _get_vars_per_input(input_layer_arch, node_dict)
     def get_input(n):
@@ -259,13 +254,13 @@ def _number_nodes(node_dict):
     for number, node in enumerate(sorted(node_dict.values())):
         node.number = number
 
-def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
+def _build_layer(backend, output_layers, node_key, h5, node_dict, layer_dict):
     node = node_dict[node_key]
     if node.n_outputs is not None:
         return
 
     for source in node.sources:
-        _build_layer(output_layers, source.get_key(), h5,
+        _build_layer(backend, output_layers, source.get_key(), h5,
                      node_dict, layer_dict)
 
     # special cases for merge layers
@@ -283,22 +278,18 @@ def _build_layer(output_layers, node_key, h5, node_dict, layer_dict):
 
     layer_type = node.layer_type
 
+    BACKEND, KERAS_VERSION = backend
     if KERAS_VERSION == 1:
-        keras_layer_converters = "keras_v1_layer_converters"
+        from keras_v1_layer_converters import set_globals, layer_converters
     elif KERAS_VERSION == 2:
-        keras_layer_converters = "keras_v2_layer_converters"
+        from keras_v2_layer_converters import set_globals, layer_converters
     else:
         sys.exit("We don't support Keras version {}.\n"
-          "Pleas open an issue at https://github.com/lwtnn").format(KERAS_VERSION)
+          "Pleas open an issue at https://github.com/lwtnn").format(
+              KERAS_VERSION)
 
-    _send_recieve_meta_info = getattr(importlib.import_module(keras_layer_converters),
-      "_send_recieve_meta_info")
-    layer_converters = getattr(importlib.import_module(keras_layer_converters),
-      "layer_converters")
-
-    _send_recieve_meta_info(BACKEND)
+    set_globals(BACKEND)
     convert = layer_converters[layer_type]
-
 
     # build the out layer
     n_inputs = sum(s.n_outputs for s in node.sources)
@@ -364,14 +355,15 @@ def _build_node_list(node_dict, input_layer_arch):
         node_list.append(out_node)
     return node_list
 
-def _get_layers_and_nodes(network, h5):
+def _get_layers_and_nodes(backend, network, h5):
     node_dict = _build_node_dict(network)
     _number_nodes(node_dict)
 
     output_layers = []
     layer_meta = {}
     for node_key in node_dict:
-        _build_layer(output_layers, node_key, h5, node_dict, layer_meta)
+        _build_layer(backend, output_layers, node_key, h5,
+                     node_dict, layer_meta)
 
     return output_layers, node_dict
 
