@@ -32,7 +32,15 @@ def run():
         # we also need to add some information to the architecture
         # file, which is normally stored as model_weights attributes
         meta_keys = {'backend','keras_version'}
-        meta = {x: weights.attrs[x] for x in meta_keys}
+        try:
+            meta = {x: str(weights.attrs[x],'UTF-8') for x in meta_keys}
+        except TypeError:
+            meta = {x: weights.attrs[x] for x in meta_keys}
+
+        # also seems nessisary to store some attributes on the weights
+        # file
+        for a in ['layer_names']:
+            w.attrs[a] = weights.attrs[a]
 
     arch = json.loads(m.attrs['model_config'])
     arch.update(meta)

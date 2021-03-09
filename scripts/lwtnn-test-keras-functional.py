@@ -11,9 +11,6 @@ from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from numpy import linspace
 import numpy as np
 import json
-from CustomLayers import Swish, Sum
-from keras.utils.generic_utils import get_custom_objects
-get_custom_objects().update({'Swish': Swish, 'Sum': Sum})
 
 def _get_args():
     parser = ArgumentParser(
@@ -30,6 +27,9 @@ def run():
 
     # keras loads slow, do the loading here
     from keras.models import model_from_json
+    from CustomLayers import Swish, Sum
+    from keras.utils.generic_utils import get_custom_objects
+    get_custom_objects().update({'Swish': Swish, 'Sum': Sum})
 
     with open(args.archetecture_file) as arch:
         model = model_from_json(''.join(arch.readlines()))
@@ -42,7 +42,6 @@ def run():
     vec_input_iterator = iter(inputs['inputs'])
     seq_input_iterator = iter(inputs['input_sequences'])
     for in_node in model.inputs:
-        print(in_node.shape)
         if len(in_node.shape) == 2:
             in_spec = next(vec_input_iterator)
             n_inputs = in_node.shape[1]
