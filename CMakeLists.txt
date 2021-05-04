@@ -60,7 +60,7 @@ if( BUILTIN_BOOST )
    ExternalProject_Add( Boost
       PREFIX ${CMAKE_BINARY_DIR}/externals
       INSTALL_DIR ${CMAKE_BINARY_DIR}/externals/Boost
-      URL "https://boostorg.jfrog.io/artifactory/main/release/1.64.0/source/boost_1_64_0.tar.gz"
+      URL "https://lcgpackages.web.cern.ch/tarFiles/sources/boost_1_64_0.tar.gz"
       URL_HASH SHA256=0445c22a5ef3bd69f5dfb48354978421a85ab395254a26b1ffb0aa1bfd63a108
       BUILD_IN_SOURCE 1
       CONFIGURE_COMMAND ${CMAKE_COMMAND} -E echo "No configuration for Boost"
