@@ -97,4 +97,3 @@ echo "Testing with $TEST"
 $TEST $JSON_FILE | ./reg-test.py --graph $TMPDIR/$OUTPUT
 
 echo " *** Success! ***"
-
