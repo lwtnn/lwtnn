@@ -1,0 +1,12 @@
+repos:
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.0
+    hooks:
+    - id: check-case-conflict
+    - id: check-merge-conflict
+    - id: check-json
+    - id: check-yaml
+    - id: end-of-file-fixer
+    - id: mixed-line-ending
+      args: [--fix=lf]
+    - id: trailing-whitespace
