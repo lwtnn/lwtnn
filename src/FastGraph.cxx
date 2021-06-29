@@ -10,7 +10,7 @@ namespace internal {
   //
   // Build a mapping from the inputs in the saved network to the
   // inputs that the user is going to hand us.
-  std::vector<size_t> get_node_indices(
+  std::vector<std::size_t> get_node_indices(
     const order_t& order,
     const std::vector<lwt::InputNodeConfig>& inputs)
   {
@@ -18,7 +18,7 @@ namespace internal {
     for (size_t i = 0; i < order.size(); i++) {
       order_indices[order.at(i).first] = i;
     }
-    std::vector<size_t> node_indices;
+    std::vector<std::size_t> node_indices;
     for (const lwt::InputNodeConfig& input: inputs) {
       if (!order_indices.count(input.name)) {
         throw NNConfigurationException("Missing input " + input.name);

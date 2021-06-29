@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
   // input nodes will request Eigen::MatrixXd and VectorXd objects
   // from the source object.
   using namespace lwt;
-  std::vector<size_t> inputs_per_node;
+  std::vector<std::size_t> inputs_per_node;
   for (const auto& innode: config.inputs) {
     inputs_per_node.push_back(innode.variables.size());
   }

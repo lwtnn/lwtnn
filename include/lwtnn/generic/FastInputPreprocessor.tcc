@@ -8,7 +8,7 @@
 namespace lwt {
 namespace generic {
 namespace internal {
-  std::vector<size_t> get_value_indices(
+  std::vector<std::size_t> get_value_indices(
     const std::vector<std::string>& order,
     const std::vector<lwt::Input>& inputs);
 } // end internal namespace

@@ -34,12 +34,12 @@ namespace generic {
   class DummySource: public ISource<T>
   {
   public:
-    DummySource(const std::vector<size_t>& input_sizes,
+    DummySource(const std::vector<std::size_t>& input_sizes,
                 const std::vector<std::pair<size_t, size_t> >& = {});
     virtual VectorX<T> at(size_t index) const override;
     virtual MatrixX<T> matrix_at(size_t index) const override;
   private:
-    std::vector<size_t> m_sizes;
+    std::vector<std::size_t> m_sizes;
     std::vector<std::pair<size_t, size_t> > m_matrix_sizes;
   };
 

@@ -142,7 +142,7 @@ namespace generic {
     void build_node(const size_t,
                     const std::vector<NodeConfig>& nodes,
                     const std::vector<LayerConfig>& layers,
-                    std::set<size_t> cycle_check = {});
+                    std::set<std::size_t> cycle_check = {});
 
     std::unordered_map<size_t, INode<T>*> m_nodes;
     size_t m_last_node; // <-- convenience for graphs with one output

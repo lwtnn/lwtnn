@@ -154,7 +154,7 @@ namespace generic {
     assert(layer.architecture == Architecture::MAXOUT);
     throw_if_not_maxout(layer);
     std::vector<typename MaxoutLayer<T>::InitUnit> matrices;
-    std::set<size_t> n_outputs;
+    std::set<std::size_t> n_outputs;
     for (const auto& sublayer: layer.sublayers) {
       MatrixX<T> matrix = build_matrix<T>(sublayer.weights, n_inputs);
       VectorX<T> bias = build_vector<T>(sublayer.bias);

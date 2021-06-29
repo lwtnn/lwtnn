@@ -39,7 +39,7 @@ namespace generic {
   }
 
   template<typename T>
-  DummySource<T>::DummySource(const std::vector<size_t>& input_sizes,
+  DummySource<T>::DummySource(const std::vector<std::size_t>& input_sizes,
                                 const std::vector<std::pair<size_t,size_t> >& ma):
     m_sizes(input_sizes),
     m_matrix_sizes(ma)
@@ -91,7 +91,7 @@ namespace generic {
   VectorX<T> InputNode<T>::compute(const ISource<T>& source) const {
     VectorX<T> output = source.at(m_index);
     assert(output.rows() > 0);
-    if (static_cast<size_t>(output.rows()) != m_n_outputs) {
+    if (static_cast<std::size_t>(output.rows()) != m_n_outputs) {
       std::string len = std::to_string(output.rows());
       std::string found = std::to_string(m_n_outputs);
       throw NNEvaluationException(
@@ -166,7 +166,7 @@ namespace generic {
     if (output.rows() == 0) {
       throw NNEvaluationException("empty input sequence");
     }
-    if (static_cast<size_t>(output.rows()) != m_n_outputs) {
+    if (static_cast<std::size_t>(output.rows()) != m_n_outputs) {
       std::string len = std::to_string(output.rows());
       std::string found = std::to_string(m_n_outputs);
       throw NNEvaluationException(
@@ -261,7 +261,7 @@ namespace generic {
     void check_compute_node(const NodeConfig& node, size_t n_layers) {
         check_compute_node(node);
         int layer_n = node.index;
-        if (static_cast<size_t>(layer_n) >= n_layers) {
+        if (static_cast<std::size_t>(layer_n) >= n_layers) {
         throw_cfg("no layer number", layer_n);
         }
     }
@@ -409,7 +409,7 @@ namespace generic {
   void Graph<T>::build_node(const size_t iii,
                          const std::vector<NodeConfig>& nodes,
                          const std::vector<LayerConfig>& layers,
-                         std::set<size_t> cycle_check) {
+                         std::set<std::size_t> cycle_check) {
     if (m_nodes.count(iii) || m_seq_nodes.count(iii)) return;
 
     // we insist that the upstream nodes are built before the

@@ -24,8 +24,8 @@ namespace generic {
   namespace internal {
     struct SourceIndices
     {
-      std::vector<size_t> scalar;
-      std::vector<size_t> sequence;
+      std::vector<std::size_t> scalar;
+      std::vector<std::size_t> sequence;
     };
   }
 

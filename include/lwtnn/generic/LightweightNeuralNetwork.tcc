@@ -46,7 +46,7 @@ namespace generic {
     const auto& preproc = *m_preproc;
     auto outvec = m_stack->compute(preproc(in));
     assert(outvec.rows() > 0);
-    auto out_size = static_cast<size_t>(outvec.rows());
+    auto out_size = static_cast<std::size_t>(outvec.rows());
     assert(out_size == m_outputs.size());
 
     // build and return output map
@@ -92,7 +92,7 @@ namespace generic {
     }
     auto outvec = m_stack->reduce(inputs);
     ValueMap out;
-    const auto n_rows = static_cast<size_t>(outvec.rows());
+    const auto n_rows = static_cast<std::size_t>(outvec.rows());
     for (size_t iii = 0; iii < n_rows; iii++) {
       out.emplace(m_outputs.at(iii), outvec(iii));
     }
@@ -107,7 +107,7 @@ namespace generic {
     const auto& preproc = *m_vec_preproc;
     auto outvec = m_stack->reduce(preproc(in));
     ValueMap out;
-    const auto n_rows = static_cast<size_t>(outvec.rows());
+    const auto n_rows = static_cast<std::size_t>(outvec.rows());
     for (size_t iii = 0; iii < n_rows; iii++) {
       out.emplace(m_outputs.at(iii), outvec(iii));
     }
