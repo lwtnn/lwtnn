@@ -81,3 +81,39 @@ jobs:
     - name: Run tests
       run: |
         bash tests/test-runner.sh
+
+  build-base:
+
+    runs-on: ubuntu-latest
+    container: lwtnn/build-base:gcc-v${{ matrix.gcc-version }}
+    strategy:
+      matrix:
+        gcc-version: [11.1.0]
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+
+    - name: Install external dependencies with apt
+      run: >-
+        apt-get update -y &&
+        apt-get install -y
+        tree
+        cmake
+        libhdf5-serial-dev
+        libboost-dev
+        libeigen3-dev
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip setuptools wheel
+        python -m pip install h5py pyyaml
+        python -m pip list
+
+    - name: Build
+      run: STANDARD=17 ./tests/build-cmake.sh
+
+    - name: Run tests
+      run: |
+        bash tests/test-runner.sh
