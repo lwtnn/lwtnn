@@ -8,8 +8,8 @@
 namespace lwt {
   std::ostream& operator<<(std::ostream& out,
 			   const std::vector<double>& vec) {
-    size_t nentry = vec.size();
-    for (size_t iii = 0; iii < nentry; iii++) {
+    std::size_t nentry = vec.size();
+    for (std::size_t iii = 0; iii < nentry; iii++) {
       out << vec.at(iii);
       if (iii < (nentry - 1)) out << ", ";
     }

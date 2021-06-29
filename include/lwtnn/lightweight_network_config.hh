@@ -48,7 +48,7 @@ namespace lwt {
   struct OutputNodeConfig
   {
     std::vector<std::string> labels;
-    size_t node_index;
+    std::size_t node_index;
   };
   struct GraphConfig
   {

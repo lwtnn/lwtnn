@@ -51,7 +51,7 @@ namespace generic {
 
     // build and return output map
     lwt::ValueMap out_map;
-    for (size_t out_n = 0; out_n < out_size; out_n++) {
+    for (std::size_t out_n = 0; out_n < out_size; out_n++) {
       out_map.emplace(m_outputs.at(out_n), outvec(out_n));
     }
     return out_map;
@@ -87,13 +87,13 @@ namespace generic {
   ValueMap LightweightRNN<T>::reduce(const std::vector<ValueMap>& in) const {
     const auto& preproc = *m_preproc;
     MatrixX<T> inputs(m_n_inputs, in.size());
-    for (size_t iii = 0; iii < in.size(); iii++) {
+    for (std::size_t iii = 0; iii < in.size(); iii++) {
       inputs.col(iii) = preproc(in.at(iii));
     }
     auto outvec = m_stack->reduce(inputs);
     ValueMap out;
     const auto n_rows = static_cast<std::size_t>(outvec.rows());
-    for (size_t iii = 0; iii < n_rows; iii++) {
+    for (std::size_t iii = 0; iii < n_rows; iii++) {
       out.emplace(m_outputs.at(iii), outvec(iii));
     }
     return out;
@@ -108,7 +108,7 @@ namespace generic {
     auto outvec = m_stack->reduce(preproc(in));
     ValueMap out;
     const auto n_rows = static_cast<std::size_t>(outvec.rows());
-    for (size_t iii = 0; iii < n_rows; iii++) {
+    for (std::size_t iii = 0; iii < n_rows; iii++) {
       out.emplace(m_outputs.at(iii), outvec(iii));
     }
     return out;

@@ -99,14 +99,14 @@ namespace generic {
     typedef std::vector<std::pair<std::string, IP*> > Preprocs;
     typedef std::vector<std::pair<std::string, IVP*> > VecPreprocs;
 
-    ValueMap compute(const NodeMap&, const SeqNodeMap&, size_t) const;
-    VectorMap scan(const NodeMap&, const SeqNodeMap&, size_t) const;
+    ValueMap compute(const NodeMap&, const SeqNodeMap&, std::size_t) const;
+    VectorMap scan(const NodeMap&, const SeqNodeMap&, std::size_t) const;
     Graph<T>* m_graph;
     Preprocs m_preprocs;
     VecPreprocs m_vec_preprocs;
-    std::vector<std::pair<size_t, std::vector<std::string> > > m_outputs;
-    std::map<std::string, size_t> m_output_indices;
-    size_t m_default_output;
+    std::vector<std::pair<std::size_t, std::vector<std::string> > > m_outputs;
+    std::map<std::string, std::size_t> m_output_indices;
+    std::size_t m_default_output;
   };
 
 } // namespace generic

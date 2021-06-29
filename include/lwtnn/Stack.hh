@@ -41,10 +41,10 @@ namespace lwt
   double nn_relu( double x );
 
   // double typedefs for utility functions
-  MatrixX<double> build_matrix(const std::vector<double>& weights, size_t n_inputs);
+  MatrixX<double> build_matrix(const std::vector<double>& weights, std::size_t n_inputs);
   VectorX<double> build_vector(const std::vector<double>& bias);
 
-  DenseComponents get_component(const lwt::LayerConfig& layer, size_t n_in);
+  DenseComponents get_component(const lwt::LayerConfig& layer, std::size_t n_in);
   std::function<double(double)> get_activation(lwt::ActivationConfig);
 
 }

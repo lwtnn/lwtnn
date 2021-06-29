@@ -94,7 +94,7 @@ namespace {
       auto val_strings = parse_line(val_line);
       if (val_strings.size() == 0) continue;
       assert(val_strings.size() == labels.size());
-      for (size_t iii = 0; iii < labels.size(); iii++) {
+      for (std::size_t iii = 0; iii < labels.size(); iii++) {
         in[labels.at(iii)].push_back(std::stof(val_strings.at(iii)));
       }
     }

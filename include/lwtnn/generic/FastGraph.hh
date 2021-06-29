@@ -49,7 +49,7 @@ namespace generic {
     VectorX<T> compute(const NodeVec<T>&, const SeqNodeVec<T>& = {}) const;
 
     // the other "compute" which allows you to select an arbitrary output
-    VectorX<T> compute(const NodeVec<T>&, const SeqNodeVec<T>&, size_t) const;
+    VectorX<T> compute(const NodeVec<T>&, const SeqNodeVec<T>&, std::size_t) const;
 
   private:
     typedef FastInputPreprocessor<T> IP;
@@ -60,7 +60,7 @@ namespace generic {
     Graph<T> m_graph;
     Preprocs m_preprocs;
     VecPreprocs m_vec_preprocs;
-    size_t m_default_output;
+    std::size_t m_default_output;
     // the mapping from a node in the network to a user input node
     internal::SourceIndices m_input_indices;
   };

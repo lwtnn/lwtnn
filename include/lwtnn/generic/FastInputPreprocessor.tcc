@@ -24,7 +24,7 @@ namespace internal {
     m_offsets(inputs.size()),
     m_scales(inputs.size())
   {
-    size_t in_num = 0;
+    std::size_t in_num = 0;
     for (const auto& input: inputs) {
       m_offsets(in_num) = input.offset;
       m_scales(in_num) = input.scale;
@@ -36,8 +36,8 @@ namespace internal {
   template<typename T>
   VectorX<T> FastInputPreprocessor<T>::operator()(const VectorX<T>& in) const {
     VectorX<T> invec(m_indices.size());
-    size_t input_number = 0;
-    for (size_t index: m_indices) {
+    std::size_t input_number = 0;
+    for (std::size_t index: m_indices) {
       if (static_cast<int>(index) >= in.rows()) {
         throw NNEvaluationException(
           "index " + std::to_string(index) + " is out of range, scalar "
@@ -58,7 +58,7 @@ namespace internal {
     m_offsets(inputs.size()),
     m_scales(inputs.size())
   {
-    size_t in_num = 0;
+    std::size_t in_num = 0;
     for (const auto& input: inputs) {
       m_offsets(in_num) = input.offset;
       m_scales(in_num) = input.scale;
@@ -76,10 +76,10 @@ namespace internal {
   MatrixX<T> FastInputVectorPreprocessor<T>::operator()(const MatrixX<T>& in)
     const {
     using namespace Eigen;
-    size_t n_cols = in.cols();
+    std::size_t n_cols = in.cols();
     MatrixX<T> inmat(m_indices.size(), n_cols);
-    size_t in_num = 0;
-    for (size_t index: m_indices) {
+    std::size_t in_num = 0;
+    for (std::size_t index: m_indices) {
       if (static_cast<int>(index) >= in.rows()) {
         throw NNEvaluationException(
           "index " + std::to_string(index) + " is out of range, sequence "

@@ -21,7 +21,7 @@ namespace generic {
   }
 
   template<typename T>
-  VectorX<T> VectorSource<T>::at(size_t index) const {
+  VectorX<T> VectorSource<T>::at(std::size_t index) const {
     if (index >= m_inputs.size()) {
       throw NNEvaluationException(
         "VectorSource: no source vector defined at " + std::to_string(index));
@@ -30,7 +30,7 @@ namespace generic {
   }
 
   template<typename T>
-  MatrixX<T> VectorSource<T>::matrix_at(size_t index) const {
+  MatrixX<T> VectorSource<T>::matrix_at(std::size_t index) const {
     if (index >= m_matrix_inputs.size()) {
       throw NNEvaluationException(
         "VectorSource: no source matrix defined at " + std::to_string(index));
@@ -40,37 +40,37 @@ namespace generic {
 
   template<typename T>
   DummySource<T>::DummySource(const std::vector<std::size_t>& input_sizes,
-                                const std::vector<std::pair<size_t,size_t> >& ma):
+                                const std::vector<std::pair<std::size_t,std::size_t> >& ma):
     m_sizes(input_sizes),
     m_matrix_sizes(ma)
   {
   }
 
   template<typename T>
-  VectorX<T> DummySource<T>::at(size_t index) const {
+  VectorX<T> DummySource<T>::at(std::size_t index) const {
     if (index >= m_sizes.size()) {
       throw NNEvaluationException(
         "Dummy Source: no size defined at " + std::to_string(index));
     }
-    size_t n_entries = m_sizes.at(index);
+    std::size_t n_entries = m_sizes.at(index);
     VectorX<T> vec(n_entries);
-    for (size_t iii = 0; iii < n_entries; iii++) {
+    for (std::size_t iii = 0; iii < n_entries; iii++) {
       vec(iii) = iii;
     }
     return vec;
   }
 
   template<typename T>
-  MatrixX<T> DummySource<T>::matrix_at(size_t index) const {
+  MatrixX<T> DummySource<T>::matrix_at(std::size_t index) const {
     if (index >= m_matrix_sizes.size()) {
       throw NNEvaluationException(
         "Dummy Source: no size defined at " + std::to_string(index));
     }
-    size_t n_rows = m_matrix_sizes.at(index).first;
-    size_t n_cols = m_matrix_sizes.at(index).second;
+    std::size_t n_rows = m_matrix_sizes.at(index).first;
+    std::size_t n_cols = m_matrix_sizes.at(index).second;
     MatrixX<T> mat(n_rows, n_cols);
-    for (size_t iii = 0; iii < n_rows; iii++) {
-      for (size_t jjj = 0; jjj < n_cols; jjj++) {
+    for (std::size_t iii = 0; iii < n_rows; iii++) {
+      for (std::size_t jjj = 0; jjj < n_cols; jjj++) {
         mat(iii, jjj) = jjj + n_cols * iii;
       }
     }
@@ -80,7 +80,7 @@ namespace generic {
 
   // Nodes
   template<typename T>
-  InputNode<T>::InputNode(size_t index, size_t n_outputs):
+  InputNode<T>::InputNode(std::size_t index, std::size_t n_outputs):
     m_index(index),
     m_n_outputs(n_outputs)
   {
@@ -101,7 +101,7 @@ namespace generic {
   }
 
   template<typename T>
-  size_t InputNode<T>::n_outputs() const {
+  std::size_t InputNode<T>::n_outputs() const {
     return m_n_outputs;
   }
 
@@ -118,7 +118,7 @@ namespace generic {
   }
 
   template<typename T>
-  size_t FeedForwardNode<T>::n_outputs() const {
+  std::size_t FeedForwardNode<T>::n_outputs() const {
     return m_stack->n_outputs();
   }
 
@@ -135,10 +135,10 @@ namespace generic {
   template<typename T>
   VectorX<T> ConcatenateNode<T>::compute(const ISource<T>& source) const {
     VectorX<T> output(m_n_outputs);
-    size_t offset = 0;
+    std::size_t offset = 0;
     for (const auto node: m_sources) {
       VectorX<T> input = node->compute(source);
-      size_t n_elements = input.rows();
+      std::size_t n_elements = input.rows();
       assert(n_elements == node->n_outputs());
       output.segment(offset, n_elements) = input;
       offset += n_elements;
@@ -148,13 +148,13 @@ namespace generic {
   }
 
   template<typename T>
-  size_t ConcatenateNode<T>::n_outputs() const {
+  std::size_t ConcatenateNode<T>::n_outputs() const {
     return m_n_outputs;
   }
 
   // Sequence nodes
   template<typename T>
-  InputSequenceNode<T>::InputSequenceNode(size_t index, size_t n_outputs):
+  InputSequenceNode<T>::InputSequenceNode(std::size_t index, std::size_t n_outputs):
     m_index(index),
     m_n_outputs(n_outputs)
   {
@@ -175,7 +175,7 @@ namespace generic {
     return output;
   }
   template<typename T>
-  size_t InputSequenceNode<T>::n_outputs() const {
+  std::size_t InputSequenceNode<T>::n_outputs() const {
     return m_n_outputs;
   }
 
@@ -195,7 +195,7 @@ namespace generic {
   template<typename T>
   VectorX<T> SequenceNode<T>::compute(const ISource<T>& src) const {
     MatrixX<T> mat = scan(src);
-    size_t n_cols = mat.cols();
+    std::size_t n_cols = mat.cols();
     // special handling for empty sequence
     if (n_cols == 0) {
       return MatrixX<T>::Zero(mat.rows(), 1);
@@ -204,7 +204,7 @@ namespace generic {
   }
 
   template<typename T>
-  size_t SequenceNode<T>::n_outputs() const {
+  std::size_t SequenceNode<T>::n_outputs() const {
     return m_stack->n_outputs();
   }
 
@@ -220,15 +220,15 @@ namespace generic {
   MatrixX<T> TimeDistributedNode<T>::scan(const ISource<T>& source) const {
     MatrixX<T> input = m_source->scan(source);
     MatrixX<T> output(m_stack->n_outputs(), input.cols());
-    size_t n_columns = input.cols();
-    for (size_t col_n = 0; col_n < n_columns; col_n++) {
+    std::size_t n_columns = input.cols();
+    for (std::size_t col_n = 0; col_n < n_columns; col_n++) {
       output.col(col_n) = m_stack->compute(input.col(col_n));
     }
     return output;
   }
 
   template<typename T>
-  size_t TimeDistributedNode<T>::n_outputs() const {
+  std::size_t TimeDistributedNode<T>::n_outputs() const {
     return m_stack->n_outputs();
   }
 
@@ -244,21 +244,21 @@ namespace generic {
   }
 
   template<typename T>
-  size_t SumNode<T>::n_outputs() const {
+  std::size_t SumNode<T>::n_outputs() const {
     return m_source->n_outputs();
   }
 
   namespace {
-    void throw_cfg(std::string msg, size_t index) {
+    void throw_cfg(std::string msg, std::size_t index) {
         throw NNConfigurationException(msg + " " + std::to_string(index));
     }
     void check_compute_node(const NodeConfig& node) {
-        size_t n_source = node.sources.size();
+        std::size_t n_source = node.sources.size();
         if (n_source != 1) throw_cfg("need one source, found", n_source);
         int layer_n = node.index;
         if (layer_n < 0) throw_cfg("negative layer number", layer_n);
     }
-    void check_compute_node(const NodeConfig& node, size_t n_layers) {
+    void check_compute_node(const NodeConfig& node, std::size_t n_layers) {
         check_compute_node(node);
         int layer_n = node.index;
         if (static_cast<std::size_t>(layer_n) >= n_layers) {
@@ -272,8 +272,8 @@ namespace generic {
   INode<T>* get_feedforward_node(
     const NodeConfig& node,
     const std::vector<LayerConfig>& layers,
-    const std::unordered_map<size_t, INode<T>*>& node_map,
-    std::unordered_map<size_t, Stack<T>*>& stack_map) {
+    const std::unordered_map<std::size_t, INode<T>*>& node_map,
+    std::unordered_map<std::size_t, Stack<T>*>& stack_map) {
 
     // FIXME: merge this block with the time distributed one later on
     check_compute_node(node, layers.size());
@@ -289,8 +289,8 @@ namespace generic {
   SequenceNode<T>* get_sequence_node(
     const NodeConfig& node,
     const std::vector<LayerConfig>& layers,
-    const std::unordered_map<size_t, ISequenceNode<T>*>& node_map,
-    std::unordered_map<size_t, RecurrentStack<T>*>& stack_map) {
+    const std::unordered_map<std::size_t, ISequenceNode<T>*>& node_map,
+    std::unordered_map<std::size_t, RecurrentStack<T>*>& stack_map) {
 
     check_compute_node(node, layers.size());
     ISequenceNode<T>* source = node_map.at(node.sources.at(0));
@@ -305,8 +305,8 @@ namespace generic {
   TimeDistributedNode<T>* get_time_distributed_node(
     const NodeConfig& node,
     const std::vector<LayerConfig>& layers,
-    const std::unordered_map<size_t, ISequenceNode<T>*>& node_map,
-    std::unordered_map<size_t, Stack<T>*>& stack_map) {
+    const std::unordered_map<std::size_t, ISequenceNode<T>*>& node_map,
+    std::unordered_map<std::size_t, Stack<T>*>& stack_map) {
 
     // FIXME: merge this block with the FF block above
     check_compute_node(node, layers.size());
@@ -336,7 +336,7 @@ namespace generic {
                     const std::vector<LayerConfig>& layers):
     m_last_node(0)
   {
-    for (size_t iii = 0; iii < nodes.size(); iii++) {
+    for (std::size_t iii = 0; iii < nodes.size(); iii++) {
       build_node(iii, nodes, layers);
     }
     // assert(maps.node.size() + maps.seq_node.size() == nodes.size());
@@ -364,7 +364,7 @@ namespace generic {
     }
   }
   template<typename T>
-  VectorX<T> Graph<T>::compute(const ISource<T>& source, size_t node_number) const {
+  VectorX<T> Graph<T>::compute(const ISource<T>& source, std::size_t node_number) const {
     if (!m_nodes.count(node_number)) {
       auto num = std::to_string(node_number);
       if (m_seq_nodes.count(node_number)) {
@@ -383,7 +383,7 @@ namespace generic {
     return m_nodes.at(m_last_node)->compute(source);
   }
   template<typename T>
-  MatrixX<T> Graph<T>::scan(const ISource<T>& source, size_t node_number) const {
+  MatrixX<T> Graph<T>::scan(const ISource<T>& source, std::size_t node_number) const {
     if (!m_seq_nodes.count(node_number)) {
       auto num = std::to_string(node_number);
       if (m_nodes.count(node_number)) {
@@ -406,7 +406,7 @@ namespace generic {
   // private methods
 
   template<typename T>
-  void Graph<T>::build_node(const size_t iii,
+  void Graph<T>::build_node(const std::size_t iii,
                          const std::vector<NodeConfig>& nodes,
                          const std::vector<LayerConfig>& layers,
                          std::set<std::size_t> cycle_check) {
@@ -424,12 +424,12 @@ namespace generic {
     // if it's an input, build and return
     if (node.type == NodeConfig::Type::INPUT) {
       check_compute_node(node);
-      size_t input_number = node.sources.at(0);
+      std::size_t input_number = node.sources.at(0);
       m_nodes[iii] = new InputNode<T>(input_number, node.index);
       return;
     } else if (node.type == NodeConfig::Type::INPUT_SEQUENCE) {
       check_compute_node(node);
-      size_t input_number = node.sources.at(0);
+      std::size_t input_number = node.sources.at(0);
       m_seq_nodes[iii] = new InputSequenceNode<T>(input_number, node.index);
       return;
     }
@@ -439,7 +439,7 @@ namespace generic {
       throw NNConfigurationException("found cycle in graph");
     }
     cycle_check.insert(iii);
-    for (size_t source_node: node.sources) {
+    for (std::size_t source_node: node.sources) {
       build_node(source_node, nodes, layers, cycle_check);
     }
 
@@ -460,7 +460,7 @@ namespace generic {
     } else if (node.type == NodeConfig::Type::CONCATENATE) {
       // build concatenate layer
       std::vector<const INode<T>*> in_nodes;
-      for (size_t source_node: node.sources) {
+      for (std::size_t source_node: node.sources) {
         in_nodes.push_back(m_nodes.at(source_node));
       }
       m_nodes[iii] = new ConcatenateNode<T>(in_nodes);

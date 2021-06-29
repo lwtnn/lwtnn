@@ -14,8 +14,8 @@ namespace internal {
     const order_t& order,
     const std::vector<lwt::InputNodeConfig>& inputs)
   {
-    std::map<std::string, size_t> order_indices;
-    for (size_t i = 0; i < order.size(); i++) {
+    std::map<std::string, std::size_t> order_indices;
+    for (std::size_t i = 0; i < order.size(); i++) {
       order_indices[order.at(i).first] = i;
     }
     std::vector<std::size_t> node_indices;

@@ -24,8 +24,8 @@ namespace {
   public:
     LazySource(const NodeMap&, const SeqNodeMap&,
                const Preprocs&, const VecPreprocs&);
-    virtual VectorX<T> at(size_t index) const override;
-    virtual MatrixX<T> matrix_at(size_t index) const override;
+    virtual VectorX<T> at(std::size_t index) const override;
+    virtual MatrixX<T> matrix_at(std::size_t index) const override;
   private:
     const NodeMap& m_nodes;
     const SeqNodeMap& m_seqs;
@@ -41,7 +41,7 @@ namespace {
   }
 
   template<typename T>
-  VectorX<T> LazySource<T>::at(size_t index) const
+  VectorX<T> LazySource<T>::at(std::size_t index) const
   {
     const auto& proc = m_preprocs.at(index);
     if (!m_nodes.count(proc.first)) {
@@ -52,7 +52,7 @@ namespace {
   }
 
   template<typename T>
-  MatrixX<T> LazySource<T>::matrix_at(size_t index) const
+  MatrixX<T> LazySource<T>::matrix_at(std::size_t index) const
   {
     const auto& proc = m_vec_preprocs.at(index);
     if (!m_seqs.count(proc.first)) {
@@ -82,7 +82,7 @@ namespace generic {
       m_vec_preprocs.emplace_back(
         node.name, new InputVectorPreprocessor<T>(node.variables));
     }
-    size_t output_n = 0;
+    std::size_t output_n = 0;
     for (const auto& node: config.outputs) {
       m_outputs.emplace_back(node.second.node_index, node.second.labels);
       m_output_indices.emplace(node.first, output_n);
@@ -132,12 +132,12 @@ namespace generic {
   template<typename T>
   ValueMap LightweightGraph<T>::compute(const NodeMap& nodes,
                                      const SeqNodeMap& seq,
-                                     size_t idx) const {
+                                     std::size_t idx) const {
     LazySource<T> source(nodes, seq, m_preprocs, m_vec_preprocs);
     VectorX<T> result = m_graph->compute(source, m_outputs.at(idx).first);
     const std::vector<std::string>& labels = m_outputs.at(idx).second;
     std::map<std::string, double> output;
-    for (size_t iii = 0; iii < labels.size(); iii++) {
+    for (std::size_t iii = 0; iii < labels.size(); iii++) {
       output[labels.at(iii)] = result(iii);
     }
     return output;
@@ -162,12 +162,12 @@ namespace generic {
   template<typename T>
   VectorMap LightweightGraph<T>::scan(const NodeMap& nodes,
                                      const SeqNodeMap& seq,
-                                     size_t idx) const {
+                                     std::size_t idx) const {
     LazySource<T> source(nodes, seq, m_preprocs, m_vec_preprocs);
     MatrixX<T> result = m_graph->scan(source, m_outputs.at(idx).first);
     const std::vector<std::string>& labels = m_outputs.at(idx).second;
     std::map<std::string, std::vector<double> > output;
-    for (size_t iii = 0; iii < labels.size(); iii++) {
+    for (std::size_t iii = 0; iii < labels.size(); iii++) {
       VectorXd row = result.row(iii);
       std::vector<double> out_vector(row.data(), row.data() + row.size());
       output[labels.at(iii)] = out_vector;

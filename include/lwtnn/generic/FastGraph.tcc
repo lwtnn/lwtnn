@@ -31,8 +31,8 @@ namespace internal {
     LazySource(const NodeVec<T>&, const SeqNodeVec<T>&,
                const FastPreprocs<T>&, const FastVecPreprocs<T>&,
                const SourceIndices& input_indices);
-    virtual VectorX<T> at(size_t index) const override;
-    virtual MatrixX<T> matrix_at(size_t index) const override;
+    virtual VectorX<T> at(std::size_t index) const override;
+    virtual MatrixX<T> matrix_at(std::size_t index) const override;
   private:
     const NodeVec<T>& m_nodes;
     const SeqNodeVec<T>& m_seqs;
@@ -52,10 +52,10 @@ namespace internal {
   {
   }
   template<typename T>
-  VectorX<T> LazySource<T>::at(size_t index) const
+  VectorX<T> LazySource<T>::at(std::size_t index) const
   {
     const auto& preproc = m_preprocs.at(index);
-    size_t source_index = m_input_indices.scalar.at(index);
+    std::size_t source_index = m_input_indices.scalar.at(index);
     if (source_index >= m_nodes.size()) {
       throw NNEvaluationException(
         "The NN needs an input VectorXd at position "
@@ -65,10 +65,10 @@ namespace internal {
     return preproc(m_nodes.at(source_index));
   }
   template<typename T>
-  MatrixX<T> LazySource<T>::matrix_at(size_t index) const
+  MatrixX<T> LazySource<T>::matrix_at(std::size_t index) const
   {
     const auto& preproc = m_vec_preprocs.at(index);
-    size_t source_index = m_input_indices.sequence.at(index);
+    std::size_t source_index = m_input_indices.sequence.at(index);
     if (source_index >= m_seqs.size()) {
       throw NNEvaluationException(
         "The NN needs an input MatrixXd at position "
@@ -104,15 +104,15 @@ namespace internal {
     m_input_indices.sequence = get_node_indices(
       order.sequence, config.input_sequences);
 
-    for (size_t i = 0; i < config.inputs.size(); i++) {
+    for (std::size_t i = 0; i < config.inputs.size(); i++) {
       const lwt::InputNodeConfig& node = config.inputs.at(i);
-      size_t input_node = m_input_indices.scalar.at(i);
+      std::size_t input_node = m_input_indices.scalar.at(i);
       std::vector<std::string> varorder = order.scalar.at(input_node).second;
       m_preprocs.emplace_back(node.variables, varorder);
     }
-    for (size_t i = 0; i < config.input_sequences.size(); i++) {
+    for (std::size_t i = 0; i < config.input_sequences.size(); i++) {
       const lwt::InputNodeConfig& node = config.input_sequences.at(i);
-      size_t input_node = m_input_indices.sequence.at(i);
+      std::size_t input_node = m_input_indices.sequence.at(i);
       std::vector<std::string> varorder = order.sequence.at(input_node).second;
       m_vec_preprocs.emplace_back(node.variables, varorder);
     }
@@ -140,7 +140,7 @@ namespace internal {
   template<typename T>
   VectorX<T> FastGraph<T>::compute(const NodeVec<T>& nodes,
                                    const SeqNodeVec<T>& seq,
-                                   size_t idx) const {
+                                   std::size_t idx) const {
     using namespace internal;
     LazySource<T> source(nodes, seq, m_preprocs, m_vec_preprocs,
                          m_input_indices);

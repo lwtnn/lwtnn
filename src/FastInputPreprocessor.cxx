@@ -7,8 +7,8 @@ namespace internal {
     const std::vector<std::string>& order,
     const std::vector<lwt::Input>& inputs)
   {
-    std::map<std::string, size_t> order_indices;
-    for (size_t i = 0; i < order.size(); i++) {
+    std::map<std::string, std::size_t> order_indices;
+    for (std::size_t i = 0; i < order.size(); i++) {
       order_indices[order.at(i)] = i;
     }
     std::vector<std::size_t> value_indices;
