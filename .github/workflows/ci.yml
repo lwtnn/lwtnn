@@ -18,7 +18,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python-version: [3.7, 3.8, 3.9]
-        build-system: ["make", "tests/build-cmake.sh", "STANDARD=17 tests/build-cmake.sh"]
+        build-system: ["make", "tests/build-cmake.sh", "STANDARD=17 tests/build-cmake.sh", "STANDARD=20 tests/build-cmake.sh"]
 
     steps:
     - uses: actions/checkout@v2
@@ -89,6 +89,7 @@ jobs:
     strategy:
       matrix:
         gcc-version: [11.1.0]
+        cxx-standard: [17, 20]
 
     steps:
     - uses: actions/checkout@v2
@@ -112,7 +113,7 @@ jobs:
         python -m pip list
 
     - name: Build
-      run: STANDARD=17 ./tests/build-cmake.sh
+      run: STANDARD=${{ matrix.cxx-standard }} ./tests/build-cmake.sh
 
     - name: Run tests
       run: |
