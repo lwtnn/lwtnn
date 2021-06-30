@@ -30,9 +30,9 @@ namespace generic {
 
   // construct from LayerConfig
   template<typename T>
-  Stack<T>::Stack(size_t n_inputs, const std::vector<LayerConfig>& layers,
-               size_t skip) {
-    for (size_t nnn = skip; nnn < layers.size(); nnn++) {
+  Stack<T>::Stack(std::size_t n_inputs, const std::vector<LayerConfig>& layers,
+               std::size_t skip) {
+    for (std::size_t nnn = skip; nnn < layers.size(); nnn++) {
       n_inputs = add_layers(n_inputs, layers.at(nnn));
     }
     // the final assigned n_inputs is the number of output nodes
@@ -56,7 +56,7 @@ namespace generic {
   }
 
   template<typename T>
-  size_t Stack<T>::n_outputs() const {
+  std::size_t Stack<T>::n_outputs() const {
     return m_n_outputs;
   }
 
@@ -68,7 +68,7 @@ namespace generic {
 
 
   template<typename T>
-  size_t Stack<T>::add_layers(size_t n_inputs, const LayerConfig& layer) {
+  std::size_t Stack<T>::add_layers(std::size_t n_inputs, const LayerConfig& layer) {
     if (layer.architecture == Architecture::DENSE) {
       return add_dense_layers(n_inputs, layer);
     } else if (layer.architecture == Architecture::NORMALIZATION){
@@ -82,11 +82,11 @@ namespace generic {
   }
 
   template<typename T>
-  size_t Stack<T>::add_dense_layers(size_t n_inputs, const LayerConfig& layer) {
+  std::size_t Stack<T>::add_dense_layers(std::size_t n_inputs, const LayerConfig& layer) {
     assert(layer.architecture == Architecture::DENSE);
     throw_if_not_dense(layer);
 
-    size_t n_outputs = n_inputs;
+    std::size_t n_outputs = n_inputs;
 
     // add matrix layer
     if (layer.weights.size() > 0) {
@@ -115,7 +115,7 @@ namespace generic {
   }
 
   template<typename T>
-  size_t Stack<T>::add_normalization_layers(size_t n_inputs, const LayerConfig& layer) {
+  std::size_t Stack<T>::add_normalization_layers(std::size_t n_inputs, const LayerConfig& layer) {
     assert(layer.architecture == Architecture::NORMALIZATION);
     throw_if_not_normalization(layer);
 
@@ -138,7 +138,7 @@ namespace generic {
 
 
   template<typename T>
-  size_t Stack<T>::add_highway_layers(size_t n_inputs, const LayerConfig& layer) {
+  std::size_t Stack<T>::add_highway_layers(std::size_t n_inputs, const LayerConfig& layer) {
     auto& comps = layer.components;
     const auto& t = get_component<T>(comps.at(Component::T), n_inputs);
     const auto& c = get_component<T>(comps.at(Component::CARRY), n_inputs);
@@ -150,11 +150,11 @@ namespace generic {
 
 
   template<typename T>
-  size_t Stack<T>::add_maxout_layers(size_t n_inputs, const LayerConfig& layer) {
+  std::size_t Stack<T>::add_maxout_layers(std::size_t n_inputs, const LayerConfig& layer) {
     assert(layer.architecture == Architecture::MAXOUT);
     throw_if_not_maxout(layer);
     std::vector<typename MaxoutLayer<T>::InitUnit> matrices;
-    std::set<size_t> n_outputs;
+    std::set<std::size_t> n_outputs;
     for (const auto& sublayer: layer.sublayers) {
       MatrixX<T> matrix = build_matrix<T>(sublayer.weights, n_inputs);
       VectorX<T> bias = build_vector<T>(sublayer.bias);
@@ -196,10 +196,10 @@ namespace generic {
   VectorX<T> SoftmaxLayer<T>::compute(const VectorX<T>& in) const {
     // More numerically stable softmax, as suggested in
     // http://stackoverflow.com/a/34969389
-    size_t n_elements = in.rows();
+    std::size_t n_elements = in.rows();
     VectorX<T> expv(n_elements);
     T max = in.maxCoeff();
-    for (size_t iii = 0; iii < n_elements; iii++) {
+    for (std::size_t iii = 0; iii < n_elements; iii++) {
       using std::exp; // weird autodiff ...
       expv(iii) = exp(in(iii) - max);
     }
@@ -285,10 +285,10 @@ namespace generic {
   VectorX<T> MaxoutLayer<T>::compute(const VectorX<T>& in) const {
     // eigen supports tensors, but only in the experimental component
     // for now just stick to matrix and vector classes
-    const size_t n_mat = m_matrices.size();
-    const size_t out_dim = m_matrices.front().rows();
+    const std::size_t n_mat = m_matrices.size();
+    const std::size_t out_dim = m_matrices.front().rows();
     MatrixX<T> outputs(n_mat, out_dim);
-    for (size_t mat_n = 0; mat_n < n_mat; mat_n++) {
+    for (std::size_t mat_n = 0; mat_n < n_mat; mat_n++) {
       outputs.row(mat_n) = m_matrices.at(mat_n) * in;
     }
     outputs += m_bias;
@@ -335,12 +335,12 @@ namespace generic {
   // Recurrent Stack
 
   template<typename T>
-  RecurrentStack<T>::RecurrentStack(size_t n_inputs,
+  RecurrentStack<T>::RecurrentStack(std::size_t n_inputs,
                                  const std::vector<lwt::LayerConfig>& layers)
   {
     using namespace lwt;
-    const size_t n_layers = layers.size();
-    for (size_t layer_n = 0; layer_n < n_layers; layer_n++) {
+    const std::size_t n_layers = layers.size();
+    for (std::size_t layer_n = 0; layer_n < n_layers; layer_n++) {
       auto& layer = layers.at(layer_n);
 
       // add recurrent layers (now LSTM and GRU!)
@@ -374,12 +374,12 @@ namespace generic {
   }
 
   template<typename T>
-  size_t RecurrentStack<T>::n_outputs() const {
+  std::size_t RecurrentStack<T>::n_outputs() const {
     return m_n_outputs;
   }
 
   template<typename T>
-  size_t RecurrentStack<T>::add_lstm_layers(size_t n_inputs,
+  std::size_t RecurrentStack<T>::add_lstm_layers(std::size_t n_inputs,
                                          const LayerConfig& layer) {
     auto& comps = layer.components;
     const auto& i = get_component<T>(comps.at(Component::I), n_inputs);
@@ -396,7 +396,7 @@ namespace generic {
   }
 
   template<typename T>
-  size_t RecurrentStack<T>::add_gru_layers(size_t n_inputs,
+  std::size_t RecurrentStack<T>::add_gru_layers(std::size_t n_inputs,
                                          const LayerConfig& layer) {
     auto& comps = layer.components;
     const auto& z = get_component<T>(comps.at(Component::Z), n_inputs);
@@ -411,11 +411,11 @@ namespace generic {
   }
 
   template<typename T>
-  size_t RecurrentStack<T>::add_embedding_layers(size_t n_inputs,
+  std::size_t RecurrentStack<T>::add_embedding_layers(std::size_t n_inputs,
                                               const LayerConfig& layer) {
     for (const auto& emb: layer.embedding) {
-      size_t n_wt = emb.weights.size();
-      size_t n_cats = n_wt / emb.n_out;
+      std::size_t n_wt = emb.weights.size();
+      std::size_t n_cats = n_wt / emb.n_out;
       MatrixX<T> mat = build_matrix<T>(emb.weights, n_cats);
       m_layers.push_back(new EmbeddingLayer<T>(emb.index, mat));
       n_inputs += emb.n_out - 1;
@@ -424,7 +424,7 @@ namespace generic {
   }
 
   template<typename T>
-  ReductionStack<T>::ReductionStack(size_t n_in,
+  ReductionStack<T>::ReductionStack(std::size_t n_in,
                                  const std::vector<LayerConfig>& layers) {
     std::vector<LayerConfig> recurrent;
     std::vector<LayerConfig> feed_forward;
@@ -454,7 +454,7 @@ namespace generic {
   }
 
   template<typename T>
-  size_t ReductionStack<T>::n_outputs() const {
+  std::size_t ReductionStack<T>::n_outputs() const {
     return m_stack->n_outputs();
   }
 
@@ -540,14 +540,14 @@ namespace generic {
   // internal structure created on each scan call
   template<typename T>
   struct LSTMState {
-    LSTMState(size_t n_input, size_t n_outputs);
+    LSTMState(std::size_t n_input, std::size_t n_outputs);
     MatrixX<T> C_t;
     MatrixX<T> h_t;
     int time;
   };
 
   template<typename T>
-  LSTMState<T>::LSTMState(size_t n_input, size_t n_output):
+  LSTMState<T>::LSTMState(std::size_t n_input, std::size_t n_output):
     C_t(MatrixX<T>::Zero(n_output, n_input)),
     h_t(MatrixX<T>::Zero(n_output, n_input)),
     time(0)
@@ -613,13 +613,13 @@ namespace generic {
   // internal structure created on each scan call
   template<typename T>
   struct GRUState {
-    GRUState(size_t n_input, size_t n_outputs);
+    GRUState(std::size_t n_input, std::size_t n_outputs);
     MatrixX<T> h_t;
     int time;
   };
 
   template<typename T>
-  GRUState<T>::GRUState(size_t n_input, size_t n_output):
+  GRUState<T>::GRUState(std::size_t n_input, std::size_t n_output):
     h_t(MatrixX<T>::Zero(n_output, n_input)),
     time(0)
   {
@@ -789,22 +789,22 @@ namespace generic {
   };
 
   template<typename T1, typename T2>
-  MatrixX<T1> build_matrix(const std::vector<T2>& weights, size_t n_inputs)
+  MatrixX<T1> build_matrix(const std::vector<T2>& weights, std::size_t n_inputs)
   {
     static_assert( conversion_check<T1,T2>::value,
                    "T2 cannot be implicitly assigned to T1" );
 
-    size_t n_elements = weights.size();
+    std::size_t n_elements = weights.size();
     if ((n_elements % n_inputs) != 0) {
       std::string problem = "matrix elements not divisible by number"
         " of columns. Elements: " + std::to_string(n_elements) +
         ", Inputs: " + std::to_string(n_inputs);
       throw lwt::NNConfigurationException(problem);
     }
-    size_t n_outputs = n_elements / n_inputs;
+    std::size_t n_outputs = n_elements / n_inputs;
     MatrixX<T1> matrix(n_outputs, n_inputs);
-    for (size_t row = 0; row < n_outputs; row++) {
-      for (size_t col = 0; col < n_inputs; col++) {
+    for (std::size_t row = 0; row < n_outputs; row++) {
+      for (std::size_t col = 0; col < n_inputs; col++) {
         T1 element = weights.at(col + row * n_inputs);
         matrix(row, col) = element;
       }
@@ -819,7 +819,7 @@ namespace generic {
                    "T2 cannot be implicitly assigned to T1" );
 
     VectorX<T1> out(bias.size());
-    size_t idx = 0;
+    std::size_t idx = 0;
     for (const auto& val: bias) {
       out(idx) = val;
       idx++;
@@ -829,19 +829,19 @@ namespace generic {
 
   // component-wise getters (for Highway, lstm, etc)
   template<typename T>
-  DenseComponents<T> get_component(const lwt::LayerConfig& layer, size_t n_in) {
+  DenseComponents<T> get_component(const lwt::LayerConfig& layer, std::size_t n_in) {
     using namespace Eigen;
     using namespace lwt;
     MatrixX<T> weights = build_matrix<T, double>(layer.weights, n_in);
-    size_t n_out = weights.rows();
+    std::size_t n_out = weights.rows();
     VectorX<T> bias = build_vector<T, double>(layer.bias);
 
     // the u element is optional
-    size_t u_el = layer.U.size();
+    std::size_t u_el = layer.U.size();
     MatrixX<T> U = u_el ? build_matrix<T, double>(layer.U, n_out) : MatrixX<T>::Zero(0,0);
 
-    size_t u_out = U.rows();
-    size_t b_out = bias.rows();
+    std::size_t u_out = U.rows();
+    std::size_t b_out = bias.rows();
     bool u_mismatch = (u_out != n_out) && (u_out > 0);
     if ( u_mismatch || b_out != n_out) {
       throw NNConfigurationException(

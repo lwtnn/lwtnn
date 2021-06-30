@@ -66,7 +66,7 @@ namespace lwt {
       INPUT, INPUT_SEQUENCE, FEED_FORWARD, CONCATENATE, SEQUENCE,
       TIME_DISTRIBUTED, SUM };
     Type type;
-    std::vector<size_t> sources;
+    std::vector<std::size_t> sources;
     int index;                  // input node size, or layer number
   };
 }

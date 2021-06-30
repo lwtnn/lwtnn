@@ -19,7 +19,7 @@ namespace generic {
                    std::is_assignable<T, double>::value,
                    "double cannot be implicitly assigned to T" );
 
-    size_t in_num = 0;
+    std::size_t in_num = 0;
     for (const auto& input: inputs) {
       m_offsets(in_num) = input.offset;
       m_scales(in_num) = input.scale;
@@ -31,7 +31,7 @@ namespace generic {
   template<typename T>
   VectorX<T> InputPreprocessor<T>::operator()(const ValueMap& in) const {
     VectorX<T> invec(m_names.size());
-    size_t input_number = 0;
+    std::size_t input_number = 0;
     for (const auto& in_name: m_names) {
       if (!in.count(in_name)) {
         throw NNEvaluationException("can't find input: " + in_name);
@@ -54,7 +54,7 @@ namespace generic {
                    std::is_assignable<T, double>::value,
                    "double cannot be implicitly assigned to T" );
 
-    size_t in_num = 0;
+    std::size_t in_num = 0;
     for (const auto& input: inputs) {
       m_offsets(in_num) = input.offset;
       m_scales(in_num) = input.scale;
@@ -74,9 +74,9 @@ namespace generic {
     if (in.size() == 0) {
       throw NNEvaluationException("Empty input map");
     }
-    size_t n_cols = in.begin()->second.size();
+    std::size_t n_cols = in.begin()->second.size();
     MatrixX<T> inmat(m_names.size(), n_cols);
-    size_t in_num = 0;
+    std::size_t in_num = 0;
     for (const auto& in_name: m_names) {
       if (!in.count(in_name)) {
         throw NNEvaluationException("can't find input: " + in_name);

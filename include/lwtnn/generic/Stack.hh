@@ -48,8 +48,8 @@ namespace generic
     // constructor for dummy net
     Stack();
     // constructor for real net
-    Stack(size_t n_inputs, const std::vector<LayerConfig>& layers,
-          size_t skip_layers = 0);
+    Stack(std::size_t n_inputs, const std::vector<LayerConfig>& layers,
+          std::size_t skip_layers = 0);
     ~Stack();
 
     // make non-copyable for now
@@ -57,17 +57,17 @@ namespace generic
     Stack& operator=(Stack&) = delete;
 
     VectorX<T> compute(VectorX<T>) const;
-    size_t n_outputs() const;
+    std::size_t n_outputs() const;
 
   private:
     // returns the size of the next layer
-    size_t add_layers(size_t n_inputs, const LayerConfig&);
-    size_t add_dense_layers(size_t n_inputs, const LayerConfig&);
-    size_t add_normalization_layers(size_t n_inputs, const LayerConfig&);
-    size_t add_highway_layers(size_t n_inputs, const LayerConfig&);
-    size_t add_maxout_layers(size_t n_inputs, const LayerConfig&);
+    std::size_t add_layers(std::size_t n_inputs, const LayerConfig&);
+    std::size_t add_dense_layers(std::size_t n_inputs, const LayerConfig&);
+    std::size_t add_normalization_layers(std::size_t n_inputs, const LayerConfig&);
+    std::size_t add_highway_layers(std::size_t n_inputs, const LayerConfig&);
+    std::size_t add_maxout_layers(std::size_t n_inputs, const LayerConfig&);
     std::vector<ILayer<T>*> m_layers;
-    size_t m_n_outputs;
+    std::size_t m_n_outputs;
   };
 
   // _______________________________________________________________________
@@ -209,18 +209,18 @@ namespace generic
   class RecurrentStack
   {
   public:
-    RecurrentStack(size_t n_inputs, const std::vector<LayerConfig>& layers);
+    RecurrentStack(std::size_t n_inputs, const std::vector<LayerConfig>& layers);
     ~RecurrentStack();
     RecurrentStack(RecurrentStack&) = delete;
     RecurrentStack& operator=(RecurrentStack&) = delete;
     MatrixX<T> scan(MatrixX<T> inputs) const;
-    size_t n_outputs() const;
+    std::size_t n_outputs() const;
   private:
     std::vector<IRecurrentLayer<T>*> m_layers;
-    size_t add_lstm_layers(size_t n_inputs, const LayerConfig&);
-    size_t add_gru_layers(size_t n_inputs, const LayerConfig&);
-    size_t add_embedding_layers(size_t n_inputs, const LayerConfig&);
-    size_t m_n_outputs;
+    std::size_t add_lstm_layers(std::size_t n_inputs, const LayerConfig&);
+    std::size_t add_gru_layers(std::size_t n_inputs, const LayerConfig&);
+    std::size_t add_embedding_layers(std::size_t n_inputs, const LayerConfig&);
+    std::size_t m_n_outputs;
   };
 
   // This is the old RecurrentStack. Should probably absorb this into
@@ -231,12 +231,12 @@ namespace generic
   class ReductionStack
   {
   public:
-    ReductionStack(size_t n_in, const std::vector<LayerConfig>& layers);
+    ReductionStack(std::size_t n_in, const std::vector<LayerConfig>& layers);
     ~ReductionStack();
     ReductionStack(ReductionStack&) = delete;
     ReductionStack& operator=(ReductionStack&) = delete;
     VectorX<T> reduce(MatrixX<T> inputs) const;
-    size_t n_outputs() const;
+    std::size_t n_outputs() const;
   private:
     RecurrentStack<T>* m_recurrent;
     Stack<T>* m_stack;
@@ -394,7 +394,7 @@ namespace generic
   // utility functions
 
   // functions to build up basic units from vectors
-  template<typename T1, typename T2> MatrixX<T1> build_matrix(const std::vector<T2>& weights, size_t n_inputs);
+  template<typename T1, typename T2> MatrixX<T1> build_matrix(const std::vector<T2>& weights, std::size_t n_inputs);
   template<typename T1, typename T2> VectorX<T1> build_vector(const std::vector<T2>& bias);
 
   // LSTM component for convenience in some layers
@@ -406,7 +406,7 @@ namespace generic
     VectorX<T> b;
   };
 
-  template<typename T> DenseComponents<T> get_component(const lwt::LayerConfig& layer, size_t n_in);
+  template<typename T> DenseComponents<T> get_component(const lwt::LayerConfig& layer, std::size_t n_in);
 
 } // namespace generic
 

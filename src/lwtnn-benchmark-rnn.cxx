@@ -20,10 +20,10 @@ std::vector<lwt::ValueMap> get_values(
   const std::vector<lwt::Input>& inputs) {
   Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(inputs.size(), 40);
   std::vector<lwt::ValueMap> out;
-  const auto n_cols = static_cast<size_t>(test_pattern.cols());
-  for (size_t iii = 0; iii < n_cols; iii++) {
+  const auto n_cols = static_cast<std::size_t>(test_pattern.cols());
+  for (std::size_t iii = 0; iii < n_cols; iii++) {
     lwt::ValueMap vals;
-    for (size_t jjj = 0; jjj < inputs.size(); jjj++) {
+    for (std::size_t jjj = 0; jjj < inputs.size(); jjj++) {
       vals[inputs.at(jjj).name] = test_pattern(jjj, iii);
     }
     out.push_back(vals);
@@ -34,10 +34,10 @@ std::vector<lwt::ValueMap> get_values(
 lwt::VectorMap get_values_vec(const std::vector<lwt::Input>& inputs) {
   Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(inputs.size(), 40);
   lwt::VectorMap out;
-  for (size_t in_num = 0; in_num < inputs.size(); in_num++) {
+  for (std::size_t in_num = 0; in_num < inputs.size(); in_num++) {
     std::vector<double> ins;
-    const auto n_cols = static_cast<size_t>(test_pattern.cols());
-    for (size_t iii = 0; iii < n_cols; iii++) {
+    const auto n_cols = static_cast<std::size_t>(test_pattern.cols());
+    for (std::size_t iii = 0; iii < n_cols; iii++) {
       ins.push_back(test_pattern(in_num, iii));
     }
     out[inputs.at(in_num).name] = std::move(ins);
@@ -66,14 +66,14 @@ int main(int argc, char* argv[]) {
               << std::endl;
   }
 
-  size_t n_inputs = config.inputs.size();
+  std::size_t n_inputs = config.inputs.size();
   lwt::ReductionStack stack(n_inputs, config.layers);
   lwt::LightweightRNN rnn(config.inputs, config.layers, config.outputs);
   Eigen::VectorXd sum_outputs = Eigen::VectorXd::Zero(stack.n_outputs());
-  size_t n_loops = 1;
+  std::size_t n_loops = 1;
   std::cout << "running over " << n_loops << " loops" << std::endl;
   std::cout << "running " << (run_stack ? "fast": "slow") << std::endl;
-  for (size_t nnn = 0; nnn < n_loops; nnn++) {
+  for (std::size_t nnn = 0; nnn < n_loops; nnn++) {
     if (run_stack) {
       Eigen::MatrixXd test_pattern = Eigen::MatrixXd::Random(n_inputs, 2);
       std::cout << test_pattern << std::endl;
@@ -81,7 +81,7 @@ int main(int argc, char* argv[]) {
     } else {
       const auto inputs = get_values_vec(config.inputs);
       auto out = rnn.reduce(inputs);
-      for (size_t iii = 0; iii < config.outputs.size(); iii++) {
+      for (std::size_t iii = 0; iii < config.outputs.size(); iii++) {
         sum_outputs(iii) += out.at(config.outputs.at(iii));
       }
     }

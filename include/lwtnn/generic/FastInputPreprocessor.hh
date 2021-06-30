@@ -25,7 +25,7 @@ namespace generic {
     // input transformations
     VectorX<T> m_offsets;
     VectorX<T> m_scales;
-    std::vector<size_t> m_indices;
+    std::vector<std::size_t> m_indices;
   };
 
   template<typename T>
@@ -39,7 +39,7 @@ namespace generic {
     // input transformations
     VectorX<T> m_offsets;
     VectorX<T> m_scales;
-    std::vector<size_t> m_indices;
+    std::vector<std::size_t> m_indices;
   };
 }
 

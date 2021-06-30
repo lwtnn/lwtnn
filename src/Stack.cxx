@@ -28,7 +28,7 @@ namespace lwt
     return generic::nn_relu<double>(x);
   }
 
-  MatrixX<double> build_matrix(const std::vector<double>& weights, size_t n_inputs) {
+  MatrixX<double> build_matrix(const std::vector<double>& weights, std::size_t n_inputs) {
     return generic::build_matrix<double, double>(weights, n_inputs);
   }
 
@@ -36,7 +36,7 @@ namespace lwt
     return generic::build_vector<double, double>(bias);
   }
 
-  DenseComponents get_component(const lwt::LayerConfig& layer, size_t n_in) {
+  DenseComponents get_component(const lwt::LayerConfig& layer, std::size_t n_in) {
     return generic::get_component<double>(layer, n_in);
   }
 

@@ -72,9 +72,9 @@ namespace {
     // header.
     std::map<std::string, std::map<std::string, double> > in_nodes;
     for (const auto& input: config) {
-      const size_t total_inputs = input.variables.size();
+      const std::size_t total_inputs = input.variables.size();
       std::map<std::string, double> in_vals;
-      for (size_t nnn = 0; nnn < total_inputs; nnn++) {
+      for (std::size_t nnn = 0; nnn < total_inputs; nnn++) {
         const auto& var = input.variables.at(nnn);
         double ramp_val = ramp(var, nnn, total_inputs);
         in_vals[var.name] = ramp_val;

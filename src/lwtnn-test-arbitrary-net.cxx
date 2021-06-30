@@ -56,8 +56,8 @@ namespace {
       config.inputs, config.layers, config.outputs);
     std::map<std::string, double> in_vals;
 
-    const size_t total_inputs = config.inputs.size();
-    for (size_t nnn = 0; nnn < total_inputs; nnn++) {
+    const std::size_t total_inputs = config.inputs.size();
+    for (std::size_t nnn = 0; nnn < total_inputs; nnn++) {
       const auto& input = config.inputs.at(nnn);
       double ramp_val = ramp(input, nnn, total_inputs);
       in_vals[input.name] = ramp_val;
@@ -90,7 +90,7 @@ namespace {
       if (val_strings.size() == 0) continue;
       assert(val_strings.size() == labels.size());
       std::map<std::string, double> nn_in;
-      for (size_t iii = 0; iii < labels.size(); iii++) {
+      for (std::size_t iii = 0; iii < labels.size(); iii++) {
         nn_in[labels.at(iii)] = std::stof(val_strings.at(iii));
       }
       auto cleaned_inputs = replacer.replace(nn_in);

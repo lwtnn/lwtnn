@@ -84,7 +84,7 @@ namespace generic {
     InputPreprocessor<T>* m_preproc;
     InputVectorPreprocessor<T>* m_vec_preproc;
     std::vector<std::string> m_outputs;
-    size_t m_n_inputs;
+    std::size_t m_n_inputs;
   };
 
 }

@@ -23,7 +23,7 @@ namespace {
   lwt::VectorX<T> get_input_vec(const std::vector<lwt::Input>& inputs);
   template<typename T>
   lwt::MatrixX<T> get_input_mat(const std::vector<lwt::Input>& inputs,
-                                size_t n_patterns);
+                                std::size_t n_patterns);
 }
 
 
@@ -98,21 +98,21 @@ namespace {
 
   template<typename T>
   lwt::VectorX<T> get_input_vec(const std::vector<lwt::Input>& inputs) {
-    size_t n_inputs = inputs.size();
+    std::size_t n_inputs = inputs.size();
     lwt::VectorX<T> out(n_inputs);
-    for (size_t nnn = 0; nnn < n_inputs; nnn++) {
+    for (std::size_t nnn = 0; nnn < n_inputs; nnn++) {
       out(nnn) = ramp(inputs.at(nnn), nnn, n_inputs);
     }
     return out;
   }
   template<typename T>
   lwt::MatrixX<T> get_input_mat(const std::vector<lwt::Input>& inputs,
-                                size_t n_patterns) {
-    size_t n_inputs = inputs.size();
+                                std::size_t n_patterns) {
+    std::size_t n_inputs = inputs.size();
     lwt::MatrixX<T> out(n_inputs, n_patterns);
-    for (size_t nnn = 0; nnn < n_inputs; nnn++) {
+    for (std::size_t nnn = 0; nnn < n_inputs; nnn++) {
       const auto& input = inputs.at(nnn);
-      for (size_t jjj = 0; jjj < n_patterns; jjj++) {
+      for (std::size_t jjj = 0; jjj < n_patterns; jjj++) {
         out(nnn,jjj) = ramp(input, nnn, jjj, n_inputs, n_patterns);
       }
     }
