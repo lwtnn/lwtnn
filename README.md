@@ -23,7 +23,7 @@ The main design principles are:
 
  - **Minimal dependencies:** The C++ code depends on C++11,
    [Eigen][eg], and boost [PropertyTree][pt]. The converters have
-   additional requirements (Python3 and h5py) but these can be run
+   additional requirements (Python3 and [h5py][h5py]) but these can be run
    outside the C++ production environment.
 
  - **Easy to extend:** Should cover 95% of deep network architectures we
@@ -41,6 +41,7 @@ JSON format. Currently the following formats are supported:
 [eg]: http://eigen.tuxfamily.org
 [pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
 [kr]: http://keras.io/
+[h5py]: https://pypi.org/project/h5py/
 
 Why are we doing this?
 ----------------------
@@ -80,8 +81,14 @@ make -j 4
 Running a full-chain test
 -------------------------
 
-If you have Python 3 and h5py installed you can run a test. Starting
-from the directory where you built the project, run
+To run the tests first install the required Python dependencies in a
+Python 3 environment
+
+```
+python -m pip install -r tests/requirements.txt
+```
+
+Starting from the directory where you built the project, run
 
 ```
 ./tests/test-GRU.sh
