@@ -1,6 +1,10 @@
 
-# Set the minimum CMake version required to build the project.
-cmake_minimum_required( VERSION 3.1 )
+# Set range of valid CMake versions to build the project.
+cmake_minimum_required(VERSION 3.1...3.20)
+
+if(${CMAKE_VERSION} VERSION_LESS 3.12)
+    cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
+endif()
 
 # Silence some warnings on macOS with new CMake versions.
 if( NOT ${CMAKE_VERSION} VERSION_LESS 3.9 )
