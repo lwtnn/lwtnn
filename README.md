@@ -81,8 +81,8 @@ make -j 4
 Running a full-chain test
 -------------------------
 
-To run the tests first install the required Python dependencies in a
-Python 3 environment
+To run the tests first install [h5py][h5py] in a Python 3 environment,
+e.g. using `pip`
 
 ```
 python -m pip install -r tests/requirements.txt
