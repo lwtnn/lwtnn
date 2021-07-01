@@ -84,7 +84,7 @@ Running a full-chain test
 To run the tests first install the required Python dependencies in a
 Python 3 environment
 
-```console
+```
 python -m pip install -r tests/requirements.txt
 ```
 
