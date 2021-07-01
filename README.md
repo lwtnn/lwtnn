@@ -81,8 +81,14 @@ make -j 4
 Running a full-chain test
 -------------------------
 
-If you have Python 3 and h5py installed you can run a test. Starting
-from the directory where you built the project, run
+To run the tests first install the required Python dependencies in a
+Python 3 environment
+
+```console
+python -m pip install -r tests/requirements.txt
+```
+
+Starting from the directory where you built the project, run
 
 ```
 ./tests/test-GRU.sh
