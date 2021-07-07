@@ -214,7 +214,17 @@ namespace generic {
 
   template<typename T>
   VectorX<T> SigmoidLayer<T>::compute(const VectorX<T>& in) const {
-    return 1.0 / (1.0 + exp(-in.array()));
+    using std::exp;  // strange requirement from autodiff
+    return in.unaryExpr([](T x) -> T {
+      // These checks are to prevent a floating point overflow or
+      // underflow in the exponentiation. Neither under or overflows
+      // are a problem for the output (an overflow in the exp should
+      // still return 0, and an underflow should return 1), but ATLAS
+      // runs FPE auditors and the overflows make them sad.
+      if (x < -30.0) return 0.0;
+      if (x >  30.0) return 1.0;
+      return 1.0 / (1.0 + exp(-1.0*x));
+    });
   }
 
   template<typename T>
