@@ -63,7 +63,7 @@ namespace lwt {
   struct NodeConfig
   {
     enum class Type {
-      INPUT, INPUT_SEQUENCE, FEED_FORWARD, CONCATENATE, SEQUENCE,
+      NONE, INPUT, INPUT_SEQUENCE, FEED_FORWARD, CONCATENATE, SEQUENCE,
       TIME_DISTRIBUTED, SUM };
     Type type;
     std::vector<std::size_t> sources;
