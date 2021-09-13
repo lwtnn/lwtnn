@@ -80,12 +80,15 @@ def _rnn_parameters(h5, layer_config, n_in, layer_type):
     elif "gru" in layer_type:
         elements = "zrh"
         rnn_architecure = "gru"
+    elif "simplernn" in layer_type:
+        elements = "h"
+        rnn_architecure = "simplernn"
     else:
         sys.exit("We don't recognize the layer {}"
-            .format(layer_type))
+                 .format(layer_type))
 
     layers = _get_h5_layers(layer_group)
-    n_out = layers['recurrent_kernel'+ BACKEND_SUFFIX].shape[0]
+    n_out = layers['recurrent_kernel' + BACKEND_SUFFIX].shape[0]
     submap = {}
 
     for n_gate, gate in enumerate(elements):
@@ -98,9 +101,12 @@ def _rnn_parameters(h5, layer_config, n_in, layer_type):
                 [n_out*n_gate : n_out*(1+n_gate)].flatten().tolist(),
         }
 
-    return {'components': submap, 'architecture': rnn_architecure,
-            'activation': activation_map[layer_config['activation']],
-            'inner_activation': activation_map[layer_config['recurrent_activation']]}, n_out
+    rnn_parameters = {'components': submap, 'architecture': rnn_architecure,
+                        'activation': activation_map[layer_config['activation']],
+                        'inner_activation': activation_map[layer_config['recurrent_activation']]} if rnn_architecure != "simplernn" else {'components': submap, 'architecture': rnn_architecure,
+                        'activation': activation_map[layer_config['activation']]}
+
+    return rnn_parameters, n_out
 
 def _activation_parameters(h5, layer_config, n_in, layer_type):
     """Return dummy parameters"""
@@ -150,6 +156,7 @@ layer_converters = {
     'batchnormalization': _normalization_parameters,
     'lstm': _rnn_parameters,
     'gru': _rnn_parameters,
+    'simplernn': _rnn_parameters,
     'activation': _activation_parameters,
     'softmax': _activation_func('softmax'),
     'leakyrelu': _alpha_activation_func('leakyrelu'),

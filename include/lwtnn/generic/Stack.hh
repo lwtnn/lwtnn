@@ -219,6 +219,7 @@ namespace generic
     std::vector<IRecurrentLayer<T>*> m_layers;
     std::size_t add_lstm_layers(std::size_t n_inputs, const LayerConfig&);
     std::size_t add_gru_layers(std::size_t n_inputs, const LayerConfig&);
+    std::size_t add_simplernn_layers(std::size_t n_inputs, const LayerConfig&);
     std::size_t add_embedding_layers(std::size_t n_inputs, const LayerConfig&);
     std::size_t m_n_outputs;
   };
@@ -343,6 +344,30 @@ namespace generic
 
     int m_n_outputs;
   };
+
+  template<typename T> struct SimpleRNNState;
+
+  template<typename T>
+  class SimpleRNNLayer : public IRecurrentLayer<T>
+  {
+  public:
+    SimpleRNNLayer(ActivationConfig activation,
+              MatrixX<T> W_h, MatrixX<T> U_h, VectorX<T> b_h);
+
+    virtual ~SimpleRNNLayer() {};
+    virtual MatrixX<T> scan( const MatrixX<T>&) const override;
+    void step( const VectorX<T>& input, SimpleRNNState<T>& ) const;
+
+  private:
+    std::unique_ptr<ILayer<T>> m_activation_fun;
+
+    MatrixX<T> m_W_h;
+    MatrixX<T> m_U_h;
+    VectorX<T> m_b_h;
+
+    int m_n_outputs;
+  };
+
 
   // ______________________________________________________________________
   // Activation functions

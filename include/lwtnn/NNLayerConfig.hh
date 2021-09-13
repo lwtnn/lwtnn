@@ -18,7 +18,7 @@ namespace lwt {
     // will eventually be removed.
     SIGMOID_LEGACY, HARD_SIGMOID_LEGACY, TANH_LEGACY, RECTIFIED_LEGACY};
   enum class Architecture {NONE, DENSE, NORMALIZATION, MAXOUT, HIGHWAY,
-      LSTM, GRU, EMBEDDING};
+      LSTM, GRU, SIMPLERNN, EMBEDDING};
   // components (for LSTM, etc)
   enum class Component {
     I, O, C, F,                 // LSTM

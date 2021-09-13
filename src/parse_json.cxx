@@ -176,6 +176,7 @@ namespace {
       add_maxout_info(layer, v);
     } else if (arch == Architecture::LSTM ||
                arch == Architecture::GRU ||
+               arch == Architecture::SIMPLERNN ||
                arch == Architecture::HIGHWAY) {
       add_component_info(layer, v);
     } else if (arch == Architecture::EMBEDDING) {
@@ -239,6 +240,7 @@ namespace {
     if (str == "maxout") return Architecture::MAXOUT;
     if (str == "lstm") return Architecture::LSTM;
     if (str == "gru") return Architecture::GRU;
+    if (str == "simplernn") return Architecture::SIMPLERNN;
     if (str == "embedding") return Architecture::EMBEDDING;
     throw std::logic_error("architecture " + str + " not recognized");
   }

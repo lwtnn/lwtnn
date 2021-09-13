@@ -37,6 +37,7 @@ namespace lwt {
     case Architecture::HIGHWAY: return "highway";
     case Architecture::LSTM: return "lstm";
     case Architecture::GRU: return "gru";
+    case Architecture::SIMPLERNN: return "simplernn";
     case Architecture::EMBEDDING: return "embedding";
     default: throw std::logic_error("unknown architecture");
     }
