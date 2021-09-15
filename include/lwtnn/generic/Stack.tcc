@@ -358,6 +358,8 @@ namespace generic {
         n_inputs = add_lstm_layers(n_inputs, layer);
       } else if (layer.architecture == Architecture::GRU) {
         n_inputs = add_gru_layers(n_inputs, layer);
+      } else if (layer.architecture == Architecture::SIMPLERNN) {
+        n_inputs = add_simplernn_layers(n_inputs, layer);
       } else if (layer.architecture == Architecture::EMBEDDING) {
         n_inputs = add_embedding_layers(n_inputs, layer);
       } else {
@@ -421,6 +423,16 @@ namespace generic {
   }
 
   template<typename T>
+  std::size_t RecurrentStack<T>::add_simplernn_layers(std::size_t n_inputs,
+                                         const LayerConfig& layer) {
+    auto& comps = layer.components;
+    const auto& h = get_component<T>(comps.at(Component::H), n_inputs);
+    m_layers.push_back(
+      new SimpleRNNLayer<T>(layer.activation, h.W, h.U, h.b));
+    return h.b.rows();
+  }
+
+  template<typename T>
   std::size_t RecurrentStack<T>::add_embedding_layers(std::size_t n_inputs,
                                               const LayerConfig& layer) {
     for (const auto& emb: layer.embedding) {
@@ -439,7 +451,7 @@ namespace generic {
     std::vector<LayerConfig> recurrent;
     std::vector<LayerConfig> feed_forward;
     std::set<Architecture> recurrent_arcs{
-      Architecture::LSTM, Architecture::GRU, Architecture::EMBEDDING};
+      Architecture::LSTM, Architecture::GRU, Architecture::SIMPLERNN, Architecture::EMBEDDING};
     for (const auto& layer: layers) {
       if (recurrent_arcs.count(layer.architecture)) {
         recurrent.push_back(layer);
@@ -652,6 +664,8 @@ namespace generic {
     s.h_t.col(s.time)  = z.cwiseProduct(h_tm1) + (one - z).cwiseProduct(hh);
   }
 
+
+
   template<typename T>
   MatrixX<T> GRULayer<T>::scan( const MatrixX<T>& x ) const {
 
@@ -663,6 +677,60 @@ namespace generic {
 
     return state.h_t;
   }
+
+
+    // SimpleRNN layer
+    template<typename T>
+    SimpleRNNLayer<T>::SimpleRNNLayer(ActivationConfig activation,
+                         MatrixX<T> W_h, MatrixX<T> U_h, VectorX<T> b_h):
+      m_W_h(W_h),
+      m_U_h(U_h),
+      m_b_h(b_h)
+    {
+      m_n_outputs = m_W_h.rows();
+
+      m_activation_fun.reset(get_raw_activation_layer<T>(activation));
+    }
+
+    // internal structure created on each scan call
+    template<typename T>
+    struct SimpleRNNState {
+      SimpleRNNState(std::size_t n_input, std::size_t n_outputs);
+      MatrixX<T> h_t;
+      int time;
+    };
+
+    template<typename T>
+    SimpleRNNState<T>::SimpleRNNState(std::size_t n_input, std::size_t n_output):
+      h_t(MatrixX<T>::Zero(n_output, n_input)),
+      time(0)
+    {
+    }
+
+    template<typename T>
+    void SimpleRNNLayer<T>::step(const VectorX<T>& x_t, SimpleRNNState<T>& s) const {
+      // https://github.com/tensorflow/tensorflow/blob/master/tensorflow/python/keras/layers/recurrent.py#L1376
+
+      const auto& act_fun = m_activation_fun;
+
+      int tm1 = s.time == 0 ? 0 : s.time - 1;
+      VectorX<T> h_tm1 = s.h_t.col(tm1);
+
+      s.h_t.col(s.time) = act_fun->compute(m_W_h*x_t + m_b_h + m_U_h*h_tm1);
+    }
+
+    template<typename T>
+    MatrixX<T> SimpleRNNLayer<T>::scan( const MatrixX<T>& x ) const {
+
+      SimpleRNNState<T> state(x.cols(), m_n_outputs);
+
+      for(state.time = 0; state.time < x.cols(); state.time++) {
+        step( x.col( state.time ), state );
+      }
+
+      return state.h_t;
+    }
+
 
   // _____________________________________________________________________
   // Activation functions

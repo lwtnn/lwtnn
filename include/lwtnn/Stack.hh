@@ -28,6 +28,7 @@ namespace lwt
   using EmbeddingLayer = generic::EmbeddingLayer<double>;
   using LSTMLayer = generic::LSTMLayer<double>;
   using GRULayer = generic::GRULayer<double>;
+  using SimpleRNNLayer = generic::SimpleRNNLayer<double>;
   using DenseComponents = generic::DenseComponents<double>;
 
   // double typedefs for activation functions
