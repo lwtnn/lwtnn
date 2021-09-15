@@ -76,13 +76,13 @@ def _rnn_parameters(h5, layer_config, n_in, layer_type):
 
     if "lstm" in layer_type:
         elements = "ifco"
-        rnn_architecure = "lstm"
+        rnn_architecture = "lstm"
     elif "gru" in layer_type:
         elements = "zrh"
-        rnn_architecure = "gru"
+        rnn_architecture = "gru"
     elif "simplernn" in layer_type:
         elements = "h"
-        rnn_architecure = "simplernn"
+        rnn_architecture = "simplernn"
     else:
         sys.exit("We don't recognize the layer {}"
                  .format(layer_type))
@@ -101,10 +101,12 @@ def _rnn_parameters(h5, layer_config, n_in, layer_type):
                 [n_out*n_gate : n_out*(1+n_gate)].flatten().tolist(),
         }
 
-    rnn_parameters = {'components': submap, 'architecture': rnn_architecure,
-                        'activation': activation_map[layer_config['activation']],
-                        'inner_activation': activation_map[layer_config['recurrent_activation']]} if rnn_architecure != "simplernn" else {'components': submap, 'architecture': rnn_architecure,
-                        'activation': activation_map[layer_config['activation']]}
+    rnn_parameters = {'components': submap, 'architecture': rnn_architecture,
+                      'activation': activation_map[layer_config['activation']]}
+
+    if rnn_architecture != "simplernn":
+        rnn_parameters['inner_activation'] = activation_map[layer_config['recurrent_activation']]
+
 
     return rnn_parameters, n_out
 
