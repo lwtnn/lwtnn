@@ -140,6 +140,8 @@ def _compare_equal(old, new, tolerance, warn_threshold=0.0000001):
             return False
         return True
     elif isinstance(old, list):
+        if isinstance(new, (int, float)) and len(old) == 1:
+            return _compare_equal(old[0], new, tolerance)
         correct = []
         for o, n in zip(old, new):
             correct.append(_compare_equal(o, n, tolerance))
