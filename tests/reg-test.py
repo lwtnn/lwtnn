@@ -26,7 +26,7 @@ def _get_args():
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('saved_variables', nargs='?')
     parser.add_argument('-t', '--tolerance', type=float, default=0.00001)
-    parser.add_argument('-g', '--graph', action='store_true',
+    parser.add_argument('-g', '--graph', action='store_false',
                         help="expect a graph regression test")
     return parser
 
@@ -98,44 +98,67 @@ def _get_dict(infile):
     lines, formatted as `<key> <value>`.
     """
     odict = {}
+    first_key = None
     for line in infile:
-        key, val = line.split()
-        odict[key] = [float(val)]
-    return odict
+        try:
+            key, val = line.split()
+            odict[key] = [float(val)]
+        except ValueError:
+            # first line as key
+            first_key = line.replace("\n", "")
+        except Exception as e:
+            print(e)
+    if first_key is None:
+      return odict
+    else:
+      return {first_key: odict}
 
 
 def _compare_equal(old, new, tolerance, warn_threshold=0.0000001):
     """
     For values of x where abs(x) < 1, the threshold is absolute.
     For larger values, use a relative threshold.
-    """
-    if set(old) != set(new):
-        sys.stderr.write(
-            'ERROR: variable mismatch. Targets: "{}", given "{}"\n'.format(
-                ', '.join(old), ', '.join(new)))
-        return False
 
-    fails = set()
-    for var in old:
-        oldseq = old[var] if isinstance(old[var], Sequence) else [old[var]]
-        for idx, oldvar in enumerate(oldseq):
-            newvar = new[var][idx]
-            diff = oldvar - newvar
-            avg = (oldvar + newvar) / 2
-            rel = abs(diff) / abs(avg) if abs(avg) > 1 else abs(diff)
-            # first do warnings
-            if rel > warn_threshold:
-                sys.stderr.write(
-                    'WARNING: "{}" is off in new version by {}\n'.format(
-                        var, diff))
-            if rel > tolerance:
-                sys.stderr.write(
-                    'ERROR: change in "{}" is over threshold {}\n'.format(
-                        var, tolerance))
-                fails.add(var)
-    if fails:
-        return False
-    return True
+    Assumes inputs are of same type and of dict, list or int/float
+
+    """
+    if isinstance(old, (int, float)):
+        diff = old - new
+        avg = (old + new) / 2
+        rel = abs(diff) / abs(avg) if abs(avg) > 1 else abs(diff)
+        # first do warnings
+        if rel > warn_threshold:
+            sys.stderr.write(
+              'WARNING: value is off in new version by {}\n'.format(
+               diff))
+        if rel > tolerance:
+            sys.stderr.write(
+             'ERROR: change in value is over threshold {}\n'.format(
+              tolerance))
+            return False
+        return True
+    elif isinstance(old, list):
+        correct = []
+        for o, n in zip(old, new):
+            correct.append(_compare_equal(o, n, tolerance))
+        if False in correct:
+            return False
+        else:
+            return True
+    elif isinstance(old, dict):
+        if set(old) != set(new):
+            sys.stderr.write(
+                'ERROR: variable mismatch. Targets: "{}", given "{}"\n'.format(
+                    ', '.join(old), ', '.join(new)))
+            return False
+        correct = []
+        for o_v, n_v in zip(old.values(), new.values()):
+            correct.append(_compare_equal(o_v, n_v, tolerance))
+        if False in correct:
+            return False
+        else:
+            return True
+
 
 if __name__ == '__main__':
     _run()
