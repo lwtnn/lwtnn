@@ -38,7 +38,7 @@ def _run():
         parser.print_usage()
         sys.exit('you need to pipe in a file')
 
-    parse = _get_output_node_dicts if args.graph else _get_dict
+    parse = _get_output_node_dicts
     in_dict = parse(sys.stdin)
     if not args.saved_variables:
         print(json.dumps(in_dict, indent=2, sort_keys=True))
@@ -80,7 +80,6 @@ def _get_output_node_dicts(infile):
     odict = {}
     node_key = None
     for line in infile:
-
         if line.endswith(':\n'):
             node_key = line[:-1]
             assert node_key not in odict
@@ -126,8 +125,6 @@ def _compare_equal(old, new, tolerance, warn_threshold=0.0000001):
 
     """
     if isinstance(old, (int, float)):
-        if isinstance(new, list):
-            new = new[0]
         diff = old - new
         avg = (old + new) / 2
         rel = abs(diff) / abs(avg) if abs(avg) > 1 else abs(diff)
