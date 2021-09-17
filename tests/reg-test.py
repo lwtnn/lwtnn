@@ -88,8 +88,11 @@ def _get_output_node_dicts(infile):
             continue
 
         key, *vals = line.split()
-        odict[node_key][key] = [float(val) for val in vals]
-
+        vals = [float(val) for val in vals]
+        if node_key is not None:
+            odict[node_key][key] = vals if len(vals) > 1 else vals[0]
+        else:
+            odict[key] = vals if len(vals) > 1 else vals[0]
     return odict
 
 
@@ -123,6 +126,8 @@ def _compare_equal(old, new, tolerance, warn_threshold=0.0000001):
 
     """
     if isinstance(old, (int, float)):
+        if isinstance(new, list):
+            new = new[0]
         diff = old - new
         avg = (old + new) / 2
         rel = abs(diff) / abs(avg) if abs(avg) > 1 else abs(diff)
