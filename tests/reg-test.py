@@ -26,7 +26,7 @@ def _get_args():
         formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument('saved_variables', nargs='?')
     parser.add_argument('-t', '--tolerance', type=float, default=0.00001)
-    parser.add_argument('-g', '--graph', action='store_false',
+    parser.add_argument('-g', '--graph', action='store_true',
                         help="expect a graph regression test")
     return parser
 
