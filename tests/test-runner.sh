@@ -18,3 +18,4 @@ set -o pipefail
 ./tests/test-leaky-relu.sh
 ./tests/test-elu.sh
 ./tests/test-unsplit-model.sh
+./tests/test-SimpleRNN.sh

@@ -28,11 +28,12 @@ def _get_args():
     parser.add_argument('-t', '--tolerance', type=float, default=0.00001)
     parser.add_argument('-g', '--graph', action='store_true',
                         help="expect a graph regression test")
-    return parser.parse_args()
+    return parser
 
 
 def _run():
-    args = _get_args()
+    parser = _get_args()
+    args = parser.parse_args()
     if sys.stdin.isatty():
         parser.print_usage()
         sys.exit('you need to pipe in a file')
