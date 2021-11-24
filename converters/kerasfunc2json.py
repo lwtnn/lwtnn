@@ -221,7 +221,7 @@ def _build_node_dict(network):
     # now we collapse the node references
     for node in nodes.values():
         source_nodes = []
-        for i,source in enumerate(node.sources):
+        for source in node.sources:
             source_nodes.append(nodes[source])
         node.sources = source_nodes
 
