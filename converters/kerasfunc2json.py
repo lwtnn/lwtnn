@@ -21,7 +21,7 @@ import sys, os
 from keras_layer_converters_common import skip_layers
 
 def _run():
-    """Top level routine"""
+    """Top level routine""" 
     args = _get_args()
     with open(args.arch_file, 'r') as arch_file:
         arch = json.load(arch_file)
@@ -220,15 +220,17 @@ def _build_node_dict(network):
 
     # now we collapse the node references
     for node in nodes.values():
-            source_nodes = []
-            for source in node.sources:
-                source_nodes.append(nodes[source])
-            node.sources = source_nodes
+        source_nodes = []
+        for i,source in enumerate(node.sources):
+            source_nodes.append(nodes[source])
+        node.sources = source_nodes
 
     # Remove the nodes and sources that are of type skip_layers
     removed_nodes = set()
     for node_index, node in nodes.items():
         if node.layer_type in skip_layers:
+            removed_nodes.add(node_index)
+        elif "timedistributed" in node.layer_type and node.keras_layer['config']['layer']['class_name'].lower() in skip_layers:
             removed_nodes.add(node_index)
         else:
             new_sources = []
@@ -242,7 +244,12 @@ def _build_node_dict(network):
 def _get_valid_sources(node_source):
     """Function to get valid sources for a node.
         Apply this recursively"""
-    if node_source.layer_type not in skip_layers:
+
+    if "timedistributed" in node_source.layer_type and node_source.keras_layer['config']['layer']['class_name'].lower() in skip_layers:
+        assert len(node_source.sources) == 1
+        #@Todo: Check that this will work with two skip_layers in a row
+        return _get_valid_sources(node_source.sources[0])
+    elif node_source.layer_type not in skip_layers:
         return node_source
     else:
         assert len(node_source.sources) == 1
