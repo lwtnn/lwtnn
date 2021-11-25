@@ -21,7 +21,7 @@ import sys, os
 from keras_layer_converters_common import skip_layers
 
 def _run():
-    """Top level routine""" 
+    """Top level routine"""
     args = _get_args()
     with open(args.arch_file, 'r') as arch_file:
         arch = json.load(arch_file)
@@ -228,9 +228,7 @@ def _build_node_dict(network):
     # Remove the nodes and sources that are of type skip_layers
     removed_nodes = set()
     for node_index, node in nodes.items():
-        if node.layer_type in skip_layers:
-            removed_nodes.add(node_index)
-        elif "timedistributed" in node.layer_type and node.keras_layer['config']['layer']['class_name'].lower() in skip_layers:
+        if _is_a_skipped_node(node):
             removed_nodes.add(node_index)
         else:
             new_sources = []
@@ -244,18 +242,23 @@ def _build_node_dict(network):
 def _get_valid_sources(node_source):
     """Function to get valid sources for a node.
         Apply this recursively"""
-
-    if "timedistributed" in node_source.layer_type and node_source.keras_layer['config']['layer']['class_name'].lower() in skip_layers:
+    if _is_a_skipped_node(node_source):
         assert len(node_source.sources) == 1
         #@Todo: Check that this will work with two skip_layers in a row
         return _get_valid_sources(node_source.sources[0])
-    elif node_source.layer_type not in skip_layers:
-        return node_source
     else:
-        assert len(node_source.sources) == 1
-        #@Todo: Check that this will work with two skip_layers in a row
-        return _get_valid_sources(node_source.sources[0])
+        return node_source
 
+def _is_a_skipped_node(node):
+    """
+    Function to check wether the node layer type is in skip_layers list    
+    """
+    if node.layer_type in skip_layers:
+        return True
+    elif "timedistributed" in node.layer_type:
+        if node.keras_layer['config']['layer']['class_name'].lower() in skip_layers:
+            return True
+    return False
 
 def _number_nodes(node_dict):
     for number, node in enumerate(sorted(node_dict.values())):
