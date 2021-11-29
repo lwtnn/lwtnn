@@ -251,7 +251,7 @@ def _get_valid_sources(node_source):
 
 def _is_a_skipped_node(node):
     """
-    Function to check wether the node layer type is in skip_layers list    
+    Function to check wether the node layer type is in skip_layers list
     """
     if node.layer_type in skip_layers:
         return True
@@ -404,6 +404,7 @@ def _parse_inputs(input_list, vars_per_input):
         assert vars_per_input[input_number] == len(inputs)
 
         nodes.append({'name': node_name, 'variables': inputs})
+
     return nodes
 
 def _parse_outputs(user_outputs, output_layers, node_dict):
