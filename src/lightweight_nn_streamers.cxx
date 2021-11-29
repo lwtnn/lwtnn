@@ -7,7 +7,7 @@
 
 namespace lwt {
   std::ostream& operator<<(std::ostream& out,
-			   const std::vector<double>& vec) {
+               const std::vector<double>& vec) {
     std::size_t nentry = vec.size();
     for (std::size_t iii = 0; iii < nentry; iii++) {
       out << vec.at(iii);
