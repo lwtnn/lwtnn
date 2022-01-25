@@ -54,7 +54,7 @@ class Sklearn2json(object):
         self.listOfVariables   = None       # name of text file that contains list of variables
 
         # parameters for converting model
-        self.architecutre      = "dense"    # always appears to be this (fully-connected MLPClassifier)
+        self.architecture      = "dense"    # always appears to be this (fully-connected MLPClassifier)
         self.nodeActivation    = "linear"   # always appears to be this
         self.class_labels      = None       # names in map for NN outputs
         self.miscellaneous     = None       # misc. info
@@ -146,7 +146,7 @@ class Sklearn2json(object):
         for l in range(self.nLayers-1):
             # connecting layer (l) to layer (l+1)
             layer = {}
-            layer["architecture"] = self.architecutre
+            layer["architecture"] = self.architecture
             layer["activation"]   = self.nodeActivation
             layer["weights"]      = self.weights[l].T.flatten().tolist()
             layer["bias"]         = self.biases[l].flatten().tolist()
@@ -158,7 +158,7 @@ class Sklearn2json(object):
             activation_fn = self.activation_fns[activation_fn]
             act_fn = {
               "activation":   activation_fn,
-              "architecture": self.architecutre,
+              "architecture": self.architecture,
               "bias": [],    # always empty, I think (?)
               "weights": []  # always empty, I think (?)
             }
