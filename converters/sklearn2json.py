@@ -187,6 +187,12 @@ class Sklearn2json(object):
                          "class_labels": self.class_labels,
                          "miscellaneous":self.miscellaneous}
 
+        if scaler.n_features_in_ != len(vars):
+            print (" WARNING:  Number of variables in file ({0}) "
+                  "and number of scaler variables ({1}) do not match!".format(len(vars),scaler.n_features_in_))
+            print ( " WARNING:  Please check the model and list of output names." )
+            sys.exit(1)
+
         # generate inputs
         for i,var in enumerate(vars):
             var = var.rstrip('\n')
