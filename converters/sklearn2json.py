@@ -36,7 +36,7 @@ import json
 import numpy as np
 from argparse import ArgumentParser
 from sklearn import svm, metrics, preprocessing
-from sklearn.externals import joblib
+import joblib
 
 
 class Sklearn2json(object):
@@ -54,13 +54,13 @@ class Sklearn2json(object):
         self.listOfVariables   = None       # name of text file that contains list of variables
 
         # parameters for converting model
-        self.architecutre      = "dense"    # always appears to be this (fully-connected MLPClassifier)
+        self.architecture      = "dense"    # always appears to be this (fully-connected MLPClassifier)
         self.nodeActivation    = "linear"   # always appears to be this
         self.class_labels      = None       # names in map for NN outputs
         self.miscellaneous     = None       # misc. info
 
         # extra parameters needed
-        self.activation_fns    = {'relu':'rectified','softmax':'softmax'} # sklearn->lwtnn naming
+        self.activation_fns    = {'relu':'rectified','softmax':'softmax','logistic':'sigmoid'} # sklearn->lwtnn naming
 
         # storing output (JSON)
         self.output = {"defaults":{},
@@ -72,21 +72,21 @@ class Sklearn2json(object):
 
     def execute(self):
         """Run the converter"""
-        print " Running scikit-learn to JSON converter "
+        print ( " Running scikit-learn to JSON converter " )
         if self.makeVariablesJSON:
-            print " > Generating variables JSON file {0}".format(self.variables_file)
+            print ( f" > Generating variables JSON file {self.variables_file}" )
             self.generateVariablesJSON()  # generate the variables JSON file from scratch
 
-        print " > Load sklearn model "
+        print ( " > Load sklearn model " )
         self.loadModel()       # load the sklearn model
 
-        print " > Load variables JSON "
+        print ( " > Load variables JSON " )
         self.loadVariables()   # load the inputs (variables/scales/offsets/misc./class labels)
 
-        print " > Load layers of neural network into dictionary "
+        print ( " > Load layers of neural network into dictionary " )
         self.loadLayers()      # load the network layers
 
-        print " > Save model to {0}".format(self.output_file)
+        print ( " > Save model to {self.output_file}" )
         self.saveModel()       # save the model to JSON output
 
         return
@@ -121,7 +121,7 @@ class Sklearn2json(object):
         if self.nOutputs!=len(output_names):
             print (" WARNING:  Number of outputs ({0}) "
                   "and number of output names ({1}) do not match!".format(self.nOutputs,output_names))
-            print " WARNING:  Please check the model and list of output names."
+            print ( " WARNING:  Please check the model and list of output names." )
             sys.exit(1)
 
         self.output["outputs"] = output_names
@@ -140,13 +140,13 @@ class Sklearn2json(object):
         if any( [self.nLayers != len(elem)+1 for elem in [self.weights,self.biases] ] ):
             print (" WARNING:  Number of hidden layers ({0}) "
                   "and length of weights ({1}) do not match!".format(self.nLayers,self.weights+1))
-            print " WARNING:  Please check the model."
+            print ( " WARNING:  Please check the model." )
             sys.exit(1)
 
         for l in range(self.nLayers-1):
             # connecting layer (l) to layer (l+1)
             layer = {}
-            layer["architecture"] = self.architecutre
+            layer["architecture"] = self.architecture
             layer["activation"]   = self.nodeActivation
             layer["weights"]      = self.weights[l].T.flatten().tolist()
             layer["bias"]         = self.biases[l].flatten().tolist()
@@ -158,7 +158,7 @@ class Sklearn2json(object):
             activation_fn = self.activation_fns[activation_fn]
             act_fn = {
               "activation":   activation_fn,
-              "architecture": self.architecutre,
+              "architecture": self.architecture,
               "bias": [],    # always empty, I think (?)
               "weights": []  # always empty, I think (?)
             }
@@ -186,6 +186,12 @@ class Sklearn2json(object):
         variablesJSON = {"inputs": [],
                          "class_labels": self.class_labels,
                          "miscellaneous":self.miscellaneous}
+
+        if scaler.n_features_in_ != len(vars):
+            print (" WARNING:  Number of variables in file ({0}) "
+                  "and number of scaler variables ({1}) do not match!".format(len(vars),scaler.n_features_in_))
+            print ( " WARNING:  Please check the model and list of output names." )
+            sys.exit(1)
 
         # generate inputs
         for i,var in enumerate(vars):
