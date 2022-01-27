@@ -60,7 +60,7 @@ class Sklearn2json(object):
         self.miscellaneous     = None       # misc. info
 
         # extra parameters needed
-        self.activation_fns    = {'relu':'rectified','softmax':'softmax','logistic':'logistic'} # sklearn->lwtnn naming
+        self.activation_fns    = {'relu':'rectified','softmax':'softmax','logistic':'sigmoid'} # sklearn->lwtnn naming
 
         # storing output (JSON)
         self.output = {"defaults":{},
