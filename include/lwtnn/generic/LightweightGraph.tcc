@@ -7,7 +7,6 @@
 #include "lwtnn/generic/eigen_typedefs.hh"
 
 namespace {
-  using namespace Eigen;
   using namespace lwt;
 
   // this is used internally to ensure that we only look up map inputs
@@ -168,7 +167,7 @@ namespace generic {
     const std::vector<std::string>& labels = m_outputs.at(idx).second;
     std::map<std::string, std::vector<double> > output;
     for (std::size_t iii = 0; iii < labels.size(); iii++) {
-      VectorXd row = result.row(iii);
+      VectorX<T> row = result.row(iii);
       std::vector<double> out_vector(row.data(), row.data() + row.size());
       output[labels.at(iii)] = out_vector;
     }
