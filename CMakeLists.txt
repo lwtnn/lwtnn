@@ -1,6 +1,6 @@
 
 # Set range of valid CMake versions to build the project.
-cmake_minimum_required(VERSION 3.1...3.20)
+cmake_minimum_required(VERSION 3.11...3.20)
 
 if(${CMAKE_VERSION} VERSION_LESS 3.12)
     cmake_policy(VERSION ${CMAKE_MAJOR_VERSION}.${CMAKE_MINOR_VERSION})
@@ -53,32 +53,20 @@ list( INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake )
 # available on the build system, or downloading the necessary code as part
 # of the build of this project.
 
-# Figure out what to do with Boost.
-option( BUILTIN_BOOST "Acquire Boost as part of building this project" OFF )
-if( BUILTIN_BOOST )
-   # Download and install the Boost headers using ExternalProject. Note that
-   # we don't need any of the Boost libraries, so we're not using Boost's own
-   # build system. And we only need the Boost headers during the build
-   # "privately", so the headers are not installed with the project.
-   include( ExternalProject )
-   ExternalProject_Add( Boost
-      PREFIX ${CMAKE_BINARY_DIR}/externals
-      INSTALL_DIR ${CMAKE_BINARY_DIR}/externals/Boost
-      URL "https://lcgpackages.web.cern.ch/tarFiles/sources/boost_1_64_0.tar.gz"
-      URL_HASH SHA256=0445c22a5ef3bd69f5dfb48354978421a85ab395254a26b1ffb0aa1bfd63a108
-      BUILD_IN_SOURCE 1
-      CONFIGURE_COMMAND ${CMAKE_COMMAND} -E echo "No configuration for Boost"
-      BUILD_COMMAND ${CMAKE_COMMAND} -E echo "No build step for Boost"
-      INSTALL_COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/boost
-      <INSTALL_DIR>/include/boost )
-   # Set the include path to use.
-   set( Boost_INCLUDE_DIRS
-      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/externals/Boost/include> )
-   # Tell the user what will happen.
-   message( STATUS "Using a privately downloaded Boost version for the build" )
-else()
-   # Look for Boost on the build system.
-   find_package( Boost 1.54.0 REQUIRED )
+# Figure out what to do with nlohmann.
+option( BUILTIN_NLOHMANN_JSON "Acquire nlohmann_json as part of building this project" OFF )
+if( BUILTIN_NLOHMANN_JSON )
+   include(FetchContent)
+
+   FetchContent_Declare(json
+      GIT_REPOSITORY https://github.com/nlohmann/json
+      GIT_TAG v3.9.1)
+
+   FetchContent_GetProperties(json)
+   if(NOT json_POPULATED)
+      FetchContent_Populate(json)
+      add_subdirectory(${json_SOURCE_DIR} ${json_BINARY_DIR} EXCLUDE_FROM_ALL)
+   endif()
 endif()
 
 # Figure out what to do with Eigen.
@@ -163,9 +151,11 @@ add_library( lwtnn SHARED ${lib_headers} ${lib_sources} )
 target_include_directories( lwtnn
    PUBLIC ${EIGEN3_INCLUDE_DIR}
    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
-   PRIVATE ${Boost_INCLUDE_DIRS} )
-if( BUILTIN_BOOST )
-   add_dependencies( lwtnn Boost )
+   PRIVATE nlohmann_json::nlohmann_json )
+target_link_libraries( lwtnn
+   PRIVATE nlohmann_json::nlohmann_json )
+if( BUILTIN_NLOHMANN_JSON )
+   add_dependencies( lwtnn nlohmann_json )
 endif()
 if( BUILTIN_EIGEN )
    add_dependencies( lwtnn Eigen )
@@ -176,9 +166,11 @@ add_library( lwtnn-stat ${lib_headers} ${lib_sources} )
 target_include_directories( lwtnn-stat
    PUBLIC ${EIGEN3_INCLUDE_DIR}
    $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
-   PRIVATE ${Boost_INCLUDE_DIRS} )
-if( BUILTIN_BOOST )
-   add_dependencies( lwtnn-stat Boost )
+   PRIVATE nlohmann_json::nlohmann_json )
+target_link_libraries( lwtnn-stat
+   PRIVATE nlohmann_json::nlohmann_json )
+if( BUILTIN_NLOHMANN_JSON )
+   add_dependencies( lwtnn-stat nlohmann_json )
 endif()
 if( BUILTIN_EIGEN )
    add_dependencies( lwtnn-stat Eigen )
@@ -199,7 +191,7 @@ macro( lwtnn_add_executable name )
    add_executable( ${name} src/${name}.cxx )
    # Set its properties.
    target_link_libraries( ${name} lwtnn-stat )
-   target_include_directories( ${name} SYSTEM PRIVATE ${Boost_INCLUDE_DIRS} )
+   target_include_directories( ${name} SYSTEM PRIVATE nlohmann_json::nlohmann_json )
    # Install it.
    install( TARGETS ${name}
       EXPORT lwtnnTargets

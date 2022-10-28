@@ -35,7 +35,7 @@ jobs:
         tree
         cmake
         libhdf5-serial-dev
-        libboost-dev
+        nlohmann-json-dev
         libeigen3-dev
     - name: List build tools available
       run: |
@@ -108,7 +108,7 @@ jobs:
         tree
         cmake
         libhdf5-serial-dev
-        libboost-dev
+        nlohmann-json-dev
         libeigen3-dev
 
     - name: List build tools available
