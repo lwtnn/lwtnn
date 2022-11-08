@@ -515,7 +515,7 @@ namespace generic {
         in_nodes.push_back(m_nodes.at(source_node));
       }
       m_nodes[iii] = new AddNode<T>(in_nodes);
-    } 
+    }
     else {
       throw NNConfigurationException("unknown node type");
     }
