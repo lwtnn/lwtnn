@@ -160,7 +160,9 @@ namespace generic {
     m_n_outputs = sources[0]->n_outputs();
     //Check to make sure each input layer has the same size
     for (const auto source: sources) {
-      assert(source->n_outputs() == m_n_outputs);
+      if(source->n_outputs() != m_n_outputs){
+        throw NNConfigurationException("All sources of an add layer must have same dimension");
+      }
     }
   }
 
