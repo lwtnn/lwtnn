@@ -156,7 +156,9 @@ namespace generic {
   AddNode<T>::AddNode(const std::vector<const INode<T>*>& sources):
     m_sources(sources)
   {
-    assert(sources.size() > 0);
+    if (sources.size() < 1){
+      throw NNConfigurationException("Add layer must have sources");
+    }
     m_n_outputs = sources[0]->n_outputs();
     //Check to make sure each input layer has the same size
     for (const auto source: sources) {
