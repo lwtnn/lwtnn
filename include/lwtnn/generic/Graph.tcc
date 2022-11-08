@@ -170,18 +170,11 @@ namespace generic {
 
   template<typename T>
   VectorX<T> AddNode<T>::compute(const ISource<T>& source) const {
-    VectorX<T> output(m_n_outputs);
-    bool firstSummand = true;
+    VectorX<T> output = VectorX<T>::Zero(m_n_outputs);
     for (const auto node: m_sources) {
       VectorX<T> input = node->compute(source);
-      std::size_t n_elements = input.rows();
-      assert(n_elements == node->n_outputs());
-      if (firstSummand){
-        output = input;
-        firstSummand = false;
-      } else {
-        output += input;
-      }
+      assert((size_t)input.rows() == node->n_outputs());
+      output += input;
     }
     return output;
   }
