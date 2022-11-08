@@ -13,7 +13,7 @@
 # If to add another test you'll probably have to edit this
 
 # Trained network to convert and test
-INPUT=https://github.com/tprocter46/lwtnn-test-data/raw/add-test/add_dense_functional.tgz
+INPUT=https://github.com/lwtnn/lwtnn-test-data/raw/v10/add_dense_functional.tgz
 ARCH=architecture.json
 VARIABLES=variables.json
 HDF5=weights.h5
@@ -30,8 +30,8 @@ TEST=./bin/lwtnn-test-lightweight-graph
 OUTPUT=data/add_dense_functional-out.json
 
 # Tell the tester what we're doing
-echo " == Keras -> json -> C++ lstm unit test ======="
-echo " Consists of lstm layers with functional API"
+echo " == Keras -> json -> C++ add layer unit test ======="
+echo " Consists of add and dense layers with functional API"
 
 # _______________________________________________________________________
 # setup exit conditions and cleanup
