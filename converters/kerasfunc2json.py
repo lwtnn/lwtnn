@@ -273,11 +273,14 @@ def _build_layer(backend, output_layers, node_key, h5, node_dict, layer_dict):
         _build_layer(backend, output_layers, source.get_key(), h5,
                      node_dict, layer_dict)
 
-    # special cases for merge layers
-    if node.layer_type in ['concatenate','merge']:
+    # special cases for merge and add layers
+    if node.layer_type in ['concatenate','merge','add']:
         node.n_outputs = 0
-        for source in node.sources:
-            node.n_outputs += source.n_outputs
+        if node.layer_type == 'add':
+            node.n_outputs = node.sources[0].n_outputs
+        else:
+            for source in node.sources:
+                node.n_outputs += source.n_outputs
         return
     else:
         assert len(node.sources) == 1, "in {}".format(node.layer_type)
@@ -320,6 +323,7 @@ _node_type_map = {
     'batchnormalization': 'feed_forward',
     'merge': 'concatenate',       # <- v1
     'concatenate': 'concatenate', # <- v2
+    'add': 'add',
     'inputlayer': 'input',
     'dense': 'feed_forward',
     # we don't know what type of node based on the activation type

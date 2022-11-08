@@ -152,6 +152,38 @@ namespace generic {
     return m_n_outputs;
   }
 
+  template<typename T>
+  AddNode<T>::AddNode(const std::vector<const INode<T>*>& sources):
+    m_sources(sources)
+  {
+    if (sources.size() < 1){
+      throw NNConfigurationException("Add layer must have sources");
+    }
+    m_n_outputs = sources[0]->n_outputs();
+    //Check to make sure each input layer has the same size
+    for (const auto source: sources) {
+      if(source->n_outputs() != m_n_outputs){
+        throw NNConfigurationException("All sources of an add layer must have same dimension");
+      }
+    }
+  }
+
+  template<typename T>
+  VectorX<T> AddNode<T>::compute(const ISource<T>& source) const {
+    VectorX<T> output = VectorX<T>::Zero(m_n_outputs);
+    for (const auto node: m_sources) {
+      VectorX<T> input = node->compute(source);
+      assert((size_t)input.rows() == node->n_outputs());
+      output += input;
+    }
+    return output;
+  }
+
+  template<typename T>
+  std::size_t AddNode<T>::n_outputs() const {
+    return m_n_outputs;
+  }
+
   // Sequence nodes
   template<typename T>
   InputSequenceNode<T>::InputSequenceNode(std::size_t index, std::size_t n_outputs):
@@ -469,7 +501,15 @@ namespace generic {
         throw NNConfigurationException("Sum node needs exactly 1 source");
       }
       m_nodes[iii] = new SumNode<T>(m_seq_nodes.at(node.sources.at(0)));
-    } else {
+    } else if (node.type == NodeConfig::Type::ADD) {
+      // build add layer
+      std::vector<const INode<T>*> in_nodes;
+      for (std::size_t source_node: node.sources) {
+        in_nodes.push_back(m_nodes.at(source_node));
+      }
+      m_nodes[iii] = new AddNode<T>(in_nodes);
+    }
+    else {
       throw NNConfigurationException("unknown node type");
     }
   }

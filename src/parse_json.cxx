@@ -111,7 +111,7 @@ namespace {
   }
 
   const std::set<NodeConfig::Type> layerless_nodes {
-    NodeConfig::Type::CONCATENATE, NodeConfig::Type::SUM };
+    NodeConfig::Type::CONCATENATE, NodeConfig::Type::SUM, NodeConfig::Type::ADD };
   NodeConfig get_node(const ptree::value_type& v) {
     NodeConfig cfg;
 
@@ -156,6 +156,7 @@ namespace {
     if (type == "input") return Type::INPUT;
     if (type == "input_sequence") return Type::INPUT_SEQUENCE;
     if (type == "concatenate") return Type::CONCATENATE;
+    if (type == "add") return Type::ADD;
     if (type == "time_distributed") return Type::TIME_DISTRIBUTED;
     if (type == "sum") return Type::SUM;
     throw std::logic_error("no node type '" + type + "'");

@@ -65,6 +65,18 @@ namespace generic {
     std::size_t m_n_outputs;
   };
 
+  template<typename T>
+  class AddNode: public INode<T>
+  {
+  public:
+    AddNode(const std::vector<const INode<T>*>&);
+    virtual VectorX<T> compute(const ISource<T>&) const override;
+    virtual std::size_t n_outputs() const override;
+  private:
+    std::vector<const INode<T>*> m_sources;
+    std::size_t m_n_outputs;
+  };
+
   // sequence nodes
   template<typename T>
   class ISequenceNode

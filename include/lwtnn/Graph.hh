@@ -10,6 +10,7 @@ namespace lwt {
   using FeedForwardNode = generic::FeedForwardNode<double>;
   using InputNode = generic::InputNode<double>;
   using ConcatenateNode = generic::ConcatenateNode<double>;
+  using AddNode = generic::AddNode<double>;
   using ISequenceNode = generic::ISequenceNode<double>;
   using InputSequenceNode = generic::InputSequenceNode<double>;
   using SequenceNode = generic::SequenceNode<double>;

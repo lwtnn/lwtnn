@@ -64,7 +64,7 @@ namespace lwt {
   {
     enum class Type {
       INPUT, INPUT_SEQUENCE, FEED_FORWARD, CONCATENATE, SEQUENCE,
-      TIME_DISTRIBUTED, SUM };
+      TIME_DISTRIBUTED, SUM, ADD };
     Type type;
     std::vector<std::size_t> sources;
     int index;                  // input node size, or layer number
