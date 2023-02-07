@@ -28,7 +28,10 @@ def run():
     # keras loads slow, do the loading here
     from keras.models import model_from_json
     from CustomLayers import Swish, Sum
-    from keras.utils.generic_utils import get_custom_objects
+    try:
+        from keras.utils.generic_utils import get_custom_objects
+    except ImportError:
+        from tensorflow.keras.utils import get_custom_objects
     get_custom_objects().update({'Swish': Swish, 'Sum': Sum})
 
     with open(args.archetecture_file) as arch:
