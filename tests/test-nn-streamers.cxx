@@ -44,6 +44,7 @@ int main() {
    // Print a dumm lwt::LayerConfig object:
    const lwt::LayerConfig dummy2 {
      { 1.0, 2.0 }, { 1.0, 2.0 }, { 1.0, 2.0 },
+     {0, lwt::Padding::VALID},
      {lwt::Activation::NONE, NAN}, {lwt::Activation::NONE, NAN},
      {}, {}, {}, lwt::Architecture::NONE};
    TestStream stream2;

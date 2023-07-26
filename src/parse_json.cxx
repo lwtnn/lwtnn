@@ -26,6 +26,7 @@ namespace {
   void add_dense_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_maxout_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_component_info(LayerConfig& lc, const ptree::value_type& pt);
+  void add_conv1d_info(LayerConfig& lc, const ptree::value_type& pt);
   void add_embedding_info(LayerConfig& lc, const ptree::value_type& pt);
 
   std::map<std::string, double> get_defaults(const ptree& ptree);
@@ -180,6 +181,8 @@ namespace {
                arch == Architecture::SIMPLERNN ||
                arch == Architecture::HIGHWAY) {
       add_component_info(layer, v);
+    } else if (arch == Architecture::CONV1D) {
+      add_conv1d_info(layer, v);
     } else if (arch == Architecture::EMBEDDING) {
       add_embedding_info(layer, v);
     } else {
@@ -242,6 +245,7 @@ namespace {
     if (str == "lstm") return Architecture::LSTM;
     if (str == "gru") return Architecture::GRU;
     if (str == "simplernn") return Architecture::SIMPLERNN;
+    if (str == "conv1d") return Architecture::CONV1D;
     if (str == "embedding") return Architecture::EMBEDDING;
     throw std::logic_error("architecture " + str + " not recognized");
   }
@@ -250,6 +254,8 @@ namespace {
     layer.activation.function = Activation::NONE;
     layer.inner_activation.function = Activation::NONE;
     layer.architecture = Architecture::NONE;
+    layer.conv1d.dilation_rate = 1;
+    layer.conv1d.padding = lwt::Padding::VALID;
   }
 
   void add_dense_info(LayerConfig& layer, const ptree::value_type& v) {
@@ -310,6 +316,26 @@ namespace {
     }
   }
 
+  void add_conv1d_info(LayerConfig& layer, const ptree::value_type& v) {
+    for (const auto& wt: v.second.get_child("weights")) {
+      layer.weights.push_back(wt.second.get_value<double>());
+    }
+    for (const auto& bs: v.second.get_child("bias")) {
+      layer.bias.push_back(bs.second.get_value<double>());
+    }
+
+    layer.conv1d.dilation_rate = v.second.get<std::size_t>("dilation_rate");
+    auto padding = v.second.get<std::string>("padding");
+    if (padding == "valid") layer.conv1d.padding = lwt::Padding::VALID;
+    else if (padding == "same") layer.conv1d.padding = lwt::Padding::SAME;
+    else if (padding == "causal") layer.conv1d.padding = lwt::Padding::CAUSAL;
+    else throw std::logic_error("padding " + padding + " not recognized");
+
+    if (v.second.count("activation") != 0) {
+      layer.activation = get_activation(v.second.get_child("activation"));
+    }
+
+  }
 
   void add_embedding_info(LayerConfig& layer, const ptree::value_type& v) {
     using namespace lwt;

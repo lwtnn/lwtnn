@@ -110,6 +110,24 @@ def _rnn_parameters(h5, layer_config, n_in, layer_type):
 
     return rnn_parameters, n_out
 
+def _conv1d_parameters(h5, layer_config, n_in, layer_type):
+    """CNN parameter converter. We only support 1D kernels."""
+    layer_group = h5[layer_config['name']]
+    layers = _get_h5_layers(layer_group)
+    weights = layers["kernel"+BACKEND_SUFFIX]
+    bias = layers["bias"+BACKEND_SUFFIX]
+    assert weights.shape[-1] == bias.shape[0]
+    assert weights.shape[1] == n_in
+    return_dict = {
+        'weights': weights.T.flatten('C').tolist(),
+        'dilation_rate': layer_config['dilation_rate'][0],
+        'padding': layer_config['padding'],
+        'bias': bias.flatten('C').tolist(),
+        'architecture': 'conv1d',
+        'activation': activation_map[layer_config['activation']]
+    }
+    return return_dict, weights.shape[-1]
+
 def _activation_parameters(h5, layer_config, n_in, layer_type):
     """Return dummy parameters"""
     return {'weights':[], 'bias':[], 'architecture':'dense',
@@ -159,6 +177,7 @@ layer_converters = {
     'lstm': _rnn_parameters,
     'gru': _rnn_parameters,
     'simplernn': _rnn_parameters,
+    'conv1d': _conv1d_parameters,
     'activation': _activation_parameters,
     'softmax': _activation_func('softmax'),
     'leakyrelu': _alpha_activation_func('leakyrelu'),

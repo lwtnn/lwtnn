@@ -55,6 +55,12 @@ namespace lwt
     }
   }
 
+  void throw_if_not_conv1d(const LayerConfig& layer) {
+    if (layer.sublayers.size() > 0) {
+      throw NNConfigurationException("sublayers in conv1d layer");
+    }
+  }
+
   void throw_if_not_normalization(const LayerConfig& layer) {
     if (layer.sublayers.size() > 0) {
       throw NNConfigurationException("sublayers in normalization layer");

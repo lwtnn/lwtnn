@@ -19,3 +19,4 @@ set -o pipefail
 ./tests/test-elu.sh
 ./tests/test-unsplit-model.sh
 ./tests/test-SimpleRNN.sh
+./tests/test-conv1d_functional.sh

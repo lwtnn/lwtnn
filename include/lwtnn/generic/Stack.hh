@@ -220,6 +220,7 @@ namespace generic
     std::size_t add_lstm_layers(std::size_t n_inputs, const LayerConfig&);
     std::size_t add_gru_layers(std::size_t n_inputs, const LayerConfig&);
     std::size_t add_simplernn_layers(std::size_t n_inputs, const LayerConfig&);
+    std::size_t add_conv1d_layers(std::size_t n_inputs, const LayerConfig&);
     std::size_t add_embedding_layers(std::size_t n_inputs, const LayerConfig&);
     std::size_t m_n_outputs;
   };
@@ -368,6 +369,30 @@ namespace generic
     int m_n_outputs;
   };
 
+  template<typename T>
+  class Conv1dLayer : public IRecurrentLayer<T>
+  {
+  public:
+    Conv1dLayer(ActivationConfig activation,
+              const MatrixX<T>& W_h, const VectorX<T>& b_h, lwt::Conv1dConfig cfg);
+
+    virtual ~Conv1dLayer() {};
+    virtual MatrixX<T> scan( const MatrixX<T>&) const override;
+
+  private:
+    std::unique_ptr<ILayer<T>> m_activation_fun;
+
+    MatrixX<T> m_W_h;
+    VectorX<T> m_b_h;
+
+    std::size_t m_n_outputs;
+    std::size_t m_n_inputs;
+    std::size_t m_kernel_size;
+    std::size_t m_dilation_rate;
+    lwt::Padding m_padding;
+
+  };
+
 
   // ______________________________________________________________________
   // Activation functions
@@ -438,6 +463,7 @@ namespace generic
   // consistency checks
   void throw_if_not_maxout(const LayerConfig& layer);
   void throw_if_not_dense(const LayerConfig& layer);
+  void throw_if_not_conv1d(const LayerConfig& layer);
   void throw_if_not_normalization(const LayerConfig& layer);
 
 } // namespace lwt
