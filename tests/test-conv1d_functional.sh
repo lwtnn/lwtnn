@@ -13,7 +13,7 @@
 # If to add another test you'll probably have to edit this
 
 # Trained network to convert and test
-INPUT=https://raw.githubusercontent.com/jcvoigt/lwtnn-test-data/master/conv1d_functional.tgz
+INPUT=https://github.com/lwtnn/lwtnn-test-data/raw/v11/conv1d_functional.tgz
 ARCH=model.json
 VARIABLES=variables.json
 HDF5=weights.h5
