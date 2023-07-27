@@ -437,29 +437,24 @@ namespace generic {
 
   template<typename T>
   std::size_t RecurrentStack<T>::add_conv1d_layers(std::size_t n_inputs, const LayerConfig& layer) {
-    assert(layer.architecture == Architecture::CONV1D);
-    throw_if_not_conv1d(layer);
+    throw_if_not_conv1d(layer, n_inputs);
 
-    std::size_t n_outputs = n_inputs;
+    std::size_t n_outputs = layer.bias.size();
+    std::size_t kernel_size = layer.weights.size()/n_inputs/n_outputs;
 
-    if (layer.weights.size() > 0) {
-      std::size_t kernel_size = layer.weights.size()/n_inputs/layer.bias.size();
+    VectorX<T> bias = build_vector<T>(layer.bias);
 
-      VectorX<T> bias = build_vector<T>(layer.bias);
-      n_outputs = layer.bias.size();
-
-      // Construct weights matrix with weights operating on one input node per row
-      MatrixX<T> matrix = MatrixX<T>::Zero(kernel_size*n_outputs, n_inputs);
-      for(std::size_t k=0; k<kernel_size; k++){
-        for(std::size_t o=0; o<n_outputs; o++){
-          for(std::size_t i=0; i<n_inputs; i++){
-            T element = layer.weights.at(o*n_inputs*kernel_size + i*kernel_size + k);
-            matrix(o*kernel_size + k, i) = element;
-          }
+    // Construct weights matrix with weights operating on one input node per row
+    MatrixX<T> matrix = MatrixX<T>::Zero(kernel_size*n_outputs, n_inputs);
+    for(std::size_t k=0; k<kernel_size; k++){
+      for(std::size_t o=0; o<n_outputs; o++){
+        for(std::size_t i=0; i<n_inputs; i++){
+          T element = layer.weights.at(o*n_inputs*kernel_size + i*kernel_size + k);
+          matrix(o*kernel_size + k, i) = element;
         }
       }
-      m_layers.push_back(new Conv1dLayer<T>(layer.activation, matrix, bias, layer.conv1d));
     }
+    m_layers.push_back(new Conv1dLayer<T>(layer.activation, matrix, bias, layer.conv1d));
 
     return n_outputs;
   }
@@ -799,7 +794,7 @@ namespace generic {
         x_p = x; // valid/no padding
         // Sequence gets shortened by field of view - 1
         seq_length = x.cols() - (m_kernel_size - 1)*m_dilation_rate;
-        assert(seq_length >= 1);
+        if(seq_length < 1) throw NNEvaluationException("Input sequence too short for valid padding");
       }
 
       MatrixX<T> result = MatrixX<T>::Zero(m_n_outputs, seq_length);

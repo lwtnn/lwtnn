@@ -463,7 +463,7 @@ namespace generic
   // consistency checks
   void throw_if_not_maxout(const LayerConfig& layer);
   void throw_if_not_dense(const LayerConfig& layer);
-  void throw_if_not_conv1d(const LayerConfig& layer);
+  void throw_if_not_conv1d(const LayerConfig& layer, std::size_t n_inputs);
   void throw_if_not_normalization(const LayerConfig& layer);
 
 } // namespace lwt
