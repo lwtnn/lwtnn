@@ -5,6 +5,7 @@
 
 #include <set>
 
+
 namespace lwt {
 namespace generic {
 
@@ -360,6 +361,8 @@ namespace generic {
         n_inputs = add_gru_layers(n_inputs, layer);
       } else if (layer.architecture == Architecture::SIMPLERNN) {
         n_inputs = add_simplernn_layers(n_inputs, layer);
+      } else if (layer.architecture == Architecture::CONV1D){
+        n_inputs = add_conv1d_layers(n_inputs, layer);
       } else if (layer.architecture == Architecture::EMBEDDING) {
         n_inputs = add_embedding_layers(n_inputs, layer);
       } else {
@@ -430,6 +433,30 @@ namespace generic {
     m_layers.push_back(
       new SimpleRNNLayer<T>(layer.activation, h.W, h.U, h.b));
     return h.b.rows();
+  }
+
+  template<typename T>
+  std::size_t RecurrentStack<T>::add_conv1d_layers(std::size_t n_inputs, const LayerConfig& layer) {
+    throw_if_not_conv1d(layer, n_inputs);
+
+    std::size_t n_outputs = layer.bias.size();
+    std::size_t kernel_size = layer.weights.size()/n_inputs/n_outputs;
+
+    VectorX<T> bias = build_vector<T>(layer.bias);
+
+    // Construct weights matrix with weights operating on one input node per row
+    MatrixX<T> matrix = MatrixX<T>::Zero(kernel_size*n_outputs, n_inputs);
+    for(std::size_t k=0; k<kernel_size; k++){
+      for(std::size_t o=0; o<n_outputs; o++){
+        for(std::size_t i=0; i<n_inputs; i++){
+          T element = layer.weights.at(o*n_inputs*kernel_size + i*kernel_size + k);
+          matrix(o*kernel_size + k, i) = element;
+        }
+      }
+    }
+    m_layers.push_back(new Conv1dLayer<T>(layer.activation, matrix, bias, layer.conv1d));
+
+    return n_outputs;
   }
 
   template<typename T>
@@ -729,6 +756,62 @@ namespace generic {
       }
 
       return state.h_t;
+    }
+
+    // Conv1d layer
+    template<typename T>
+    Conv1dLayer<T>::Conv1dLayer(ActivationConfig activation,
+                         const MatrixX<T>& W_h, const VectorX<T>& b_h,
+                         lwt::Conv1dConfig cfg):
+      m_W_h(W_h),
+      m_b_h(b_h),
+      m_dilation_rate(cfg.dilation_rate),
+      m_padding(cfg.padding)
+    {
+      m_n_outputs = m_b_h.size();
+      m_kernel_size = W_h.rows()/m_n_outputs;
+      m_n_inputs = W_h.cols();
+
+      m_activation_fun.reset(get_raw_activation_layer<T>(activation));
+    }
+
+    template<typename T>
+    MatrixX<T> Conv1dLayer<T>::scan( const MatrixX<T>& x ) const {
+      std::size_t seq_length;
+      MatrixX<T> x_p;
+      if(m_padding == lwt::Padding::CAUSAL){
+        seq_length = x.cols();
+        x_p = MatrixX<T>::Zero(x.rows(), seq_length + (m_kernel_size - 1)*m_dilation_rate);
+        x_p.block(0, (m_kernel_size - 1)*m_dilation_rate, x.rows(), seq_length) = x;
+      }
+      else if(m_padding == lwt::Padding::SAME){
+        seq_length = x.cols();
+        x_p = MatrixX<T>::Zero(x.rows(), seq_length + (m_kernel_size - 1)*m_dilation_rate);
+        // padding favoring start if kernel is even
+        x_p.block(0, ((m_kernel_size - 1)*m_dilation_rate + 1)/2, x.rows(), seq_length) = x;
+      }
+      else{
+        x_p = x; // valid/no padding
+        // Sequence gets shortened by field of view - 1
+        seq_length = x.cols() - (m_kernel_size - 1)*m_dilation_rate;
+        if(seq_length < 1) throw NNEvaluationException("Input sequence too short for valid padding");
+      }
+
+      MatrixX<T> result = MatrixX<T>::Zero(m_n_outputs, seq_length);
+      MatrixX<T> result_act = MatrixX<T>::Zero(m_n_outputs, seq_length);
+      for(std::size_t o=0; o < m_n_outputs; o++){
+        result.row(o) = MatrixX<T>::Constant(1, seq_length, m_b_h[o]);
+      }
+
+      MatrixX<T> k_prod = m_W_h * x_p;
+      for(std::size_t o=0; o<m_n_outputs; o++){
+        for(std::size_t k=0; k<m_kernel_size; k++){
+          result.row(o) += k_prod.block(o*m_kernel_size + k, k*m_dilation_rate, 1, seq_length);
+        }
+        result_act.row(o) = m_activation_fun->compute(result.row(o));
+      }
+
+      return result_act;
     }
 
 

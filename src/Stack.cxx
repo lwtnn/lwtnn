@@ -55,6 +55,15 @@ namespace lwt
     }
   }
 
+  void throw_if_not_conv1d(const LayerConfig& layer, std::size_t n_inputs) {
+    bool arch_ok = layer.architecture == Architecture::CONV1D;
+    bool bias_ok = layer.bias.size() > 0;
+    bool weights_ok = layer.weights.size() > 0 && layer.weights.size() % (n_inputs*layer.bias.size()) == 0;
+    bool sublayer_ok = layer.sublayers.size() == 0;
+    if (arch_ok && bias_ok && weights_ok && sublayer_ok) return;
+    throw NNConfigurationException("layer has wrong info for conv1d");
+  }
+
   void throw_if_not_normalization(const LayerConfig& layer) {
     if (layer.sublayers.size() > 0) {
       throw NNConfigurationException("sublayers in normalization layer");

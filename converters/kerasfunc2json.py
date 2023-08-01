@@ -332,6 +332,7 @@ _node_type_map = {
     'lstm': 'sequence',
     'gru': 'sequence',
     'simplernn': 'sequence',
+    'conv1d': 'sequence',
     'sum': 'sum',
     'timedistributed': 'time_distributed',
     'softmax': 'feed_forward',

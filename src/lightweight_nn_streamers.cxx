@@ -38,6 +38,7 @@ namespace lwt {
     case Architecture::LSTM: return "lstm";
     case Architecture::GRU: return "gru";
     case Architecture::SIMPLERNN: return "simplernn";
+    case Architecture::CONV1D: return "conv1d";
     case Architecture::EMBEDDING: return "embedding";
     default: throw std::logic_error("unknown architecture");
     }

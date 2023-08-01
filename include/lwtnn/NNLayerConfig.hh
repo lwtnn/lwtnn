@@ -18,7 +18,7 @@ namespace lwt {
     // will eventually be removed.
     SIGMOID_LEGACY, HARD_SIGMOID_LEGACY, TANH_LEGACY, RECTIFIED_LEGACY};
   enum class Architecture {NONE, DENSE, NORMALIZATION, MAXOUT, HIGHWAY,
-      LSTM, GRU, SIMPLERNN, EMBEDDING};
+      LSTM, GRU, SIMPLERNN, CONV1D, EMBEDDING};
   // components (for LSTM, etc)
   enum class Component {
     I, O, C, F,                 // LSTM
@@ -39,6 +39,14 @@ namespace lwt {
     double alpha;
   };
 
+  enum class Padding {VALID, SAME, CAUSAL};
+
+  struct Conv1dConfig
+  {
+    std::size_t dilation_rate;
+    Padding padding;
+  };
+
   // main layer configuration
   struct LayerConfig
   {
@@ -46,6 +54,7 @@ namespace lwt {
     std::vector<double> weights;
     std::vector<double> bias;
     std::vector<double> U;      // TODO: what is this thing called in LSTMs?
+    Conv1dConfig conv1d;  // for 1d CNNs
     ActivationConfig activation;
     ActivationConfig inner_activation; // for LSTMs and GRUs
 
