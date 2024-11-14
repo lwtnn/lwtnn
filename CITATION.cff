@@ -1,0 +1,63 @@
+cff-version: 1.2.0
+message: "Please cite the following works when using this software."
+type: software
+authors:
+- family-names: "Guest"
+  given-names: "Daniel"
+  orcid: "https://orcid.org/0000-0002-4305-2295"
+  affiliation: "Humboldt-Universität zu Berlin"
+
+- family-names: "Smith"
+  given-names: "Joshua"
+  orcid: "https://orcid.org/0000-0003-1819-4985"
+  affiliation: "Wyatt AI"
+
+- family-names: "Paganini"
+  given-names: "Michela"
+  orcid: "https://orcid.org/0000-0003-4102-8002"
+  affiliation: "Google DeepMind"
+
+- family-names: "Kagan"
+  given-names: "Michael"
+  orcid: "https://orcid.org/0000-0002-3386-6869"
+  affiliation: "SLAC"
+
+- family-names: "Lanfermann"
+  given-names: "Marie"
+  orcid: "https://orcid.org/0000-0002-2938-2757"
+  affiliation: "Université de Genève"
+
+- family-names: "Krasznahorkay"
+  given-names: "Attila"
+  orcid: "https://orcid.org/0000-0002-6468-1381"
+  affiliation: "CERN"
+
+- family-names: "Marley"
+  given-names: "Daniel"
+  orcid: "https://orcid.org/0000-0002-6290-078X"
+  affiliation: "Intelinair"
+
+- family-names: "Ghosh"
+  given-names: "Aishik"
+  orcid: "https://orcid.org/0000-0003-0819-1553"
+  affiliation: "University of California, Irvine"
+
+- family-names: "Huth"
+  given-names: "Benjamin"
+  orcid: "https://orcid.org/0000-0002-3163-1062"
+  affiliation: "Universität Regensburg"
+
+- family-names: "Feickert"
+  given-names: "Matthew"
+  orcid: "https://orcid.org/0000-0003-4124-7862"
+  affiliation: "University of Wisconsin-Madison"
+title: "lwtnn: v2.13"
+version: 2.13
+doi: 10.5281/zenodo.597221
+repository-code: "https://github.com/lwtnn/lwtnn/releases/tag/v2.13"
+url: "https://github.com/lwtnn/lwtnn/"
+keywords:
+  - physics
+  - machine learning
+  - neural networks
+license: "MIT"
