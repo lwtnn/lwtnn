@@ -15,9 +15,7 @@ import sys
 from keras_layer_converters_common import activation_map
 import h5py
 
-def set_globals(backend):
-    global BACKEND_SUFFIX
-    BACKEND_SUFFIX = ":0" if backend == "tensorflow" else ""
+BACKEND_SUFFIX = ''
 
 def _get_dense_layer_parameters(h5, layer_config, n_in, layer_type):
     """Get weights, bias, and n-outputs for a dense layer"""
