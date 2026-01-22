@@ -54,6 +54,9 @@ list( INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake )
 # available on the build system, or downloading the necessary code as part
 # of the build of this project.
 
+# Build the static library or not.
+option( BUILD_STATIC_LIBRARY "Build the static library (lwtnn-stat)" ON )
+
 # Figure out what to do with Boost.
 option( BUILTIN_BOOST "Acquire Boost as part of building this project" OFF )
 if( BUILTIN_BOOST )
@@ -173,20 +176,33 @@ if( BUILTIN_EIGEN )
 endif()
 
 # Build the static library.
-add_library( lwtnn-stat ${lib_headers} ${lib_sources} )
-target_include_directories( lwtnn-stat
-   PUBLIC ${EIGEN3_INCLUDE_DIR}
-   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
-   PRIVATE ${Boost_INCLUDE_DIRS} )
-if( BUILTIN_BOOST )
-   add_dependencies( lwtnn-stat Boost )
+if( BUILD_STATIC_LIBRARY )
+   add_library( lwtnn-stat ${lib_headers} ${lib_sources} )
+   target_include_directories( lwtnn-stat
+      PUBLIC ${EIGEN3_INCLUDE_DIR}
+      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
+      PRIVATE ${Boost_INCLUDE_DIRS} )
+   if( BUILTIN_BOOST )
+      add_dependencies( lwtnn-stat Boost )
+   endif()
+   if( BUILTIN_EIGEN )
+      add_dependencies( lwtnn-stat Eigen )
+   endif()
 endif()
-if( BUILTIN_EIGEN )
-   add_dependencies( lwtnn-stat Eigen )
+
+# Set the library to link executables and tests against.
+if( BUILD_STATIC_LIBRARY )
+   set( LWTNN_LINK_LIBRARY lwtnn-stat )
+else()
+   set( LWTNN_LINK_LIBRARY lwtnn )
 endif()
 
 # Install the libraries.
-install( TARGETS lwtnn lwtnn-stat
+set( LWTNN_INSTALL_TARGETS lwtnn )
+if( BUILD_STATIC_LIBRARY )
+   list( APPEND LWTNN_INSTALL_TARGETS lwtnn-stat )
+endif()
+install( TARGETS ${LWTNN_INSTALL_TARGETS}
    EXPORT lwtnnTargets
    ARCHIVE DESTINATION lib
    LIBRARY DESTINATION lib
@@ -199,7 +215,7 @@ macro( lwtnn_add_executable name )
    # Declare the executable.
    add_executable( ${name} src/${name}.cxx )
    # Set its properties.
-   target_link_libraries( ${name} lwtnn-stat )
+   target_link_libraries( ${name} ${LWTNN_LINK_LIBRARY} )
    target_include_directories( ${name} SYSTEM PRIVATE ${Boost_INCLUDE_DIRS} )
    # Install it.
    install( TARGETS ${name}
@@ -233,7 +249,7 @@ install( PROGRAMS
 macro( lwtnn_add_test name )
    # Build the unit-test executable:
    add_executable( ${name} ${ARGN} )
-   target_link_libraries( ${name} lwtnn-stat )
+   target_link_libraries( ${name} ${LWTNN_LINK_LIBRARY} )
    set_target_properties( ${name} PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test-bin" )
    # Set up the test itself:
