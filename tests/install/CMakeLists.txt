@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12...3.20)
+cmake_minimum_required(VERSION 3.12...4.2)
 project(TestLwtnn)
 
 set( CMAKE_CXX_STANDARD 11 CACHE STRING
