@@ -43,12 +43,12 @@ set( CMAKE_SKIP_INSTALL_RPATH ON )
 
 # Set the location of the built libraries/executables inside the build
 # directory.
-set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin )
-set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
-set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib )
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin )
+set( CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib )
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/lib )
 
 # Make the project's modules visible to CMake.
-list( INSERT CMAKE_MODULE_PATH 0 ${CMAKE_SOURCE_DIR}/cmake )
+list( INSERT CMAKE_MODULE_PATH 0 ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 
 # Figure out where to take "externals" from. Either using externals already
 # available on the build system, or downloading the necessary code as part
@@ -66,8 +66,8 @@ if( BUILTIN_BOOST )
    # "privately", so the headers are not installed with the project.
    include( ExternalProject )
    ExternalProject_Add( Boost
-      PREFIX ${CMAKE_BINARY_DIR}/externals
-      INSTALL_DIR ${CMAKE_BINARY_DIR}/externals/Boost
+      PREFIX ${CMAKE_CURRENT_BINARY_DIR}/externals
+      INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/externals/Boost
       URL "https://lcgpackages.web.cern.ch/tarFiles/sources/boost_1_64_0.tar.gz"
       URL_HASH SHA256=0445c22a5ef3bd69f5dfb48354978421a85ab395254a26b1ffb0aa1bfd63a108
       BUILD_IN_SOURCE 1
@@ -77,7 +77,7 @@ if( BUILTIN_BOOST )
       <INSTALL_DIR>/include/boost )
    # Set the include path to use.
    set( Boost_INCLUDE_DIRS
-      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/externals/Boost/include> )
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/externals/Boost/include> )
    # Tell the user what will happen.
    message( STATUS "Using a privately downloaded Boost version for the build" )
 else()
@@ -91,19 +91,19 @@ if( BUILTIN_EIGEN )
    # Download and install Eigen using ExternalProject.
    include( ExternalProject )
    ExternalProject_Add( Eigen
-      PREFIX ${CMAKE_BINARY_DIR}/externals
-      INSTALL_DIR ${CMAKE_BINARY_DIR}/externals/Eigen
+      PREFIX ${CMAKE_CURRENT_BINARY_DIR}/externals
+      INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen
       URL "https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.bz2"
       URL_MD5 "b9e98a200d2455f06db9c661c5610496"
       DOWNLOAD_NAME "eigen-3.3.7.tar.bz2"
       CMAKE_CACHE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> )
    # The eigen headers are needed by clients of this project as well, so let's
    # install them with the project.
-   install( DIRECTORY ${CMAKE_BINARY_DIR}/externals/Eigen/
+   install( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen/
       DESTINATION . USE_SOURCE_PERMISSIONS )
    # Set the include path to use.
    set( EIGEN3_INCLUDE_DIR
-      $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/externals/Eigen/include/eigen3>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen/include/eigen3>
       $<INSTALL_INTERFACE:include/eigen3> )
    # Tell the user what will happen.
    message( STATUS "Using a privately downloaded Eigen version for the build" )
@@ -166,7 +166,7 @@ set( lib_sources
 add_library( lwtnn SHARED ${lib_headers} ${lib_sources} )
 target_include_directories( lwtnn
    PUBLIC ${EIGEN3_INCLUDE_DIR}
-   $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
+   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
    PRIVATE ${Boost_INCLUDE_DIRS} )
 if( BUILTIN_BOOST )
    add_dependencies( lwtnn Boost )
@@ -180,7 +180,7 @@ if( BUILD_STATIC_LIBRARY )
    add_library( lwtnn-stat ${lib_headers} ${lib_sources} )
    target_include_directories( lwtnn-stat
       PUBLIC ${EIGEN3_INCLUDE_DIR}
-      $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
       PRIVATE ${Boost_INCLUDE_DIRS} )
    if( BUILTIN_BOOST )
       add_dependencies( lwtnn-stat Boost )
@@ -251,11 +251,11 @@ macro( lwtnn_add_test name )
    add_executable( ${name} ${ARGN} )
    target_link_libraries( ${name} ${LWTNN_LINK_LIBRARY} )
    set_target_properties( ${name} PROPERTIES
-      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/test-bin" )
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/test-bin" )
    # Set up the test itself:
    add_test( NAME ${name}_ctest
-      COMMAND ${CMAKE_BINARY_DIR}/test-bin/${name}
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/test-bin )
+      COMMAND ${CMAKE_CURRENT_BINARY_DIR}/test-bin/${name}
+      WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/test-bin )
 endmacro( lwtnn_add_test )
 
 # Set up the test(s) of the project.
@@ -266,10 +266,10 @@ install( EXPORT lwtnnTargets
    FILE lwtnnConfig-targets.cmake
    DESTINATION cmake
    NAMESPACE "lwtnn::" )
-configure_file( ${CMAKE_SOURCE_DIR}/cmake/lwtnnConfig-version.cmake.in
-   ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/lwtnnConfig-version.cmake @ONLY )
-install( FILES ${CMAKE_SOURCE_DIR}/cmake/lwtnnConfig.cmake
-   ${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/lwtnnConfig-version.cmake
+configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/cmake/lwtnnConfig-version.cmake.in
+   ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_CURRENT_FILES_DIRECTORY}/lwtnnConfig-version.cmake @ONLY )
+install( FILES ${CMAKE_CURRENT_SOURCE_DIR}/cmake/lwtnnConfig.cmake
+   ${CMAKE_CURRENT_BINARY_DIR}${CMAKE_CURRENT_FILES_DIRECTORY}/lwtnnConfig-version.cmake
    DESTINATION cmake )
 
 # Attila wrote this list originally, and used 3 spaces for tabs.  I
