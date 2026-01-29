@@ -72,10 +72,8 @@ version of Eigen and Boost everything should work without errors.
 If you have CMake, you can build with _no_ other dependencies:
 
 ```bash
-mkdir build
-cd build
-cmake -DBUILTIN_BOOST=true -DBUILTIN_EIGEN=true ..
-make -j 4
+cmake -DBUILTIN_BOOST=true -DBUILTIN_EIGEN=true -S . -B build
+cmake --build build --parallel 4
 ```
 
 Running a full-chain test
