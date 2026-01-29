@@ -60,6 +60,8 @@ very useful.
 Getting the code
 ----------------
 
+### From source
+
 Clone the project from github:
 
 ```bash
@@ -74,6 +76,24 @@ If you have CMake, you can build with _no_ other dependencies:
 ```bash
 cmake -DBUILTIN_BOOST=true -DBUILTIN_EIGEN=true -S . -B build
 cmake --build build --parallel 4
+```
+
+### From conda-forge
+
+lwtnn is available as a conda package [on conda-forge](https://github.com/conda-forge/lwtnn-feedstock) for the following platforms:
+
+[![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/lwtnn.svg)](https://anaconda.org/conda-forge/lwtnn)
+
+The lwtnn conda package can be installed into a particular project with [Pixi](https://pixi.sh/)
+
+```
+pixi add lwtnn
+```
+
+or into a conda environment with [conda](https://docs.conda.io/projects/conda/)
+
+```
+conda install --channel conda-forge lwtnn
 ```
 
 Running a full-chain test
