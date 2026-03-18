@@ -96,7 +96,8 @@ if( BUILTIN_EIGEN )
       URL "https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.bz2"
       URL_MD5 "b9e98a200d2455f06db9c661c5610496"
       DOWNLOAD_NAME "eigen-3.3.7.tar.bz2"
-      CMAKE_CACHE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> )
+      CMAKE_CACHE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+                       -DCMAKE_POLICY_VERSION_MINIMUM:STRING=3.5 )
    # The eigen headers are needed by clients of this project as well, so let's
    # install them with the project.
    install( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen/
