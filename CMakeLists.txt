@@ -101,11 +101,17 @@ if( BUILTIN_EIGEN )
    # install them with the project.
    install( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen/
       DESTINATION . USE_SOURCE_PERMISSIONS )
+   # Create the include directory at configure time so that CMake's
+   # imported-target validation passes. ExternalProject populates it
+   # at build time.
+   set( _eigen3_include
+      "${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen/include/eigen3" )
+   file( MAKE_DIRECTORY ${_eigen3_include} )
    # Create an imported target so that downstream usage is uniform.
    add_library( Eigen3::Eigen INTERFACE IMPORTED )
    set_target_properties( Eigen3::Eigen PROPERTIES
       INTERFACE_INCLUDE_DIRECTORIES
-      "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen/include/eigen3>;$<INSTALL_INTERFACE:include/eigen3>" )
+      "$<BUILD_INTERFACE:${_eigen3_include}>;$<INSTALL_INTERFACE:include/eigen3>" )
    # Tell the user what will happen.
    message( STATUS "Using a privately downloaded Eigen version for the build" )
 else()
