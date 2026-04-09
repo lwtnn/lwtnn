@@ -101,15 +101,16 @@ if( BUILTIN_EIGEN )
    # install them with the project.
    install( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen/
       DESTINATION . USE_SOURCE_PERMISSIONS )
-   # Set the include path to use.
-   set( EIGEN3_INCLUDE_DIR
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen/include/eigen3>
-      $<INSTALL_INTERFACE:include/eigen3> )
+   # Create an imported target so that downstream usage is uniform.
+   add_library( Eigen3::Eigen INTERFACE IMPORTED )
+   set_target_properties( Eigen3::Eigen PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES
+      "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen/include/eigen3>;$<INSTALL_INTERFACE:include/eigen3>" )
    # Tell the user what will happen.
    message( STATUS "Using a privately downloaded Eigen version for the build" )
 else()
    # Look for Eigen on the build system.
-   find_package( Eigen3 REQUIRED )
+   find_package( Eigen3 REQUIRED NO_MODULE )
 endif()
 
 # Public header files for the shared/static library.
@@ -165,9 +166,9 @@ set( lib_sources
 # Build the shared library.
 add_library( lwtnn SHARED ${lib_headers} ${lib_sources} )
 target_include_directories( lwtnn
-   PUBLIC ${EIGEN3_INCLUDE_DIR}
-   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
+   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
    PRIVATE ${Boost_INCLUDE_DIRS} )
+target_link_libraries( lwtnn PUBLIC Eigen3::Eigen )
 if( BUILTIN_BOOST )
    add_dependencies( lwtnn Boost )
 endif()
@@ -179,9 +180,9 @@ endif()
 if( BUILD_STATIC_LIBRARY )
    add_library( lwtnn-stat ${lib_headers} ${lib_sources} )
    target_include_directories( lwtnn-stat
-      PUBLIC ${EIGEN3_INCLUDE_DIR}
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
+      PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
       PRIVATE ${Boost_INCLUDE_DIRS} )
+   target_link_libraries( lwtnn-stat PUBLIC Eigen3::Eigen )
    if( BUILTIN_BOOST )
       add_dependencies( lwtnn-stat Boost )
    endif()
