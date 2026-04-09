@@ -93,9 +93,9 @@ if( BUILTIN_EIGEN )
    ExternalProject_Add( Eigen
       PREFIX ${CMAKE_CURRENT_BINARY_DIR}/externals
       INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen
-      URL "https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.bz2"
-      URL_MD5 "b9e98a200d2455f06db9c661c5610496"
-      DOWNLOAD_NAME "eigen-3.3.7.tar.bz2"
+      URL "https://gitlab.com/libeigen/eigen/-/archive/5.0.1/eigen-5.0.1.tar.bz2"
+      URL_MD5 "457323cbf3688f52b3623c0aa85044b7"
+      DOWNLOAD_NAME "eigen-5.0.1.tar.bz2"
       CMAKE_CACHE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> )
    # The eigen headers are needed by clients of this project as well, so let's
    # install them with the project.
