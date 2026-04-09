@@ -6,6 +6,7 @@
 #include "lwtnn/generic/Stack.hh"
 #include "lwtnn/generic/eigen_typedefs.hh"
 
+#include <cassert>
 #include <set>
 
 namespace lwt {

@@ -17,11 +17,7 @@ TEST_INSTALL=$(mktemp -d)
 echo "building from ${PWD}"
 tree .
 
-mkdir build
-pushd .
-cd build
-
-echo "building in ${PWD}"
+echo "building in build/"
 
 ARGS="-DCMAKE_CXX_STANDARD=${STANDARD-11}"
 if [[ ${MINIMAL+x} ]]; then
@@ -30,11 +26,10 @@ fi
 ARGS+=" -DCMAKE_INSTALL_PREFIX=${TEST_INSTALL}"
 NPROC=$(nproc 2> /dev/null || gnproc)
 export MAKEFLAGS="-j${NPROC} -l${NPROC}"
-cmake ${ARGS} ..
-cmake --build .
-ctest --output-on-failure -j${NPROC}
-make install
-popd
+cmake ${ARGS} -S . -B build
+cmake --build build
+ctest --output-on-failure --parallel "${NPROC}" -C "${CMAKE_BUILD_TYPE}" -S build
+cmake --install build
 
 if [[ -d bin ]]; then
     echo "removing old bin directory" >&2

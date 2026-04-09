@@ -18,9 +18,9 @@ project( lwtnn VERSION 2.14.2 )
 include( CTest )
 
 # Set up the "C++ version" to use.
-set( CMAKE_CXX_STANDARD_REQUIRED 11 CACHE STRING
+set( CMAKE_CXX_STANDARD_REQUIRED 14 CACHE STRING
    "Minimum C++ standard required for the build" )
-set( CMAKE_CXX_STANDARD 11 CACHE STRING
+set( CMAKE_CXX_STANDARD 14 CACHE STRING
    "C++ standard to use for the build" )
 set( CMAKE_CXX_EXTENSIONS FALSE CACHE BOOL
    "(Dis)allow using compiler extensions" )
@@ -93,23 +93,30 @@ if( BUILTIN_EIGEN )
    ExternalProject_Add( Eigen
       PREFIX ${CMAKE_CURRENT_BINARY_DIR}/externals
       INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen
-      URL "https://gitlab.com/libeigen/eigen/-/archive/3.3.7/eigen-3.3.7.tar.bz2"
-      URL_MD5 "b9e98a200d2455f06db9c661c5610496"
-      DOWNLOAD_NAME "eigen-3.3.7.tar.bz2"
+      URL "https://gitlab.com/libeigen/eigen/-/archive/5.0.1/eigen-5.0.1.tar.bz2"
+      URL_MD5 "457323cbf3688f52b3623c0aa85044b7"
+      DOWNLOAD_NAME "eigen-5.0.1.tar.bz2"
       CMAKE_CACHE_ARGS -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR> )
    # The eigen headers are needed by clients of this project as well, so let's
    # install them with the project.
    install( DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen/
       DESTINATION . USE_SOURCE_PERMISSIONS )
-   # Set the include path to use.
-   set( EIGEN3_INCLUDE_DIR
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen/include/eigen3>
-      $<INSTALL_INTERFACE:include/eigen3> )
+   # Create the include directory at configure time so that CMake's
+   # imported-target validation passes. ExternalProject populates it
+   # at build time.
+   set( _eigen3_include
+      "${CMAKE_CURRENT_BINARY_DIR}/externals/Eigen/include/eigen3" )
+   file( MAKE_DIRECTORY ${_eigen3_include} )
+   # Create an imported target so that downstream usage is uniform.
+   add_library( Eigen3::Eigen INTERFACE IMPORTED )
+   set_target_properties( Eigen3::Eigen PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES
+      "$<BUILD_INTERFACE:${_eigen3_include}>;$<INSTALL_INTERFACE:include/eigen3>" )
    # Tell the user what will happen.
    message( STATUS "Using a privately downloaded Eigen version for the build" )
 else()
    # Look for Eigen on the build system.
-   find_package( Eigen3 REQUIRED )
+   find_package( Eigen3 REQUIRED NO_MODULE )
 endif()
 
 # Public header files for the shared/static library.
@@ -165,9 +172,9 @@ set( lib_sources
 # Build the shared library.
 add_library( lwtnn SHARED ${lib_headers} ${lib_sources} )
 target_include_directories( lwtnn
-   PUBLIC ${EIGEN3_INCLUDE_DIR}
-   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
+   PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
    PRIVATE ${Boost_INCLUDE_DIRS} )
+target_link_libraries( lwtnn PUBLIC Eigen3::Eigen )
 if( BUILTIN_BOOST )
    add_dependencies( lwtnn Boost )
 endif()
@@ -179,9 +186,9 @@ endif()
 if( BUILD_STATIC_LIBRARY )
    add_library( lwtnn-stat ${lib_headers} ${lib_sources} )
    target_include_directories( lwtnn-stat
-      PUBLIC ${EIGEN3_INCLUDE_DIR}
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
+      PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:include>
       PRIVATE ${Boost_INCLUDE_DIRS} )
+   target_link_libraries( lwtnn-stat PUBLIC Eigen3::Eigen )
    if( BUILTIN_BOOST )
       add_dependencies( lwtnn-stat Boost )
    endif()

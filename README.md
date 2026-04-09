@@ -21,7 +21,7 @@ The code comes in two parts:
 
 The main design principles are:
 
- - **Minimal dependencies:** The C++ code depends on C++11,
+ - **Minimal dependencies:** The C++ code depends on C++14,
    [Eigen][eg], and boost [PropertyTree][pt]. The converters have
    additional requirements (Python3 and [h5py][h5py]) but these can be run
    outside the C++ production environment.

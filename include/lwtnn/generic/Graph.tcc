@@ -5,6 +5,7 @@
 #include "lwtnn/generic/Graph.hh"
 #include "lwtnn/Exceptions.hh"
 
+#include <cassert>
 #include <set>
 #include <memory>
 
