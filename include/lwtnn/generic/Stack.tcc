@@ -3,6 +3,7 @@
 
 #include "lwtnn/generic/Stack.hh"
 
+#include <cassert>
 #include <set>
 
 

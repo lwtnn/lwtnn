@@ -6,6 +6,7 @@
 
 #include <Eigen/Dense>
 
+#include <cassert>
 #include <iostream>
 #include <sstream>
 #include <string>
