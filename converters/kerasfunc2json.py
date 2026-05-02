@@ -173,7 +173,8 @@ class Node:
         self.dims = None
         inbound = layer['inbound_nodes']
         if self.layer_type != "inputlayer":
-            for sname, sidx, *something in inbound[idx]:
+            for arg in inbound[idx]['args']:
+                sname, sidx, *something = arg['config']['keras_history']
                 for n, some_stuff in enumerate(something):
                     if some_stuff:
                         err = _inbound_confused_error_tmp.format(
@@ -182,7 +183,7 @@ class Node:
                         raise Exception(err)
                 self.sources.append( (sname, sidx) )
         else:
-            shape = layer['config']['batch_input_shape']
+            shape = layer['config']['batch_shape']
             self.n_outputs = shape[-1]
             self.dims = len(shape) - 1
         self.keras_layer = layer
@@ -209,7 +210,8 @@ def _build_node_dict(network):
     # source nodes are inbound nodes
     for layer in layers.values():
         for sink in layer['inbound_nodes']:
-            for kname, kid, *something in sink:
+            for arg in sink['args']:
+                kname, kid, *something = arg['config']['keras_history']
                 nodes[(kname, kid)] = Node(layers[kname], kid)
 
     # get the output nodes now
@@ -293,15 +295,16 @@ def _build_layer(backend, output_layers, node_key, h5, node_dict, layer_dict):
 
     BACKEND, KERAS_VERSION = backend
     if KERAS_VERSION == 1:
-        from keras_v1_layer_converters import set_globals, layer_converters
-    elif KERAS_VERSION == 2:
-        from keras_v2_layer_converters import set_globals, layer_converters
+        from keras_v1_layer_converters import layer_converters
+    elif KERAS_VERSION in {2,3}:
+        from keras_v2_layer_converters import layer_converters
     else:
-        sys.exit("We don't support Keras version {}.\n"
-          "Pleas open an issue at https://github.com/lwtnn").format(
-              KERAS_VERSION)
+        sys.exit(
+            ("We don't support Keras version {}.\n"
+             "Pleas open an issue at https://github.com/lwtnn").format(
+                 KERAS_VERSION)
+        )
 
-    set_globals(BACKEND)
     convert = layer_converters[layer_type]
 
     # build the out layer
