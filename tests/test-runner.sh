@@ -20,3 +20,7 @@ set -o pipefail
 ./tests/test-unsplit-model.sh
 ./tests/test-SimpleRNN.sh
 ./tests/test-conv1d_functional.sh
+./tests/test-onnx-dense.sh
+./tests/test-onnx-batchnorm.sh
+./tests/test-onnx-activations.sh
+./tests/test-torch-onnx-roundtrip.sh
