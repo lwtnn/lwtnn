@@ -37,11 +37,15 @@ We also include converters from several popular formats to the `lwtnn`
 JSON format. Currently the following formats are supported:
  - Scikit Learn
  - [Keras][kr] (most popular, see below)
+ - [ONNX][onnx] (covers PyTorch via `torch.onnx.export`, TensorFlow via
+   [tf2onnx][tf2onnx], and most other modern frameworks; see below)
 
 [eg]: http://eigen.tuxfamily.org
 [pt]: http://www.boost.org/doc/libs/1_59_0/doc/html/property_tree.html
 [kr]: http://keras.io/
 [h5py]: https://pypi.org/project/h5py/
+[onnx]: https://onnx.ai/
+[tf2onnx]: https://github.com/onnx/tensorflow-onnx
 
 Why are we doing this?
 ----------------------
@@ -152,6 +156,62 @@ numbers. This test just ensures that lwtnn can in fact read your NN.
 
 [weightsInputs]: https://github.com/lwtnn/lwtnn/wiki/Keras-Converter
 [seqQuickStart]: https://github.com/lwtnn/lwtnn/wiki/Quick-Start-With-Sequential-API
+
+Quick Start With ONNX
+---------------------
+
+The ONNX converter reads any `.onnx` file produced by
+`torch.onnx.export`, `tf2onnx`, or another exporter. It supports
+graphs of dense (`Gemm`, fused `MatMul`+`Add`), batch normalization,
+concatenation, and graph-level add merges with the usual activation
+functions, plus the SiLU/Swish pattern `Mul(x, Sigmoid(x))` exporters
+emit when ONNX has no native op for it. Recurrent and convolutional
+layer support is planned in follow-up releases.
+
+##### 1) Export your network to ONNX
+
+For example, from PyTorch:
+
+```python
+torch.onnx.export(
+    model, example_input, "model.onnx",
+    input_names=["input"], output_names=["output"],
+    opset_version=13,
+)
+```
+
+The converter requires opset 13 or higher.
+
+##### 2) Generate a variable specification
+
+If you don't already have a variable spec file, run the converter
+with just the model and pipe the printed template to a file:
+
+```
+lwtnn/converters/onnx2json.py model.onnx > variables.json
+```
+
+Edit `variables.json` to set the per-input `scale`, `offset` and any
+`default` values, and to name the output labels.
+
+##### 3) Convert to lwtnn JSON
+
+```
+lwtnn/converters/onnx2json.py model.onnx variables.json > neural_net.json
+```
+
+##### 4) Test and apply as usual
+
+Sanity-check the saved network and then use it from C++ exactly as
+described in the Keras Quick Start above:
+
+```
+./lwtnn-test-lightweight-graph neural_net.json
+```
+
+The converter requires the `onnx` Python package
+(`pip install onnx`).
+
 
 ##### 3) Apply your saved neural network within C++ code
 
