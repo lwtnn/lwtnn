@@ -14,6 +14,7 @@
 import sys
 
 import numpy as np
+from onnx import AttributeProto
 
 from onnx_converter_common import activation_map
 
@@ -22,15 +23,15 @@ def _attr(node, name, default=None):
     for a in node.attribute:
         if a.name != name:
             continue
-        if a.type == 1:
+        if a.type == AttributeProto.FLOAT:
             return a.f
-        if a.type == 2:
+        if a.type == AttributeProto.INT:
             return a.i
-        if a.type == 3:
+        if a.type == AttributeProto.STRING:
             return a.s.decode()
-        if a.type == 6:
+        if a.type == AttributeProto.FLOATS:
             return list(a.floats)
-        if a.type == 7:
+        if a.type == AttributeProto.INTS:
             return list(a.ints)
     return default
 
