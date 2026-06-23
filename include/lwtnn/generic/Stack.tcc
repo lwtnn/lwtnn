@@ -1,6 +1,7 @@
 #ifndef LWTNN_GENERIC_STACK_TCC
 #define LWTNN_GENERIC_STACK_TCC
 
+#include <cassert>
 #include "lwtnn/generic/Stack.hh"
 
 #include <set>

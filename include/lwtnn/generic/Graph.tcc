@@ -1,6 +1,7 @@
 #ifndef LWTNN_GENERIC_GRAPH_TCC
 #define LWTNN_GENERIC_GRAPH_TCC
 
+#include <cassert>
 #include "lwtnn/generic/Stack.hh"
 #include "lwtnn/generic/Graph.hh"
 #include "lwtnn/Exceptions.hh"

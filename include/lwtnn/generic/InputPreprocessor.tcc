@@ -1,6 +1,7 @@
 #ifndef LWTNN_GENERIC_INPUT_PREPROCESSOR_TCC
 #define LWTNN_GENERIC_INPUT_PREPROCESSOR_TCC
 
+#include <cassert>
 #include "lwtnn/generic/InputPreprocessor.hh"
 
 namespace lwt {

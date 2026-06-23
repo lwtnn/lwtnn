@@ -1,0 +1,9 @@
+# Extra dependencies for the torch -> ONNX -> lwtnn roundtrip test
+# (tests/test-torch-onnx-roundtrip.sh). Kept out of tests/requirements.txt
+# because PyTorch is heavy and only the torch-roundtrip CI job needs it.
+#
+# Versions are pinned because neither torch nor onnxscript promises forward
+# compatibility; bump these deliberately rather than tracking latest.
+--extra-index-url https://download.pytorch.org/whl/cpu
+onnxscript==0.7.0
+torch==2.12.1+cpu
