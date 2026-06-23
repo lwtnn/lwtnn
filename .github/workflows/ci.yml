@@ -118,8 +118,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install --requirement tests/requirements.txt
-        python -m pip install --index-url https://download.pytorch.org/whl/cpu torch
-        python -m pip install onnxscript
+        python -m pip install --requirement tests/requirements-roundtrip.txt
         python -m pip list
     - name: Build
       run: tests/build-cmake.sh
